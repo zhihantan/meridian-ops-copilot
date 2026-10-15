@@ -83,12 +83,7 @@ resources:
       description: "Table-update trigger: rebuild gold.acquirer_status whenever silver.payments changes."
       tags: {project: meridian-poc}
       max_concurrent_runs: 1
-      trigger:
-        table_update:
-          table_names: ["${var.catalog}.${resources.schemas.silver.name}.payments"]
-          condition: ANY_UPDATED
-          min_time_between_triggers_seconds: 60
-          wait_after_last_change_seconds: 90
+      trigger: ${var.acquirer_status_trigger}  # table update on silver.payments; see databricks.yml
       environments:
         - environment_key: default
           spec: {environment_version: "${var.serverless_environment_version}"}

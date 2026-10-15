@@ -34,13 +34,16 @@ def main() -> None:
     spark = (builder.profile(args.profile) if args.profile else builder).getOrCreate()
     me = WorkspaceClient(profile=args.profile).current_user.me()
     marker = f"connect-check {uuid.uuid4().hex[:12]}"
+    started = datetime.now(UTC).strftime("%Y-%m-%dT%H:%M:%SZ")
     table = names.table("gold", "payment_failure_daily")
     rows = spark.sql(f"/* {marker} */ SELECT count(*) AS n FROM {table}").first()["n"]
     result = {"task": "T07 connect", "at": datetime.now(UTC).isoformat(), "session": type(spark).__module__ + "." +
               type(spark).__name__, "identity_kind": "user" if "@" in (me.user_name or "") else "service principal",
               "table": table, "rows": rows, "marker": marker,
-              "find_it": f"SELECT executed_by, client_application, statement_text FROM system.query.history "
-                         f"WHERE statement_text LIKE '%{marker}%'"}
+              # statement_text is redacted in system.query.history here, so match the client and the time
+              "find_it": "SELECT start_time, executed_by, client_application, compute.type FROM system.query.history "
+                         "WHERE client_application = 'SPARK_CONNECT' AND executed_by = current_user() "
+                         f"AND start_time >= '{started}'"}
     print(json.dumps(result, indent=2))
     if args.out:
         Path(args.out).parent.mkdir(parents=True, exist_ok=True)

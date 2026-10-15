@@ -20,6 +20,15 @@ variables:
   duration_warning_seconds:
     description: Run-duration health rule for the ingest job (dev sets it low so every run exercises the warning)
     default: 900
+  acquirer_status_trigger:
+    description: Trigger of the acquirer-status job. A fresh deployment has no silver.payments to watch, so staging and ci swap in a paused schedule
+    type: complex
+    default:
+      table_update:
+        table_names: ["${var.catalog}.${resources.schemas.silver.name}.payments"]
+        condition: ANY_UPDATED
+        min_time_between_triggers_seconds: 60
+        wait_after_last_change_seconds: 90
   ci_service_principal:
     description: CI service principal (application ID) that deploys and runs staging and prod
     lookup:
@@ -50,13 +59,23 @@ targets:
       duration_warning_seconds: 120
 
   # Staging and prod are deployed by CI and run as the CI service principal, from its own folder.
+  # Staging is driven by CI (deploy, then the integration test), so its triggers are paused; prod runs them.
   staging:
+    presets:
+      trigger_pause_status: PAUSED
     workspace:
       root_path: /Workspace/Users/${var.ci_service_principal}/.bundle/${bundle.name}/${bundle.target}
     run_as:
       service_principal_name: ${var.ci_service_principal}
     variables:
       catalog: meridian_staging
+      acquirer_status_trigger:
+        pause_status: PAUSED
+        periodic: {interval: 1, unit: DAYS}
+    resources:
+      pipelines:
+        dlc:
+          name: "[staging] meridian-dlc"   # same workspace as prod, and pipeline names must be unique
 
   prod:
     mode: production
@@ -66,3 +85,19 @@ targets:
       service_principal_name: ${var.ci_service_principal}
     variables:
       catalog: meridian
+
+  # Ephemeral per-pull-request deployment in the staging catalog: ci_ schemas, triggers paused, run as the
+  # CI principal; the PR workflow runs the integration test and destroys it.
+  ci:
+    presets:
+      name_prefix: "[ci] "
+      trigger_pause_status: PAUSED
+    workspace:
+      root_path: /Workspace/Users/${var.ci_service_principal}/.bundle/${bundle.name}/ci
+    run_as:
+      service_principal_name: ${var.ci_service_principal}
+    variables:
+      catalog: meridian_staging
+      acquirer_status_trigger:
+        pause_status: PAUSED
+        periodic: {interval: 1, unit: DAYS}

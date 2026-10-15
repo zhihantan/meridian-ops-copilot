@@ -6,7 +6,7 @@ set -euo pipefail
 target="${1:?target}"
 batch="${2:?dataset/batch, e.g. payments/incident}"
 dataset="${batch%%/*}"
-src="data/out/${batch}"
+src="${DATA_DIR:-data/out}/${batch}"   # DATA_DIR: another generator output (the CI integration test)
 [ -d "$src" ] || { echo "no generated batch at $src (run make gen-data)" >&2; exit 1; }
 
 eval "$(uv run python scripts/volumes.py "$target")"

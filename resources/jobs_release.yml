@@ -1,0 +1,26 @@
+# Release log (T09): CI runs this after each deploy or rollback.
+resources:
+  jobs:
+    release_log_job:
+      name: meridian-release-log
+      description: "Writes one obs.releases row per deployment or rollback (run by CI)."
+      tags: {project: meridian-poc}
+      parameters:
+        - {name: kind, default: deploy}
+        - {name: ref, default: ""}
+        - {name: sha, default: ""}
+        - {name: actor, default: ""}
+        - {name: run_url, default: ""}
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      tasks:
+        - task_key: log
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/release_log.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --kind, "{{job.parameters.kind}}",
+                         --ref, "{{job.parameters.ref}}", --sha, "{{job.parameters.sha}}",
+                         --actor, "{{job.parameters.actor}}", --run-url, "{{job.parameters.run_url}}",
+                         --run-id, "{{job.run_id}}"]

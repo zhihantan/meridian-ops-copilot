@@ -1,0 +1,42 @@
+# Rollback (T09): redeploy a known-good tag to prod, then re-run quarantined rows through the restored
+# rules. Rollback is redeploying code; it does not roll back data, hence the reprocess step.
+name: rollback
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: Known-good release tag to redeploy (for example v0.3.0)
+        required: true
+      rule:
+        description: Quarantine rule whose rows to reprocess (empty for all)
+        required: false
+        default: ""
+permissions:
+  contents: read
+env:
+  UV_NO_SYNC: "1"
+jobs:
+  rollback:
+    if: vars.CI_READY == 'true'
+    runs-on: ubuntu-latest
+    environment: prod
+    concurrency: {group: prod, cancel-in-progress: false}
+    env:
+      DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
+      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
+      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      BUNDLE_VAR_ci_service_principal: ${{ secrets.DATABRICKS_CLIENT_ID }}   # the deploying principal is itself
+      BUNDLE_VAR_notification_email: ${{ vars.NOTIFICATION_EMAIL }}          # not the principal's own user name
+    steps:
+      - uses: actions/checkout@v4
+        with: {ref: "${{ inputs.tag }}"}
+      - uses: astral-sh/setup-uv@v6
+      - uses: databricks/setup-cli@main
+      - run: bash scripts/install_from_lock.sh
+      - run: databricks bundle deploy -t prod
+      - name: Reprocess quarantined rows with the restored rules
+        run: databricks bundle run -t prod reprocess_quarantine_job --params "rule=${{ inputs.rule }},since_hours=0"
+      - name: Log the rollback
+        run: >-
+          databricks bundle run -t prod release_log_job --params
+          "kind=rollback,ref=${{ inputs.tag }},sha=$(git rev-parse HEAD),actor=${GITHUB_ACTOR},run_url=${GITHUB_SERVER_URL}/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}"
