@@ -22,6 +22,7 @@ sys.path.insert(0, sys.argv[sys.argv.index("--src-dir") + 1] if "--src-dir" in s
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
+from meridian.common.pii import COVERED_TAGS
 from meridian.contracts.compiler import load_all
 from meridian.jobs.common import Names, names, parser
 
@@ -111,25 +112,28 @@ def check_freshness(spark: SparkSession, n: Names, contract, run_id: str) -> lis
 
 
 def check_pii_coverage(spark: SparkSession, n: Names, contract, run_id: str) -> list[dict]:
-    """Every PII-looking column must have a reviewed strategy in the contract or a governed tag.
-
-    A new PII-looking column (for example secondary_email) has neither, so it is flagged.
+    """Every PII-looking column must have a reviewed strategy in the contract, or a classification tag
+    that an ABAC policy covers. A new PII-looking column (for example secondary_email) has neither until
+    Data Classification tags it, so it is flagged in that window.
     """
     target = n.table("silver", contract.dataset)
-    tags = {r["column_name"]: f"{r['tag_name']}={r['tag_value']}" for r in spark.sql(
-        f"SELECT column_name, tag_name, tag_value FROM {n.catalog}.information_schema.column_tags "
-        f"WHERE schema_name = '{n.schema('silver')}' AND table_name = '{contract.dataset}' "
-        "AND (tag_name LIKE 'class.%' OR tag_name = 'meridian_pii')").collect()}
+    tags: dict[str, set[str]] = {}
+    for r in spark.sql(f"SELECT column_name, tag_name FROM {n.catalog}.information_schema.column_tags "
+                       f"WHERE schema_name = '{n.schema('silver')}' AND table_name = '{contract.dataset}' "
+                       "AND tag_name LIKE 'class.%'").collect():
+        tags.setdefault(r["column_name"], set()).add(r["tag_name"])
     rows = []
     for field in spark.read.table(target).schema.fields:
         strategy = contract.pii_handling.get(field.name)
-        if field.name not in tags and strategy is None and not any(h in field.name.lower() for h in PII_NAME_HINTS):
+        column_tags = tags.get(field.name, set())
+        if not column_tags and strategy is None and not any(h in field.name.lower() for h in PII_NAME_HINTS):
             continue
-        protected = strategy is not None
+        covered = sorted(column_tags & COVERED_TAGS)
+        protected = strategy is not None or bool(covered)
         rows.append(event("pii_coverage", run_id, dataset=contract.dataset, table_name=target, column_name=field.name,
-                          metric="protected", group_key=tags.get(field.name, "untagged"),
+                          metric="protected", group_key=",".join(sorted(column_tags)) or "untagged",
                           current_value=1.0 if protected else 0.0, threshold=1.0, breached=not protected,
-                          message=f"{target}.{field.name}: tag {tags.get(field.name, 'none')}, strategy "
+                          message=f"{target}.{field.name}: tags {sorted(column_tags) or 'none'}, strategy "
                                   f"{strategy or 'none'}" + ("" if protected else ": PII-like column with no protection")))
     return rows
 

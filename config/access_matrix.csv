@@ -1,0 +1,15 @@
+principal,privileges,securable_type,securable,purpose
+meridian-support,USE_CATALOG,CATALOG,{catalog},support agents browse the catalog
+meridian-support,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,customer and payment lookups (masked and filtered by ABAC)
+meridian-support,USE_SCHEMA|SELECT,SCHEMA,{prefix}gold,incident metrics
+meridian-finance,USE_CATALOG,CATALOG,{catalog},finance analysts
+meridian-finance,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,all markets (excepted from the market filter)
+meridian-finance,USE_SCHEMA|SELECT,SCHEMA,{prefix}gold,incident and refund metrics
+meridian-de,USE_CATALOG|BROWSE,CATALOG,{catalog},data engineers see every layer
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}bronze,raw records
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,validated records
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}quarantine,triage quarantined rows
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}gold,consumer tables
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}obs,drift and freshness events
+meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}gov,PII coverage and lineage changelog
+meridian-de,USE_SCHEMA|READ_VOLUME,SCHEMA,{prefix}landing,inspect landed files

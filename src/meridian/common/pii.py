@@ -18,6 +18,16 @@ PATTERNS: dict[str, str] = {
 }
 TOKENS = {"email": "[EMAIL]", "card": "[CARD]", "national_id": "[NRIC]", "phone": "[PHONE]"}
 
+# Contract PII category -> the Data Classification system tag for it. ABAC policies match these
+# tags, so a column the classifier tags is protected with no per-table change.
+CLASS_TAGS = {
+    "email": "class.email_address", "phone": "class.phone_number", "national_id": "class.sg_nric",
+    "card": "class.credit_card", "dob": "class.date_of_birth", "name": "class.name", "address": "class.street_address",
+}
+# Tags that some ABAC policy masks or restricts (name and address stay visible to support by design).
+COVERED_TAGS = {"class.email_address", "class.phone_number", "class.sg_nric", "class.sg_fin",
+                "class.credit_card", "class.date_of_birth"}
+
 
 def redact(text: str | None) -> str | None:
     if text is None:
