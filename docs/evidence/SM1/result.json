@@ -1,0 +1,26 @@
+{
+  "test": "SM1 gateway native Anthropic path with prompt caching",
+  "model": "databricks-claude-sonnet-5-5",
+  "path": "/ai-gateway/anthropic/v1/messages",
+  "ran_at": "2026-10-15T08:16:41.844685+00:00",
+  "calls": [
+    {
+      "attempt": 1,
+      "seconds": 1.94,
+      "input_tokens": 20,
+      "cache_creation_input_tokens": 12502,
+      "cache_read_input_tokens": 0,
+      "output_tokens": 4
+    },
+    {
+      "attempt": 2,
+      "seconds": 0.98,
+      "input_tokens": 20,
+      "cache_creation_input_tokens": 0,
+      "cache_read_input_tokens": 12502,
+      "output_tokens": 4
+    }
+  ],
+  "status": "PASS",
+  "follow_up": "find both calls in system.ai_gateway.usage once ingested (pre-stage for T27)"
+}

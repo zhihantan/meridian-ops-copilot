@@ -17,6 +17,17 @@ variables:
   serverless_environment_version:
     description: Serverless environment version pinned for jobs and local development
     default: "4"
+  ci_service_principal:
+    description: CI service principal (application ID) that deploys and runs staging and prod
+    lookup:
+      service_principal: meridian-ci
+
+# Admins manage every deployment; data engineers can view staging and prod.
+permissions:
+  - level: CAN_MANAGE
+    group_name: meridian-admin
+  - level: CAN_VIEW
+    group_name: meridian-de
 
 targets:
   dev:
@@ -28,15 +39,20 @@ targets:
     variables:
       catalog: meridian_dev
 
+  # Staging and prod are deployed by CI and run as the CI service principal, from its own folder.
   staging:
     workspace:
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/staging
+      root_path: /Workspace/Users/${var.ci_service_principal}/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      service_principal_name: ${var.ci_service_principal}
     variables:
       catalog: meridian_staging
 
   prod:
     mode: production
     workspace:
-      root_path: /Workspace/Shared/.bundle/${bundle.name}/prod
+      root_path: /Workspace/Users/${var.ci_service_principal}/.bundle/${bundle.name}/${bundle.target}
+    run_as:
+      service_principal_name: ${var.ci_service_principal}
     variables:
       catalog: meridian
