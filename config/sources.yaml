@@ -1,0 +1,13 @@
+# Config-driven ingestion (T06c): one generated job per source feed. Edit this file, run
+# `make gen-jobs`, then deploy. Removing an entry removes its job on the next deploy, which is also
+# the hazard to know about: the bundle destroys resources that leave the config.
+defaults:
+  format: json
+  schedule: "0 0 */6 * * ?"
+  timezone: Asia/Singapore
+sources:
+  - {name: settlements, system: system_a, schedule: "0 15 * * * ?"}
+  - {name: chargebacks, system: system_a}
+  - {name: merchant_master, system: system_b, format: csv, schedule: "0 0 2 * * ?"}
+  - {name: disputes, system: system_b}
+  - {name: fx_rates, system: system_c, schedule: "0 0 * * * ?"}

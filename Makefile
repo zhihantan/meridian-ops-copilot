@@ -35,3 +35,8 @@ run-pipeline:
 # make land BATCH=payments/incident
 land:
 	scripts/land.sh $(TARGET) $(BATCH)
+
+.PHONY: gen-jobs
+# Generated ingestion jobs from config/sources.yaml (T06c)
+gen-jobs:
+	uv run python scripts/gen_jobs.py
