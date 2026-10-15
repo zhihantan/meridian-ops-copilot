@@ -50,12 +50,12 @@ def main() -> None:
     if args.audit:
         rows = sql(WorkspaceClient(), f"""
             SELECT event_time, action_name, user_identity.email, response.status_code,
-                   request_params['full_name_arg'], request_params['include_value']
+                   request_params['full_name'], left(response.error_message, 80)
             FROM system.access.audit
             WHERE event_date >= current_date() - INTERVAL 2 DAYS AND service_name = 'unityCatalog'
               AND action_name ILIKE '%secret%' AND to_json(request_params) LIKE '%{full_name}%'
             ORDER BY event_time DESC LIMIT 40""")
-        result["audit"] = [dict(zip(("event_time", "action", "principal", "status", "secret", "include_value"),
+        result["audit"] = [dict(zip(("event_time", "action", "principal", "status", "secret", "error"),
                                     [r[0], r[1], "<user>" if r[2] and "@" in r[2] else r[2], *r[3:]])) for r in rows]
         print(f"{len(result['audit'])} audit rows")
     out = REPO / "docs" / "evidence" / "T08" / f"access_{args.target}.json"

@@ -2,20 +2,118 @@
   "task": "T08 secret access",
   "target": "dev",
   "secret": "meridian_dev.secrets.t08_probe",
-  "at": "2026-10-15T14:48:44.284867+00:00",
+  "at": "2026-10-15T15:18:46.061665+00:00",
   "reads": {
     "eli (admin, secret owner)": {
       "result": "allowed",
-      "fingerprint": "4b3f2d80dd6d"
+      "fingerprint": "144911b30fe3"
     },
     "gus (data engineer)": {
       "result": "allowed",
-      "fingerprint": "4b3f2d80dd6d"
+      "fingerprint": "144911b30fe3"
     },
     "ava (support)": {
       "result": "denied",
       "error": "PermissionDenied",
       "message": "User does not have USE SCHEMA on Schema 'meridian_dev.secrets'."
     }
-  }
+  },
+  "audit": [
+    {
+      "event_time": "2026-10-15T14:49:54.319Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:49:41.791Z",
+      "action": "updateSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:49:41.031Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:49:16.396Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:48:56.971Z",
+      "action": "getSecret",
+      "principal": "0f4090d7-de18-48e2-bab9-fe7975207c37",
+      "status": "500",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": "Exception: null"
+    },
+    {
+      "event_time": "2026-10-15T14:48:52.272Z",
+      "action": "getSecret",
+      "principal": "6501011b-dcef-428d-bb72-5641e0718ba1",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:48:48.076Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:48:20.334Z",
+      "action": "getSecret",
+      "principal": "0f4090d7-de18-48e2-bab9-fe7975207c37",
+      "status": "500",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": "Exception: null"
+    },
+    {
+      "event_time": "2026-10-15T14:48:16.434Z",
+      "action": "getSecret",
+      "principal": "6501011b-dcef-428d-bb72-5641e0718ba1",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:48:12.150Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:45:57.447Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "200",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": null
+    },
+    {
+      "event_time": "2026-10-15T14:29:45.082Z",
+      "action": "getSecret",
+      "principal": "<user>",
+      "status": "500",
+      "secret": "meridian_dev.secrets.t08_probe",
+      "error": "Exception: null"
+    }
+  ]
 }
