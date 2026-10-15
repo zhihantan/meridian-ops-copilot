@@ -21,7 +21,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[3]
 SCENARIO_PATH = REPO_ROOT / "config" / "scenario.yaml"
-EVIDENCE_PATH = REPO_ROOT / "docs" / "evidence" / "T02" / "planted.json"
+EVIDENCE_PATH = REPO_ROOT / "docs" / "evidence" / "T02" / "planted_summary.json"
 
 # Well-known test card numbers; never real cards.
 TEST_CARDS = ["4111111111111111", "5555555555554444", "4242424242424242", "4000056655665556"]
@@ -428,6 +428,16 @@ def generate(anchor: datetime, out: Path, scenario: dict | None = None) -> dict:
     return planted
 
 
+def public_summary(planted: dict) -> dict:
+    """planted.json without raw PII values (NRIC-format strings, phone numbers), safe for a public repo."""
+    summary = json.loads(json.dumps(planted))
+    cust = summary["customers"]
+    cust["notes_pii"] = {k: sum(p["type"] == k for p in planted["customers"]["notes_pii"])
+                         for k in ("email", "phone", "national_id")}
+    cust["notes_card_quarantine"] = [x["customer_id"] for x in planted["customers"]["notes_card_quarantine"]]
+    return summary
+
+
 def main() -> None:
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     parser.add_argument("--anchor", default="now", help="'now' or an ISO timestamp")
@@ -437,7 +447,7 @@ def main() -> None:
     planted = generate(parse_anchor(args.anchor), args.out)
     if args.evidence:
         EVIDENCE_PATH.parent.mkdir(parents=True, exist_ok=True)
-        shutil.copy(args.out / "planted.json", EVIDENCE_PATH)
+        EVIDENCE_PATH.write_text(json.dumps(public_summary(planted), indent=2))
     pay = planted["payments"]
     stats = pay["incident_stats"]
     print(f"anchor {planted['anchor']}: baseline {pay['baseline_rows']} rows, incident {pay['incident_rows']} rows")

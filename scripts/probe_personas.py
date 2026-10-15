@@ -57,6 +57,10 @@ def main() -> None:
                            and len(results["ben"]["payments_by_country"]) > 1,
     }
     status = "PASS" if all(checks.values()) else "FAIL"
+    # Keep unmasked values out of the committed evidence: record only that they were visible.
+    results["eli"] = {k: v if not isinstance(v, list) else
+                      [[c if c is None or k != "customer_pii" or i < 2 else f"<unmasked, {len(str(c))} chars>"
+                        for i, c in enumerate(row)] for row in v] for k, v in results["eli"].items()}
     EVIDENCE.mkdir(parents=True, exist_ok=True)
     (EVIDENCE / f"persona_probe_{args.target}.json").write_text(json.dumps(
         {"target": args.target, "ran_at": datetime.now(UTC).isoformat(), "results": results,

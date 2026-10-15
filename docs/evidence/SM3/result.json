@@ -1,13 +1,21 @@
 {
   "test": "SM3 AI Search delta sync index",
-  "ran_at": "2026-10-15T08:43:05.580797+00:00",
+  "ran_at": "2026-10-15T08:48:10.747274+00:00",
   "endpoint": "meridian-search",
   "embedding_endpoint": "databricks-gte-large-en",
   "index_create_seconds": 35,
   "query": "who has to approve a large refund",
   "top3_ids": {
-    "ann": "error: Pipeline 'c25d7bac-78b2-404e-98eb-c3974ab0d5d8' does not exist.",
-    "hybrid": "error: Pipeline 'c25d7bac-78b2-404e-98eb-c3974ab0d5d8' does not exist.",
+    "ann": [
+      1,
+      4,
+      3
+    ],
+    "hybrid": [
+      1,
+      2,
+      4
+    ],
     "hybrid_rerank": [
       1,
       5,
@@ -22,5 +30,5 @@
     1
   ],
   "reranker_status": "ok",
-  "status": "FAIL"
+  "status": "PASS"
 }
