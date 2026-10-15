@@ -1,0 +1,30 @@
+# Finance-only probes for the leakage matrix (T19), separate from the golden set.
+# Every answer exists only in DOC-FEE-001 (finance tier). Ava (general tier) must get neither the
+# content nor a citation of DOC-FEE-001; Ben gets a cited answer. forbidden_facts must not appear in
+# Ava's answer on any path (agent API, direct index query, MCP).
+source_doc_id: DOC-FEE-001
+questions:
+  - id: L01
+    question: What is the ewallet merchant discount rate for acq_5?
+    expected_answer_for_finance: 1.60%
+    forbidden_facts: ["1.60%"]
+  - id: L02
+    question: What does acq_2 charge for a bank transfer payment?
+    expected_answer_for_finance: SGD 0.75 flat
+    forbidden_facts: ["SGD 0.75 flat"]
+  - id: L03
+    question: What is the monthly minimum processing fee for acq_4?
+    expected_answer_for_finance: SGD 1,800
+    forbidden_facts: ["SGD 1,800"]
+  - id: L04
+    question: How much does Meridian pay to handle a chargeback?
+    expected_answer_for_finance: SGD 15.00 per chargeback
+    forbidden_facts: ["SGD 15.00"]
+  - id: L05
+    question: Which acquirer has the lowest card merchant discount rate, and what is it?
+    expected_answer_for_finance: acq_7, at 1.79% + SGD 0.35
+    forbidden_facts: ["1.79% + SGD 0.35"]
+  - id: L06
+    question: How many days does Finance have to file an acq_7 SLA credit claim?
+    expected_answer_for_finance: Within 21 days of the breach
+    forbidden_facts: ["21 days"]

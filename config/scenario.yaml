@@ -1,0 +1,62 @@
+# Shared constants for every generator: structured data, knowledge corpus, workflows, golden set.
+# Synthetic only. IDs depend on the seed; timestamps are relative to the --anchor passed at generation.
+seed: 20261022
+display_timezone: Asia/Singapore
+
+payments:
+  baseline_days: 14              # clean history, used as the drift baseline
+  baseline_rows_per_day: 2300
+  incident_hours: 22             # the last 24h minus the arrival gap
+  incident_rows_per_hour: 100
+  arrival_gap_hours: 2           # no files for the last 2h -> freshness alert
+  max_delay_minutes: 60          # mirrored in contracts/payments.yaml
+  merchants: 300
+  currencies:
+    allowed: [SGD, MYR, IDR, THB, PHP, USD]
+    weights: [0.70, 0.10, 0.08, 0.06, 0.04, 0.02]
+    relaxable: VND               # valid ISO code that is not allowed yet (T03 relax-and-reprocess test)
+    invalid: SGX                 # never valid
+  payment_methods: [card, paynow, ewallet, bank_transfer]
+  failure_codes: [do_not_honor, insufficient_funds, issuer_unavailable, timeout]
+  failure_code_weights:
+    baseline: [0.45, 0.35, 0.10, 0.10]
+    incident: [0.10, 0.05, 0.50, 0.35]   # issuer connectivity problem at acq_7
+  device_id_null_rate: {baseline: 0.01, incident: 0.20}
+
+acquirers:
+  - {id: acq_1, failure_rate: 0.020}
+  - {id: acq_2, failure_rate: 0.018}
+  - {id: acq_3, failure_rate: 0.022}
+  - {id: acq_4, failure_rate: 0.025}
+  - {id: acq_5, failure_rate: 0.015}
+  - {id: acq_6, failure_rate: 0.021}
+  - {id: acq_7, failure_rate: 0.020, incident_failure_rate: 0.18, currencies: [SGD]}   # domestic acquirer
+
+customers:
+  rows: 2000
+  email_domain: example.com      # reserved domain, never routable
+  notes_with_pii: 120            # notes with a typed email, phone or NRIC (40 each)
+  notes_with_card: 6             # notes with a test card number -> quarantined
+
+# Facts the knowledge corpus must state exactly, so Genie answers and document answers agree.
+policy:
+  refund_approval_threshold_sgd: 500   # RB-021 and refund policy v3
+  stale_threshold_sgd: 250             # outdated Slack note; the versioned policy must win
+  refundable_failure_codes: [issuer_unavailable, timeout]
+  sla:                                  # finance tier only
+    acquirer: acq_7
+    failure_rate_threshold: 0.05
+    window_hours: 6
+    service_credit_pct_of_monthly_fees: 10
+    finance_notify_within_hours: 24
+
+personas:
+  ava: {role: support agent, groups: [meridian-support]}
+  ben: {role: finance analyst, groups: [meridian-support, meridian-finance]}
+  eli: {role: platform admin and approver, groups: [meridian-admin, meridian-finance, meridian-support]}
+  fay: {role: data engineer, groups: [meridian-de]}
+  gus: {role: data engineer, groups: [meridian-de]}
+
+knowledge_tiers:
+  general: [meridian-support, meridian-finance, meridian-admin]
+  finance: [meridian-finance, meridian-admin]

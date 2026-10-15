@@ -1,0 +1,21 @@
+# Slack app for the Meridian demo workspace. Create it at https://api.slack.com/apps
+# -> Create New App -> From a manifest, then paste this file.
+display_information:
+  name: Meridian Ops Bot
+  description: Data quality alerts, AI quarantine digests and knowledge sync for the Meridian demo
+  background_color: "#1b3a57"
+features:
+  bot_user:
+    display_name: meridian-ops
+    always_online: true
+oauth_config:
+  scopes:
+    bot:
+      - chat:write          # DQ digest and seeded messages
+      - channels:read       # find channel IDs
+      - channels:history    # knowledge-base Slack puller (T11)
+      - incoming-webhook    # native Databricks notification destination for alerts
+settings:
+  org_deploy_enabled: false
+  socket_mode_enabled: false
+  token_rotation_enabled: false

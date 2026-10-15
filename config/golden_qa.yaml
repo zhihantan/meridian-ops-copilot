@@ -1,0 +1,196 @@
+# 20-question golden set (spec section 6), split 10 dev / 10 test, stratified by type.
+# Hold the test split back until a milestone. With samples this small, report counts, not just rates.
+# key_fact: a substring of an expected source that a correct answer must state (used by automated checks).
+# Slack sources are cited as SLACK-<msg_key>; msg_key is stored on each message in the Slack export.
+version: 1
+questions:
+  # single_source (8): one expected document each
+  - id: G01
+    split: dev
+    type: single_source
+    question: How quickly must a SEV2 payment incident be acknowledged?
+    expected_doc_ids: [DOC-RB-005]
+    expected_answer: Within 30 minutes.
+    key_fact: 30 minutes
+    tier_required: general
+    answerable: true
+  - id: G02
+    split: test
+    type: single_source
+    question: Within how many business days are approved refunds issued?
+    expected_doc_ids: [DOC-REF-003]
+    expected_answer: Within 5 business days.
+    key_fact: within 5 business days
+    tier_required: general
+    answerable: true
+  - id: G03
+    split: dev
+    type: single_source
+    question: How long are quarantined payment rows retained?
+    expected_doc_ids: [DOC-RET-001]
+    expected_answer: 90 days.
+    key_fact: 90 days
+    tier_required: general
+    answerable: true
+  - id: G04
+    split: test
+    type: single_source
+    question: How long does a refund approval stay valid?
+    expected_doc_ids: [DOC-RB-021]
+    expected_answer: 48 hours, after which a new approval is needed.
+    key_fact: expire after 48 hours
+    tier_required: general
+    answerable: true
+  - id: G05
+    split: dev
+    type: single_source
+    question: After how many hours does a merchant payout hold auto-release?
+    expected_doc_ids: [DOC-RB-009]
+    expected_answer: After 72 hours, unless Risk extends it.
+    key_fact: auto-release after 72 hours
+    tier_required: general
+    answerable: true
+  - id: G06
+    split: test
+    type: single_source
+    question: Which step of RB-014 computes the customer impact?
+    expected_doc_ids: [DOC-RB-014]
+    expected_answer: Step s3, Compute customer impact.
+    key_fact: s3 | Compute customer impact
+    tier_required: general
+    answerable: true
+  - id: G07
+    split: dev
+    type: single_source
+    question: How quickly must a personal data deletion request be completed?
+    expected_doc_ids: [DOC-RET-001]
+    expected_answer: Within 30 days.
+    key_fact: completed within 30 days
+    tier_required: general
+    answerable: true
+  - id: G08
+    split: test
+    type: single_source
+    question: Which failure codes make a failed payment eligible for a refund?
+    expected_doc_ids: [DOC-REF-003]
+    expected_answer: issuer_unavailable and timeout.
+    key_fact: issuer_unavailable or timeout
+    tier_required: general
+    answerable: true
+
+  # multi_hop (2): runbook plus Slack
+  - id: G09
+    split: dev
+    type: multi_hop
+    question: Before starting RB-014, which PagerDuty schedule do you page?
+    expected_doc_ids: [DOC-RB-014, SLACK-OPS-004]
+    expected_answer: payops-primary (the PayOps on-call).
+    key_fact: payops-primary
+    tier_required: general
+    answerable: true
+  - id: G10
+    split: test
+    type: multi_hop
+    question: Where are refund approval requests posted, and which group approves them?
+    expected_doc_ids: [DOC-RB-021, SLACK-OPS-005]
+    expected_answer: In #refund-approvals; a member of meridian-admin approves.
+    key_fact: "#refund-approvals"
+    tier_required: general
+    answerable: true
+
+  # numeric (2): exact values from the fee schedule and SLA (finance tier)
+  - id: G11
+    split: dev
+    type: numeric
+    question: What is the merchant discount rate for card payments through acq_3?
+    expected_doc_ids: [DOC-FEE-001]
+    expected_answer: 2.10% + SGD 0.25 per transaction.
+    key_fact: 2.10% + SGD 0.25
+    tier_required: finance
+    answerable: true
+  - id: G12
+    split: test
+    type: numeric
+    question: What failure rate puts acq_7 in breach of its SLA?
+    expected_doc_ids: [DOC-FEE-001]
+    expected_answer: Above 5% over a rolling 6-hour window.
+    key_fact: above 5% over a rolling 6-hour window
+    tier_required: finance
+    answerable: true
+
+  # finance (3): answerable only for Ben and Eli
+  - id: G13
+    split: dev
+    type: finance
+    question: What can Meridian claim from acq_7 when it breaches its SLA?
+    expected_doc_ids: [DOC-FEE-001]
+    expected_answer: A service credit of 10% of the month's processing fees paid to acq_7.
+    key_fact: service credit of 10% of the month's processing fees
+    tier_required: finance
+    answerable: true
+  - id: G14
+    split: dev
+    type: finance
+    question: How quickly must Finance be told about an acq_7 SLA breach?
+    expected_doc_ids: [DOC-FEE-001]
+    expected_answer: Within 24 hours of the breach being detected.
+    key_fact: notified within 24 hours
+    tier_required: finance
+    answerable: true
+  - id: G15
+    split: test
+    type: finance
+    question: Who is the escalation contact for an acq_7 SLA breach?
+    expected_doc_ids: [DOC-FEE-001]
+    expected_answer: acq7-escalations@example.com
+    key_fact: acq7-escalations@example.com
+    tier_required: finance
+    answerable: true
+
+  # conflict (1): the versioned policy must win over the stale note and Slack message
+  - id: G16
+    split: test
+    type: conflict
+    question: What refund batch total requires approval before it is executed?
+    expected_doc_ids: [DOC-REF-003, DOC-RB-021]
+    conflicting_doc_ids: [DOC-NOTE-250, SLACK-OPS-003]
+    expected_answer: Above SGD 500 (refund policy v3 and RB-021). The SGD 250 figure in older notes is outdated.
+    key_fact: above SGD 500
+    tier_required: general
+    answerable: true
+
+  # out_of_scope (4): must abstain; two are world-knowledge traps the model may know
+  - id: G17
+    split: dev
+    type: out_of_scope
+    trap: world_knowledge
+    question: What is Singapore's current GST rate?
+    expected_doc_ids: []
+    expected_answer: Abstain; the knowledge base does not cover tax rates.
+    tier_required: general
+    answerable: false
+  - id: G18
+    split: test
+    type: out_of_scope
+    trap: world_knowledge
+    question: How long does a Visa cardholder have to raise a chargeback?
+    expected_doc_ids: []
+    expected_answer: Abstain; the knowledge base does not cover card-scheme chargeback time limits.
+    tier_required: general
+    answerable: false
+  - id: G19
+    split: dev
+    type: out_of_scope
+    question: When do Meridian loyalty points expire?
+    expected_doc_ids: []
+    expected_answer: Abstain; there is no loyalty programme document.
+    tier_required: general
+    answerable: false
+  - id: G20
+    split: test
+    type: out_of_scope
+    question: When does Meridian's contract with acq_2 expire?
+    expected_doc_ids: []
+    expected_answer: Abstain; contract terms are not in the knowledge base.
+    tier_required: general
+    answerable: false

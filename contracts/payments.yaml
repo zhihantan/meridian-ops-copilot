@@ -1,0 +1,81 @@
+# Data contract for payments: the reference schema and the single source of truth for
+# schema hints, expectations, quarantine rules, severity routing and drift/freshness checks.
+# Compiled by src/meridian/contracts/compiler.py. Rule expressions use portable SQL
+# (Spark SQL and DuckDB) so CI can test them without a cluster.
+dataset: payments
+owner: meridian-de
+landing_path: payments            # under /Volumes/<catalog>/landing/raw/
+format: json
+max_delay_minutes: 60             # freshness_check pages when no event is newer than this
+event_time_column: created_at
+key: payment_id
+
+schema:                           # reference schema; also compiled into Auto Loader schemaHints
+  - {name: payment_id, type: STRING}
+  - {name: merchant_id, type: STRING}
+  - {name: customer_id, type: STRING}
+  - {name: acquirer_id, type: STRING}
+  - {name: amount, type: "DECIMAL(12,2)"}
+  - {name: currency, type: STRING}
+  - {name: payment_method, type: STRING}
+  - {name: status, type: STRING}
+  - {name: failure_code, type: STRING}
+  - {name: device_id, type: STRING}
+  - {name: country, type: STRING}
+  - {name: created_at, type: TIMESTAMP}
+
+# severity: critical | warn | info
+# on_violation: fail (stop the update and page) | quarantine (route the row) | warn (keep the row, count it)
+# notify: a channel name from `routing` below
+rules:
+  - name: payment_id_not_null
+    expr: "payment_id IS NOT NULL"
+    severity: critical
+    on_violation: fail
+    notify: page
+  - name: merchant_id_not_null
+    expr: "merchant_id IS NOT NULL"
+    severity: warn
+    on_violation: quarantine
+    notify: slack_dq
+  - name: amount_present
+    expr: "amount IS NOT NULL"
+    severity: warn
+    on_violation: quarantine
+    notify: slack_dq
+  - name: amount_positive
+    expr: "amount IS NULL OR amount > 0"
+    severity: warn
+    on_violation: quarantine
+    notify: slack_dq
+  - name: currency_valid
+    expr: "currency IN ('SGD', 'MYR', 'IDR', 'THB', 'PHP', 'USD')"
+    severity: warn
+    on_violation: quarantine
+    notify: slack_dq
+  - name: status_valid
+    expr: "status IN ('succeeded', 'failed')"
+    severity: info
+    on_violation: warn
+    notify: table_only
+
+# Cross-row rule, evaluated on the stream with a watermark (BUILD). The watermark must cover the
+# baseline: rows older than (newest event - watermark) count as late and are dropped by the dedupe.
+uniqueness:
+  name: payment_id_unique
+  columns: [payment_id]
+  watermark: "30 days"
+  severity: warn
+  notify: slack_dq
+
+drift:
+  baseline_days: 14
+  window_hours: 24
+  metrics:
+    - {name: failure_rate_by_acquirer, group_by: acquirer_id, max_ratio_to_baseline: 3.0, min_rows: 50}
+    - {name: null_rate, columns: [device_id, merchant_id, customer_id], max_increase_pp: 5.0}
+
+routing:
+  page: {type: email, severity: critical}
+  slack_dq: {type: slack, severity: warn}
+  table_only: {type: none, severity: info}

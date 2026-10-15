@@ -1,0 +1,63 @@
+# Data contract for customers, which arrive as CDC events (op I/U/D, seq).
+# Compiled by src/meridian/contracts/compiler.py.
+dataset: customers
+owner: meridian-de
+landing_path: customers_changes   # under /Volumes/<catalog>/landing/raw/
+format: json
+max_delay_minutes: 1440
+event_time_column: op_ts
+key: customer_id
+cdc:
+  operation_column: op
+  sequence_column: seq
+  delete_value: D
+
+schema:
+  - {name: customer_id, type: STRING}
+  - {name: full_name, type: STRING, pii: name}
+  - {name: email, type: STRING, pii: email}
+  - {name: phone, type: STRING, pii: phone}
+  - {name: national_id, type: STRING, pii: national_id}
+  - {name: dob, type: DATE, pii: dob}
+  - {name: address, type: STRING, pii: address}
+  - {name: card_number, type: STRING, pii: card}
+  - {name: notes, type: STRING, pii: free_text}
+  - {name: created_at, type: TIMESTAMP}
+  - {name: op, type: STRING}
+  - {name: seq, type: BIGINT}
+  - {name: op_ts, type: TIMESTAMP}
+
+# How each PII column is protected. pii_coverage alerts on any PII-looking column with no entry here
+# and no ABAC policy (for example a new column that arrives later).
+pii_handling:
+  email: mask              # ABAC column mask for everyone except meridian-admin
+  phone: mask
+  national_id: restrict    # NULL for everyone except meridian-admin
+  card_number: restrict
+  dob: restrict
+  full_name: none          # needed by support; access controlled by table grants
+  address: none
+  notes: redact            # notes_redacted plus contains_pii are computed in the pipeline
+
+# Regexes avoid backslashes: Spark SQL unescapes them in string literals and DuckDB does not.
+rules:
+  - name: customer_id_not_null
+    expr: "customer_id IS NOT NULL"
+    severity: critical
+    on_violation: fail
+    notify: page
+  - name: notes_no_card_number
+    expr: "notes IS NULL OR NOT regexp_like(notes, '(^|[^0-9])([0-9][ -]?){12,18}[0-9]([^0-9]|$)')"
+    severity: warn
+    on_violation: quarantine
+    notify: slack_dq
+  - name: email_format
+    expr: "email IS NULL OR regexp_like(email, '^[^@ ]+@[^@ ]+[.][^@ ]+$')"
+    severity: info
+    on_violation: warn
+    notify: table_only
+
+routing:
+  page: {type: email, severity: critical}
+  slack_dq: {type: slack, severity: warn}
+  table_only: {type: none, severity: info}

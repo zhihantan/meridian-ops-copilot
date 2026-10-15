@@ -1,0 +1,26 @@
+# Medallion, governance and AI schemas plus the landing volume. In dev each developer gets
+# their own prefixed copy, so parallel feature branches never write to the same tables.
+resources:
+  schemas:
+    landing: {catalog_name: "${var.catalog}", name: landing, comment: "Raw files as they arrive"}
+    bronze: {catalog_name: "${var.catalog}", name: bronze, comment: "Raw records with rescued data and ingestion metadata"}
+    silver: {catalog_name: "${var.catalog}", name: silver, comment: "Validated, deduplicated, PII-handled records"}
+    quarantine: {catalog_name: "${var.catalog}", name: quarantine, comment: "BUILD: rows that failed a contract rule"}
+    gold: {catalog_name: "${var.catalog}", name: gold, comment: "Consumer-shaped tables for Genie, the agent and dashboards"}
+    obs: {catalog_name: "${var.catalog}", name: obs, comment: "Pipeline health, drift events, DQ digest, evidence"}
+    gov: {catalog_name: "${var.catalog}", name: gov, comment: "PII coverage, lineage snapshots and changelog"}
+    kb: {catalog_name: "${var.catalog}", name: kb, comment: "Knowledge base documents, chunks, corrections, audit"}
+    agent: {catalog_name: "${var.catalog}", name: agent, comment: "Agent runs, approvals, violations"}
+    eval: {catalog_name: "${var.catalog}", name: eval, comment: "Golden set, retrieval ablations, freshness probes"}
+
+  volumes:
+    raw:
+      catalog_name: "${var.catalog}"
+      schema_name: "${resources.schemas.landing.name}"
+      name: raw
+      comment: "Watched by Auto Loader and the file-arrival trigger"
+    exports:
+      catalog_name: "${var.catalog}"
+      schema_name: "${resources.schemas.obs.name}"
+      name: exports
+      comment: "Daily log and audit exports"

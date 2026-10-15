@@ -1,0 +1,71 @@
+# RB-014 v4: draft. Not executable until someone other than the owner approves it (approve_workflow).
+workflow_id: RB-014
+title: Acquirer degradation response
+version: 4
+status: draft
+owner: ben
+approved_by: null
+change_note: >-
+  Adds s1b, a check against the acquirer status feed, before the SLA lookup. Draft: get_workflow keeps
+  returning v3 until this version is approved.
+params:
+  refund_approval_threshold_sgd: 500
+  refundable_failure_codes: [issuer_unavailable, timeout]
+summary: >-
+  Respond to a degraded acquirer: confirm the failure spike in the data and with the acquirer, check
+  the acquirer's SLA terms, size the customer impact, and refund customers who may have been charged,
+  with approval when the batch is above the refund threshold.
+before_you_start: Page the PayOps on-call before step s1.
+steps:
+  - id: s1
+    name: Query payment data
+    tool: ask_genie
+    required_inputs: [acquirer_id, window_hours]
+    description: >-
+      Get the acquirer's failure rate for the window against its 14-day baseline, and list failed
+      payments with refundable failure codes.
+    next: {on_success: s1b}
+  - id: s1b
+    name: Confirm with the acquirer status feed
+    tool: check_acquirer_status
+    required_inputs: [acquirer_id]
+    description: Confirm the acquirer has declared an incident before involving Finance.
+    next: {on_success: s2, if_no_incident: monitor_and_stop}
+  - id: s2
+    name: Retrieve the acquirer SLA clause
+    tool: search_kb
+    tier: finance
+    required_inputs: [acquirer_id]
+    description: >-
+      Find the acquirer's SLA clause in the finance knowledge base. The clause is restricted to
+      Finance; if the caller is not entitled, stop and escalate to Finance.
+    next: {on_success: s3, if_not_entitled: escalate_to_finance}
+  - id: s3
+    name: Compute customer impact
+    tool: compute_impact
+    required_inputs: [failed_payments]
+    description: Sum the value of failed payments whose failure code is issuer_unavailable or timeout.
+    next: {on_success: s4}
+  - id: s4
+    name: Propose refund batch
+    tool: propose_refund
+    required_inputs: [impact]
+    description: Create a refund batch for the affected payments, with the batch total in SGD.
+    next: {on_success: s5}
+  - id: s5
+    name: Request approval
+    tool: request_approval
+    required_inputs: [refund_batch_id]
+    required_when: refund_batch.total_sgd > 500
+    description: >-
+      Ask a member of meridian-admin to approve the batch. The approver must be a different person
+      from the requester.
+    next: {on_approved: s6, if_pending: wait_for_approval, if_rejected: stop, if_not_required: s6}
+  - id: s6
+    name: Execute refund batch
+    tool: refund_batch
+    required_inputs: [refund_batch_id, approval_id]
+    description: >-
+      Issue the refunds. Refused unless s1 to s4 are logged ok for this run and, above the
+      threshold, a valid approval exists.
+    next: {on_success: done}

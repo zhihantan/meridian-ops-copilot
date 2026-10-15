@@ -1,0 +1,25 @@
+# Customer-confidential planning material stays local: this repo is public.
+private/
+Meridian_Ops_Copilot_2Day_Build_Spec.md
+
+# Generated data (regenerate with `make gen-data`)
+data/
+
+# Python and tooling
+.venv/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.ruff_cache/
+*.egg-info/
+build/
+dist/
+
+# Databricks bundle state
+.databricks/
+
+# Local environment and secrets
+.env
+.env.*
+*.pem
+.DS_Store

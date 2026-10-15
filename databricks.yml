@@ -1,0 +1,42 @@
+# Meridian Ops Copilot bundle (T01). Host and auth come from the CLI profile in
+# DATABRICKS_CONFIG_PROFILE, or in CI from DATABRICKS_HOST plus OAuth credentials, so no workspace
+# URL is committed.
+bundle:
+  name: meridian
+
+include:
+  - resources/*.yml
+  - resources/generated/*.yml
+
+variables:
+  catalog:
+    description: Unity Catalog catalog for the target
+  notification_email:
+    description: Recipient for critical alerts and job failures
+    default: ${workspace.current_user.userName}
+  serverless_environment_version:
+    description: Serverless environment version pinned for jobs and local development
+    default: "4"
+
+targets:
+  dev:
+    # One set of schemas, volumes, jobs and pipelines per developer, with schedules paused.
+    mode: development
+    default: true
+    presets:
+      name_prefix: dev_${workspace.current_user.short_name}_
+    variables:
+      catalog: meridian_dev
+
+  staging:
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/staging
+    variables:
+      catalog: meridian_staging
+
+  prod:
+    mode: production
+    workspace:
+      root_path: /Workspace/Shared/.bundle/${bundle.name}/prod
+    variables:
+      catalog: meridian

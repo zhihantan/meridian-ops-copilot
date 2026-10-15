@@ -1,0 +1,29 @@
+# The governed data pipeline (T03 to T05): payments and customers, bronze to gold.
+resources:
+  pipelines:
+    dlc:
+      name: meridian-dlc
+      catalog: "${var.catalog}"
+      schema: "${resources.schemas.bronze.name}"
+      serverless: true
+      channel: CURRENT
+      photon: true
+      continuous: false
+      libraries:
+        - file: {path: ../src/meridian/pipelines/payments.py}
+        - file: {path: ../src/meridian/pipelines/customers.py}
+        - file: {path: ../src/meridian/pipelines/gold.py}
+      environment:
+        dependencies:
+          - pyyaml>=6.0
+      configuration:
+        meridian.src_dir: "${workspace.file_path}/src"
+        meridian.contracts_dir: "${workspace.file_path}/contracts"
+        meridian.catalog: "${var.catalog}"
+        meridian.landing_root: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}"
+        meridian.schema.bronze: "${resources.schemas.bronze.name}"
+        meridian.schema.silver: "${resources.schemas.silver.name}"
+        meridian.schema.quarantine: "${resources.schemas.quarantine.name}"
+        meridian.schema.gold: "${resources.schemas.gold.name}"
+        meridian.payments.schema_evolution_mode: rescue
+        meridian.customers.schema_evolution_mode: addNewColumns
