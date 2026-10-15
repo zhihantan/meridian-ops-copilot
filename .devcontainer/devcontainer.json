@@ -1,0 +1,16 @@
+{
+  "name": "meridian (serverless environment 4)",
+  "image": "mcr.microsoft.com/devcontainers/python:1-3.12-bookworm",
+  "postCreateCommand": "bash .devcontainer/post_create.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["databricks.databricks", "ms-python.python", "ms-toolsai.jupyter", "charliermarsh.ruff"],
+      "settings": {"python.defaultInterpreterPath": "envs/serverless-v4/.venv/bin/python"}
+    }
+  },
+  "secrets": {
+    "DATABRICKS_HOST": {"description": "Workspace URL"},
+    "DATABRICKS_CLIENT_ID": {"description": "Application ID of the developer's service principal (Gus in the demo)"},
+    "DATABRICKS_CLIENT_SECRET": {"description": "OAuth secret of that service principal"}
+  }
+}
