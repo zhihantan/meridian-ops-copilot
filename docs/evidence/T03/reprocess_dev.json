@@ -1,0 +1,23 @@
+{
+  "task": "T03 reprocess",
+  "ran_at": "2026-10-15T09:16:40.192153+00:00",
+  "audit_rows": [
+    [
+      "2026-10-15T09:14:46.537Z",
+      "currency_valid",
+      "12",
+      "5"
+    ],
+    [
+      "2026-10-15T09:15:51.137Z",
+      "currency_valid",
+      "7",
+      "0"
+    ]
+  ],
+  "silver_rows": "34425",
+  "silver_duplicate_ids": "0",
+  "vnd_rows_in_silver": "5",
+  "quarantine_rows_stamped": "5",
+  "status": "PASS"
+}

@@ -1,0 +1,16 @@
+{
+  "target": "dev",
+  "ran_at": "2026-10-15T09:22:46.012055+00:00",
+  "table_monitor": {
+    "table": "meridian_dev.dev_zhihan_tan_silver.payments",
+    "profile_metrics": "meridian_dev.dev_zhihan_tan_obs.payments_profile_metrics",
+    "drift_metrics": "meridian_dev.dev_zhihan_tan_obs.payments_drift_metrics",
+    "dashboard_id": null,
+    "status": "DataProfilingStatus.DATA_PROFILING_STATUS_PENDING"
+  },
+  "schema_monitor": {
+    "schema": "meridian_dev.dev_zhihan_tan_gold",
+    "anomaly_detection": "enabled"
+  },
+  "refresh_id": 672645923479861
+}
