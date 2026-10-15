@@ -1,0 +1,16 @@
+{
+  "target": "prod",
+  "ran_at": "2026-10-15T10:45:23.090320+00:00",
+  "table_monitor": {
+    "table": "meridian.silver.payments",
+    "profile_metrics": "meridian.obs.payments_profile_metrics",
+    "drift_metrics": "meridian.obs.payments_drift_metrics",
+    "dashboard_id": null,
+    "status": "DataProfilingStatus.DATA_PROFILING_STATUS_PENDING"
+  },
+  "schema_monitor": {
+    "schema": "meridian.gold",
+    "anomaly_detection": "enabled"
+  },
+  "refresh_id": 401178840211152
+}
