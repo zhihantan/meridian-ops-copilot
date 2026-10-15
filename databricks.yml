@@ -22,10 +22,13 @@ variables:
     lookup:
       service_principal: meridian-ci
 
-# Admins manage every deployment; data engineers can view staging and prod.
+# Admins and the CI principal (which runs staging and prod) manage every deployment; data engineers
+# can view.
 permissions:
   - level: CAN_MANAGE
     group_name: meridian-admin
+  - level: CAN_MANAGE
+    service_principal_name: ${var.ci_service_principal}
   - level: CAN_VIEW
     group_name: meridian-de
 
