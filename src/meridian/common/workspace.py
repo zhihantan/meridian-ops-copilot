@@ -2,6 +2,10 @@
 
 from __future__ import annotations
 
+from meridian.common.localenv import load_local_env
+
+load_local_env()
+
 import os
 import time
 

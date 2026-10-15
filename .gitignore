@@ -23,3 +23,6 @@ dist/
 .env.*
 *.pem
 .DS_Store
+
+# Personal Claude Code permissions
+.claude/settings.local.json

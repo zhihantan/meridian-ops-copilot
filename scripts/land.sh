@@ -2,6 +2,7 @@
 # Land one generated batch into the watched raw volume, which fires the file-arrival trigger.
 #   scripts/land.sh <target> <dataset>/<batch>      e.g. scripts/land.sh dev payments/incident
 set -euo pipefail
+[ -f .env.local ] && { set -a; . ./.env.local; set +a; }  # local profile, no inline prefix needed
 target="${1:?target}"
 batch="${2:?dataset/batch, e.g. payments/incident}"
 dataset="${batch%%/*}"
