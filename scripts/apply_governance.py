@@ -22,6 +22,7 @@ import csv
 from pathlib import Path
 
 from databricks.sdk import WorkspaceClient
+from databricks.sdk.errors import NotFound
 from databricks.sdk.service.sql import WarehouseAccessControlRequest, WarehousePermissionLevel
 
 from meridian.common.bundle import target_names
@@ -32,6 +33,28 @@ from meridian.contracts.compiler import load_all
 REPO = Path(__file__).resolve().parents[1]
 PERSONA_GROUPS = ["meridian-support", "meridian-finance", "meridian-de", "meridian-admin"]
 SCOPE_TAG, SCOPE_VALUE = "row_scope", "country"
+
+
+def expand(w: WorkspaceClient, catalog: str, securable_type: str, securable: str) -> list[str]:
+    """Securables a matrix row names. READ SECRET is granted per secret (privilege model 1.0 has no
+    schema-level READ SECRET), so "secrets.*" means every secret in that schema at apply time."""
+    if securable_type != "SECRET":
+        return [securable]
+    if not securable.endswith(".*"):
+        return [f"{catalog}.{securable}"]
+    schema = securable[:-2]
+    if not schema_exists(w, f"{catalog}.{schema}"):
+        print(f"skipped {catalog}.{schema}.*: schema does not exist yet")
+        return []
+    return [s.full_name for s in w.secrets_uc.list_secrets(catalog_name=catalog, schema_name=schema)]
+
+
+def schema_exists(w: WorkspaceClient, full_name: str) -> bool:
+    try:
+        w.schemas.get(full_name)
+        return True
+    except NotFound:
+        return False
 
 
 def main() -> None:
@@ -105,11 +128,21 @@ def main() -> None:
 
     with open(REPO / "config" / "access_matrix.csv") as fh:
         for row in csv.DictReader(fh):
+            if row["targets"] and args.target not in row["targets"].split(","):
+                continue
             securable = row["securable"].format(catalog=catalog, prefix=prefix)
             if row["securable_type"] == "SCHEMA":
                 securable = f"{catalog}.{securable}"
+                if not schema_exists(w, securable):
+                    print(f"skipped {securable}: schema does not exist yet")
+                    continue
             privileges = ", ".join(p.replace("_", " ") for p in row["privileges"].split("|"))
-            sql(w, f"GRANT {privileges} ON {row['securable_type']} {securable} TO `{row['principal']}`")
+            for target in expand(w, catalog, row["securable_type"], securable):
+                if row["securable_type"] == "SECRET":  # SQL GRANT ON SECRET fails on the warehouse here
+                    w.api_client.do("PATCH", f"/api/2.1/unity-catalog/permissions/secret/{target}", body={
+                        "changes": [{"principal": row["principal"], "add": row["privileges"].split("|")}]})
+                else:
+                    sql(w, f"GRANT {privileges} ON {row['securable_type']} {target} TO `{row['principal']}`")
     print("grants applied from config/access_matrix.csv")
 
     wh = warehouse_id(w)

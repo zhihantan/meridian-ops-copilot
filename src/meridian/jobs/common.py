@@ -42,16 +42,34 @@ def names(args) -> Names:
 
 
 def read_uc_secret(full_name: str) -> str | None:
-    """Value of a Unity Catalog secret (PREVIEW), read as the job's identity. None if missing."""
+    """Value of a Unity Catalog secret (GA since 2026-08-03), read as the job's identity. None if unreadable.
+
+    Native dbutils.secrets.get(catalog=, schema=, key=) on serverless environment 4 and later; the
+    REST API elsewhere. The value is never printed or logged.
+    """
+    catalog, schema, key = full_name.split(".")
+    try:
+        from databricks.sdk.runtime import dbutils
+
+        return dbutils.secrets.get(catalog=catalog, schema=schema, key=key)
+    except Exception as exc:  # noqa: BLE001  not on Databricks compute, missing secret or no READ SECRET
+        native_error = exc
     from databricks.sdk import WorkspaceClient
 
-    w = WorkspaceClient()
     try:
-        secret = w.api_client.do("GET", f"/api/2.1/unity-catalog/secrets/{full_name}", query={"include_value": "true"})
-    except Exception as exc:  # noqa: BLE001  missing secret or no READ privilege: degrade to logs
-        print(f"secret {full_name} not readable: {exc}")
+        secret = WorkspaceClient().api_client.do("GET", f"/api/2.1/unity-catalog/secrets/{full_name}",
+                                                 query={"include_value": "true"})
+    except Exception as exc:  # noqa: BLE001  degrade to logs; the caller decides what to do
+        print(f"secret {full_name} not readable: {type(native_error).__name__}; {exc}")
         return None
     return secret.get("effective_value")
+
+
+def fingerprint(value: str | None) -> str | None:
+    """Short sha256 of a secret value: shows that a rotation took effect without revealing the value."""
+    import hashlib
+
+    return hashlib.sha256(value.encode()).hexdigest()[:12] if value else None
 
 
 def post_slack(token: str | None, channel: str, text: str) -> None:

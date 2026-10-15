@@ -1,0 +1,21 @@
+{
+  "task": "T08 secret access",
+  "target": "dev",
+  "secret": "meridian_dev.secrets.t08_probe",
+  "at": "2026-10-15T14:48:44.284867+00:00",
+  "reads": {
+    "eli (admin, secret owner)": {
+      "result": "allowed",
+      "fingerprint": "4b3f2d80dd6d"
+    },
+    "gus (data engineer)": {
+      "result": "allowed",
+      "fingerprint": "4b3f2d80dd6d"
+    },
+    "ava (support)": {
+      "result": "denied",
+      "error": "PermissionDenied",
+      "message": "User does not have USE SCHEMA on Schema 'meridian_dev.secrets'."
+    }
+  }
+}

@@ -1,0 +1,9 @@
+{
+  "task": "T08 rotation without redeploy",
+  "secret": "meridian_dev.secrets.t08_probe",
+  "before": {"probe_run": "629147725726844", "fingerprint": "4b3f2d80dd6d", "at": "2026-10-15T14:46Z"},
+  "rotated_at": "2026-10-15T14:49:37Z",
+  "after": {"probe_run": "136900209433887", "fingerprint": "144911b30fe3", "at": "2026-10-15T14:50Z"},
+  "between_runs": "put_secret.py --generate only; no bundle deploy, no code or config change",
+  "status": "PASS"
+}
