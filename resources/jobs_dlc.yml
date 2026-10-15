@@ -131,3 +131,22 @@ resources:
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src",
                          --days-ago, "{{job.parameters.days_ago}}", --run-id, "{{job.run_id}}"]
+
+    daily_digest_job:
+      name: meridian-dq-digest
+      description: "Cron 08:00 SGT: AI digest of quarantined rows to Slack (flagged for human review)."
+      tags: {project: meridian-poc}
+      schedule:
+        quartz_cron_expression: "0 0 8 * * ?"
+        timezone_id: Asia/Singapore
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      tasks:
+        - task_key: digest
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/dq_digest.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}",
+                         --slack-secret, "${var.catalog}.secrets.slack_bot_token"]

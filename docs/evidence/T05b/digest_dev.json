@@ -1,0 +1,66 @@
+{
+  "rows": [
+    [
+      "customers",
+      "notes_no_card_number",
+      "warn",
+      "6",
+      "In the **customers** dataset, **6 rows** have been quarantined under rule **notes_no_card_number** because free-text notes fields contain what appears to be raw payment card numbers (sample customer IDs: c_00729, c_00887, c_00971, c_01653, c_01834).",
+      "The most likely cause is that customer service agents or an intake form are inadvertently capturing card numbers in an unstructured notes/comments field rather than routing them through the secure, tokenised payment capture flow.",
+      "Implement a real-time PAN-detection regex mask on all free-text input fields at the point of entry, automatically redact or reject any value matching a card-number pattern, and retrain agents to use the designated secure payment capture tool instead of notes fields.",
+      "databricks-claude-sonnet-4-6",
+      "true",
+      "false"
+    ],
+    [
+      "payments",
+      "amount_positive",
+      "warn",
+      "11",
+      "11 rows in the payments dataset have been quarantined under rule amount_positive because the amount field contains negative values (e.g., -101.45, -7.30, -88.60, -36.72, -224.90 SGD), violating the expectation that payment amounts must be greater than zero.",
+      "The negative amounts were most likely introduced by an upstream system recording refunds, reversals, or credit adjustments using the same payments transaction file rather than a dedicated offsetting ledger or separate transaction type.",
+      "Introduce a transaction_type field (e.g., PAYMENT, REFUND, REVERSAL) to distinguish negative-value entries, route non-payment transaction types to their own pipeline, and enforce the amount_positive rule exclusively on rows where transaction_type is PAYMENT; additionally, flag the one row missing merchant_id for a separate completeness check.",
+      "databricks-claude-sonnet-4-6",
+      "true",
+      "false"
+    ],
+    [
+      "payments",
+      "amount_present",
+      "warn",
+      "50",
+      "50 rows in the payments dataset were quarantined by the amount_present rule because the amount field is missing from the main schema and instead appears embedded as a string (e.g., \"22.22 SGD\") inside the rescued column, sourced from payments_drift.json.",
+      "The source file payments_drift.json contains the amount value combined with the currency code as a single string in a non-standard field, causing the pipeline's schema mapping to fail to populate the dedicated amount column and triggering the amount_present rule.",
+      "Update the ingestion pipeline to parse the rescued column for these records, splitting the combined amount-currency string to extract the numeric amount and populate the amount field correctly, or enforce a schema contract on payments_drift.json upstream so that amount is delivered as a standalone numeric field.",
+      "databricks-claude-sonnet-4-6",
+      "true",
+      "false"
+    ],
+    [
+      "payments",
+      "currency_valid",
+      "warn",
+      "12",
+      "12 rows in the payments dataset have been quarantined under rule currency_valid because they contain invalid ISO 4217 currency codes \u2014 predominantly \"SGX\" (not a recognised currency code) and \"VND\" appearing in contexts that may indicate a mapping error.",
+      "The most likely cause is a data-entry or upstream system mapping error where \"SGX\" was mistakenly used instead of the valid Singapore Dollar code \"SGD\", possibly due to confusion with the SGX stock exchange ticker or a misconfigured currency lookup table.",
+      "Audit and correct the currency code mapping in the upstream source system or ETL pipeline \u2014 replacing \"SGX\" with \"SGD\" where appropriate \u2014 and add a validation step that rejects any currency code not present in the ISO 4217 reference list before records are ingested.",
+      "databricks-claude-sonnet-4-6",
+      "true",
+      "false"
+    ],
+    [
+      "payments",
+      "merchant_id_not_null",
+      "warn",
+      "14",
+      "14 rows in the payments dataset have been quarantined because the merchant_id field is null, violating the merchant_id_not_null rule across transactions in SGD and MYR currencies.",
+      "The merchant_id is likely missing due to an upstream ingestion or integration failure \u2014 such as a payment processor webhook or API response omitting the merchant identifier when a transaction is initiated without a fully registered or matched merchant account.",
+      "Enforce a NOT NULL constraint and mandatory validation on merchant_id at the point of ingestion, and implement a lookup or enrichment step to back-fill merchant_id from a reference table before records enter the payments dataset.",
+      "databricks-claude-sonnet-4-6",
+      "true",
+      "false"
+    ]
+  ],
+  "counts_match_quarantine": true,
+  "status": "PASS"
+}
