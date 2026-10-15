@@ -2,176 +2,163 @@
 
 BUILD: an independent drift check against the contract's baseline (also a cross-check for the native
 Data Quality Monitoring metrics), a freshness check from the contract's max_delay_minutes, and a PII
-coverage register. Each writes rows to obs/gov tables; SQL alerts on those tables send the notifications.
+coverage register. Each writes events to obs/gov tables. With --fail-on-breach the task fails on a
+breach, so the job's AT_LEAST_ONE_FAILED escalation path runs.
 
-Runs as a serverless job task:  python quality_checks.py --check drift|freshness|pii_coverage ...
+    quality_checks.py --check drift|freshness|pii_coverage --catalog C --bronze-schema S [--fail-on-breach]
 """
 
 from __future__ import annotations
 
-import argparse
 import sys
 import uuid
 from datetime import UTC, datetime
+from pathlib import Path
+
+# Serverless Python file tasks run without __file__, so the bundle passes --src-dir.
+sys.path.insert(0, sys.argv[sys.argv.index("--src-dir") + 1] if "--src-dir" in sys.argv
+                else str(Path(__file__).resolve().parents[2]))
 
 from pyspark.sql import SparkSession
 from pyspark.sql import functions as F
 
+from meridian.contracts.compiler import load_all
+from meridian.jobs.common import Names, names, parser
 
-def table(args, schema_key: str, name: str) -> str:
-    return f"{args.catalog}.{getattr(args, f'schema_{schema_key}')}.{name}"
-
-
-def write_events(spark: SparkSession, target: str, rows: list[dict]) -> None:
-    schema = ("event_id STRING, check_name STRING, checked_at TIMESTAMP, dataset STRING, table_name STRING, "
-              "column_name STRING, metric STRING, group_key STRING, baseline_value DOUBLE, current_value DOUBLE, "
-              "threshold DOUBLE, breached BOOLEAN, message STRING, run_id STRING")
-    spark.sql(f"CREATE TABLE IF NOT EXISTS {target} ({schema})")
-    if rows:
-        spark.createDataFrame(rows, schema).write.mode("append").saveAsTable(target)
+EVENT_SCHEMA = (
+    "event_id STRING, check_name STRING, checked_at TIMESTAMP, dataset STRING, table_name STRING, "
+    "column_name STRING, metric STRING, group_key STRING, baseline_value DOUBLE, current_value DOUBLE, "
+    "threshold DOUBLE, breached BOOLEAN, message STRING, run_id STRING"
+)
+PII_NAME_HINTS = ("email", "phone", "mobile", "nric", "national_id", "passport", "card", "dob", "birth", "address")
 
 
 def event(check: str, run_id: str, **fields) -> dict:
-    base = {"event_id": str(uuid.uuid4()), "check_name": check, "checked_at": datetime.now(UTC), "run_id": run_id}
-    return {**base, **fields}
+    return {"event_id": str(uuid.uuid4()), "check_name": check, "checked_at": datetime.now(UTC),
+            "run_id": run_id, "baseline_value": None, **fields}
 
 
-def check_drift(spark: SparkSession, args, contract) -> list[dict]:
-    """Last 24h vs the baseline window: failure rate per acquirer (ratio) and null rate per column (pp)."""
-    drift = contract.drift
-    silver = spark.read.table(table(args, "silver", "payments"))
-    bronze = spark.read.table(table(args, "bronze", "payments"))
-    ts = contract.event_time_column
-    newest = silver.agg(F.max(ts)).first()[0]
+def windows(newest, drift: dict):
     window_start = F.lit(newest) - F.expr(f"INTERVAL {drift['window_hours']} HOURS")
-    baseline_start = window_start - F.expr(f"INTERVAL {drift['baseline_days']} DAYS")
-    rows = []
+    return window_start, window_start - F.expr(f"INTERVAL {drift['baseline_days']} DAYS")
 
+
+def check_drift(spark: SparkSession, n: Names, contract, run_id: str) -> list[dict]:
+    """Last 24h vs the baseline window: failure rate per acquirer (ratio) and null rate per column (pp)."""
+    drift, ts = contract.drift, contract.event_time_column
+    silver, bronze = spark.read.table(n.table("silver", "payments")), spark.read.table(n.table("bronze", "payments"))
+    window_start, baseline_start = windows(silver.agg(F.max(ts)).first()[0], drift)
+
+    def labelled(df):
+        return (df.withColumn("window", F.when(F.col(ts) >= window_start, "current")
+                              .when(F.col(ts) >= baseline_start, "baseline")).where("window IS NOT NULL"))
+
+    rows = []
     for metric in drift["metrics"]:
         if metric["name"] == "failure_rate_by_acquirer":
-            failed = F.avg(F.when(F.col("status") == "failed", 1.0).otherwise(0.0))
-            stats = (silver.withColumn("window", F.when(F.col(ts) >= window_start, "current")
-                                       .when(F.col(ts) >= baseline_start, "baseline"))
-                     .where("window IS NOT NULL").groupBy(metric["group_by"], "window")
-                     .agg(failed.alias("rate"), F.count("*").alias("n")).collect())
-            by_group: dict[str, dict] = {}
-            for r in stats:
-                by_group.setdefault(r[metric["group_by"]], {})[r["window"]] = (r["rate"], r["n"])
-            for group, w in sorted(by_group.items()):
+            key = metric["group_by"]
+            stats: dict[str, dict] = {}
+            for r in labelled(silver).groupBy(key, "window").agg(
+                    F.avg(F.when(F.col("status") == "failed", 1.0).otherwise(0.0)).alias("rate"),
+                    F.count("*").alias("n")).collect():
+                stats.setdefault(r[key], {})[r["window"]] = (r["rate"], r["n"])
+            for group, w in sorted(stats.items()):
                 if "baseline" not in w or "current" not in w or w["current"][1] < metric["min_rows"]:
                     continue
-                (base, _), (cur, _) = w["baseline"], w["current"]
+                base, cur = w["baseline"][0], w["current"][0]
                 limit = base * metric["max_ratio_to_baseline"]
-                rows.append(event("drift", args.run_id, dataset=contract.dataset, table_name=table(args, "silver", "payments"),
-                                  column_name="status", metric="failure_rate", group_key=f"{metric['group_by']}={group}",
+                rows.append(event("drift", run_id, dataset=contract.dataset, table_name=n.table("silver", "payments"),
+                                  column_name="status", metric="failure_rate", group_key=f"{key}={group}",
                                   baseline_value=round(base, 4), current_value=round(cur, 4), threshold=round(limit, 4),
                                   breached=cur > limit,
                                   message=f"failure_rate for {group} is {cur:.1%} vs baseline {base:.1%} "
-                                          f"(limit {metric['max_ratio_to_baseline']}x)"))
+                                          f"(limit {metric['max_ratio_to_baseline']}x baseline)"))
         if metric["name"] == "null_rate":
             for column in metric["columns"]:
-                nulls = F.avg(F.when(F.col(column).isNull(), 1.0).otherwise(0.0))
-                stats = {r["window"]: r["rate"] for r in (
-                    bronze.withColumn("window", F.when(F.col(ts) >= window_start, "current")
-                                      .when(F.col(ts) >= baseline_start, "baseline"))
-                    .where("window IS NOT NULL").groupBy("window").agg(nulls.alias("rate")).collect())}
+                stats = {r["window"]: r["rate"] * 100 for r in labelled(bronze).groupBy("window").agg(
+                    F.avg(F.when(F.col(column).isNull(), 1.0).otherwise(0.0)).alias("rate")).collect()}
                 if "baseline" not in stats or "current" not in stats:
                     continue
-                base, cur = stats["baseline"] * 100, stats["current"] * 100
+                base, cur = stats["baseline"], stats["current"]
                 limit = base + metric["max_increase_pp"]
-                rows.append(event("drift", args.run_id, dataset=contract.dataset, table_name=table(args, "bronze", "payments"),
+                rows.append(event("drift", run_id, dataset=contract.dataset, table_name=n.table("bronze", "payments"),
                                   column_name=column, metric="null_rate_pct", group_key="all",
                                   baseline_value=round(base, 2), current_value=round(cur, 2), threshold=round(limit, 2),
                                   breached=cur > limit,
                                   message=f"null rate of {column} is {cur:.1f}% vs baseline {base:.1f}% "
                                           f"(limit +{metric['max_increase_pp']}pp)"))
 
-    # Schema drift: rows whose values did not fit the reference schema.
+    # Schema drift: rows whose values did not fit the reference schema (Auto Loader rescued data).
     rescued = bronze.where("_rescued_data IS NOT NULL")
-    n = rescued.count()
+    count = rescued.count()
     sample = rescued.select("_rescued_data").limit(1).collect()
-    rows.append(event("drift", args.run_id, dataset=contract.dataset, table_name=table(args, "bronze", "payments"),
+    rows.append(event("drift", run_id, dataset=contract.dataset, table_name=n.table("bronze", "payments"),
                       column_name="_rescued_data", metric="rescued_rows", group_key="all", baseline_value=0.0,
-                      current_value=float(n), threshold=0.0, breached=n > 0,
-                      message=f"{n} rows did not match the reference schema"
-                              + (f"; e.g. {sample[0]['_rescued_data'][:120]}" if sample else "")))
+                      current_value=float(count), threshold=0.0, breached=count > 0,
+                      message=f"{count} rows did not match the reference schema"
+                              + (f", e.g. {sample[0]['_rescued_data'][:120]}" if sample else "")))
     return rows
 
 
-def check_freshness(spark: SparkSession, args, contract) -> list[dict]:
-    newest = spark.read.table(table(args, "bronze", "payments")).agg(F.max(contract.event_time_column)).first()[0]
-    now = datetime.now(UTC)
-    lag = (now - newest.replace(tzinfo=UTC)).total_seconds() / 60 if newest else float("inf")
-    return [event("freshness", args.run_id, dataset=contract.dataset, table_name=table(args, "bronze", "payments"),
+def check_freshness(spark: SparkSession, n: Names, contract, run_id: str) -> list[dict]:
+    newest = spark.read.table(n.table("bronze", "payments")).agg(F.max(contract.event_time_column)).first()[0]
+    lag = (datetime.now(UTC) - newest.replace(tzinfo=UTC)).total_seconds() / 60 if newest else float("inf")
+    return [event("freshness", run_id, dataset=contract.dataset, table_name=n.table("bronze", "payments"),
                   column_name=contract.event_time_column, metric="minutes_since_last_event", group_key="all",
-                  baseline_value=None, current_value=round(lag, 1), threshold=float(contract.max_delay_minutes),
+                  current_value=round(lag, 1), threshold=float(contract.max_delay_minutes),
                   breached=lag > contract.max_delay_minutes,
                   message=f"no {contract.dataset} event for {lag:.0f} min (limit {contract.max_delay_minutes} min)")]
 
 
-PII_NAME_HINTS = ("email", "phone", "mobile", "nric", "national_id", "passport", "card", "dob", "birth", "address")
+def check_pii_coverage(spark: SparkSession, n: Names, contract, run_id: str) -> list[dict]:
+    """Every PII-looking column must have a reviewed strategy in the contract or a governed tag.
 
-
-def check_pii_coverage(spark: SparkSession, args, contracts) -> list[dict]:
-    """Every column that looks like PII must be tagged and protected (a mask, a restriction, or redaction).
-
-    A column is protected when the contract names a strategy for it, or a governed tag that an ABAC
-    policy covers is present. A new PII-looking column (for example secondary_email) is flagged.
+    A new PII-looking column (for example secondary_email) has neither, so it is flagged.
     """
+    target = n.table("silver", contract.dataset)
+    tags = {r["column_name"]: f"{r['tag_name']}={r['tag_value']}" for r in spark.sql(
+        f"SELECT column_name, tag_name, tag_value FROM {n.catalog}.information_schema.column_tags "
+        f"WHERE schema_name = '{n.schema('silver')}' AND table_name = '{contract.dataset}' "
+        "AND (tag_name LIKE 'class.%' OR tag_name = 'meridian_pii')").collect()}
     rows = []
-    for contract in contracts:
-        target = table(args, "silver", contract.dataset)
-        handled = contract.pii_handling
-        tags = {r["column_name"]: r["tag_value"] for r in spark.sql(
-            f"SELECT column_name, tag_value FROM {args.catalog}.information_schema.column_tags "
-            f"WHERE schema_name = '{args.schema_silver}' AND table_name = '{contract.dataset}' AND tag_name = 'pii'"
-        ).collect()}
-        for field in spark.read.table(target).schema.fields:
-            looks_pii = any(h in field.name.lower() for h in PII_NAME_HINTS)
-            strategy = handled.get(field.name)
-            if not looks_pii and field.name not in tags:
-                continue
-            protected = strategy in ("mask", "restrict", "redact") or (field.name in tags and strategy != "none")
-            if strategy == "none":
-                protected = True  # an explicit, reviewed decision in the contract
-            rows.append(event("pii_coverage", args.run_id, dataset=contract.dataset, table_name=target,
-                              column_name=field.name, metric="protected", group_key=tags.get(field.name, "untagged"),
-                              baseline_value=None, current_value=1.0 if protected else 0.0, threshold=1.0,
-                              breached=not protected,
-                              message=f"{target}.{field.name}: tag={tags.get(field.name, 'none')}, "
-                                      f"strategy={strategy or 'none'}"
-                                      + ("" if protected else " -> PII-like column without protection")))
+    for field in spark.read.table(target).schema.fields:
+        strategy = contract.pii_handling.get(field.name)
+        if field.name not in tags and strategy is None and not any(h in field.name.lower() for h in PII_NAME_HINTS):
+            continue
+        protected = strategy is not None
+        rows.append(event("pii_coverage", run_id, dataset=contract.dataset, table_name=target, column_name=field.name,
+                          metric="protected", group_key=tags.get(field.name, "untagged"),
+                          current_value=1.0 if protected else 0.0, threshold=1.0, breached=not protected,
+                          message=f"{target}.{field.name}: tag {tags.get(field.name, 'none')}, strategy "
+                                  f"{strategy or 'none'}" + ("" if protected else ": PII-like column with no protection")))
     return rows
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser()
-    parser.add_argument("--check", required=True, choices=["drift", "freshness", "pii_coverage"])
-    parser.add_argument("--catalog", required=True)
-    for key in ("bronze", "silver", "obs", "gov"):
-        parser.add_argument(f"--schema-{key}", dest=f"schema_{key}", required=True)
-    parser.add_argument("--src-dir", required=True, help="bundle-synced src/ folder")
-    parser.add_argument("--contracts-dir", required=True)
-    parser.add_argument("--run-id", default="manual")
-    args = parser.parse_args()
-
-    sys.path.insert(0, args.src_dir)
-    from meridian.contracts.compiler import load_contract
-
+    p = parser(__doc__.splitlines()[0])
+    p.add_argument("--check", required=True, choices=["drift", "freshness", "pii_coverage"])
+    p.add_argument("--fail-on-breach", action="store_true")
+    args = p.parse_args()
+    n = names(args)
     spark = SparkSession.builder.getOrCreate()
-    payments = load_contract(f"{args.contracts_dir}/payments.yaml")
+    contracts = load_all()
+
     if args.check == "drift":
-        rows, target = check_drift(spark, args, payments), table(args, "obs", "drift_events")
+        rows, target = check_drift(spark, n, contracts["payments"], args.run_id), n.table("obs", "drift_events")
     elif args.check == "freshness":
-        rows, target = check_freshness(spark, args, payments), table(args, "obs", "freshness_events")
+        rows, target = check_freshness(spark, n, contracts["payments"], args.run_id), n.table("obs", "freshness_events")
     else:
-        customers = load_contract(f"{args.contracts_dir}/customers.yaml")
-        rows, target = check_pii_coverage(spark, args, [customers]), table(args, "gov", "pii_coverage")
-    write_events(spark, target, rows)
+        rows, target = check_pii_coverage(spark, n, contracts["customers"], args.run_id), n.table("gov", "pii_coverage")
+
+    spark.sql(f"CREATE TABLE IF NOT EXISTS {target} ({EVENT_SCHEMA})")
+    if rows:
+        spark.createDataFrame(rows, EVENT_SCHEMA).write.mode("append").saveAsTable(target)
     breached = [r for r in rows if r["breached"]]
     print(f"{args.check}: {len(rows)} checks, {len(breached)} breached -> {target}")
     for r in breached:
         print("  BREACH", r["message"])
+    if breached and args.fail_on_breach:
+        raise SystemExit(f"{args.check}: {len(breached)} breach(es)")
 
 
 if __name__ == "__main__":
