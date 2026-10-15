@@ -60,6 +60,7 @@ def main() -> None:
     )
     created_s = round(time.time() - started)
 
+    index.wait_until_ready(wait_for_updates=True, timeout=timedelta(minutes=15))
     query = "who has to approve a large refund"
     results = {}
     for name, kwargs in {
@@ -67,15 +68,28 @@ def main() -> None:
         "hybrid": {"query_type": "HYBRID"},
         "hybrid_rerank": {"query_type": "HYBRID", "reranker": DatabricksReranker(columns_to_rerank=["text"])},
     }.items():
-        try:
-            results[name] = ids(index.similarity_search(columns=["id", "text"], query_text=query, num_results=3, **kwargs))
-        except Exception as exc:  # the reranker is the newest piece; record failures instead of stopping
-            results[name] = f"error: {exc}"[:300]
+        for attempt in range(4):  # a freshly recreated index can briefly point at the old pipeline
+            try:
+                results[name] = ids(index.similarity_search(columns=["id", "text"], query_text=query,
+                                                            num_results=3, **kwargs))
+                break
+            except Exception as exc:  # noqa: BLE001  record failures instead of stopping
+                results[name] = f"error: {exc}"[:300]
+                time.sleep(15)
         print(name, results[name])
 
+    # The initial build may still be running after create returns; sync only once it has finished.
+    index.wait_until_ready(wait_for_updates=True, timeout=timedelta(minutes=15))
     sql(w, f"DELETE FROM {table} WHERE id = 5")
     started = time.time()
-    index.sync()
+    for _ in range(30):
+        try:
+            index.sync()
+            break
+        except Exception as exc:
+            if "not ready to sync" not in str(exc):
+                raise
+            time.sleep(10)
     index.wait_until_ready(wait_for_updates=True, timeout=timedelta(minutes=15))
     canary = ids(index.similarity_search(columns=["id", "text"], query_text="CANARY-SM3", num_results=5, query_type="HYBRID"))
     delete_s = round(time.time() - started)

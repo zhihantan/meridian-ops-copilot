@@ -1,0 +1,154 @@
+{
+  "target": "dev",
+  "scored_at": "2026-10-15T08:45:03.242217+00:00",
+  "anchor": "2026-10-15T07:00:00.000Z",
+  "results": [
+    {
+      "task": "T03",
+      "check": "bronze.payments rows",
+      "expected": 34511,
+      "actual": 34511,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "planted bad rows quarantined with the right rules",
+      "expected": 35,
+      "actual": 35,
+      "status": "PASS"
+    },
+    {
+      "task": "T05",
+      "check": "drift rows quarantined by amount_present",
+      "expected": 50,
+      "actual": 50,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "no unexpected quarantine rows",
+      "expected": 85,
+      "actual": 85,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "no planted bad row in silver",
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "duplicates registered",
+      "expected": [
+        "pay_1938f34caf670320",
+        "pay_5c9a3f0809ecd5a1",
+        "pay_963ad89a63cac8f2",
+        "pay_de7e9855e3327261",
+        "pay_e38e96a65b285681",
+        "pay_efa2341e259f8bbb"
+      ],
+      "actual": [
+        "pay_1938f34caf670320",
+        "pay_5c9a3f0809ecd5a1",
+        "pay_963ad89a63cac8f2",
+        "pay_de7e9855e3327261",
+        "pay_e38e96a65b285681",
+        "pay_efa2341e259f8bbb"
+      ],
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver keeps one row per payment_id",
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver.payments rows",
+      "expected": 34420,
+      "actual": 34420,
+      "status": "PASS"
+    },
+    {
+      "task": "T05",
+      "check": "rescued data only on drift rows",
+      "expected": 50,
+      "actual": 50,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver.customers rows (deletes and quarantine applied)",
+      "expected": 1993,
+      "actual": 1993,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "deleted customer is gone",
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "out-of-order event resolved by seq",
+      "expected": "Blk 210 Bishan St 23 #09-301, Singapore 570210",
+      "actual": "Blk 210 Bishan St 23 #09-301, Singapore 570210",
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "SCD2 history keeps sequence order",
+      "expected": [
+        "Blk 11 Holland Dr #05-120, Singapore 271011",
+        "Blk 210 Bishan St 23 #09-301, Singapore 570210"
+      ],
+      "actual": [
+        "Blk 11 Holland Dr #05-120, Singapore 271011",
+        "Blk 210 Bishan St 23 #09-301, Singapore 570210"
+      ],
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "card numbers in notes quarantined",
+      "expected": [
+        "c_00729",
+        "c_00887",
+        "c_00971",
+        "c_01653",
+        "c_01834",
+        "c_01999"
+      ],
+      "actual": [
+        "c_00729",
+        "c_00887",
+        "c_00971",
+        "c_01653",
+        "c_01834",
+        "c_01999"
+      ],
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "free-text PII redacted (recall >= 95%)",
+      "expected": true,
+      "actual": true,
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "new column secondary_email arrived",
+      "expected": 25,
+      "actual": 25,
+      "status": "PASS"
+    }
+  ],
+  "status": "PASS"
+}
