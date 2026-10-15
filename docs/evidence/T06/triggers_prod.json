@@ -1,0 +1,144 @@
+{
+  "task": "T06 triggers",
+  "target": "prod",
+  "collected_at": "2026-10-15T12:50:27.267535+00:00",
+  "successful_trigger_types": [
+    "ONE_TIME",
+    "PERIODIC",
+    "RUN_JOB_TASK",
+    "TABLE"
+  ],
+  "jobs": {
+    "bad_backfill_job": {
+      "name": "meridian-backfill-fx-correction",
+      "job_id": "738494426269191",
+      "runs": [
+        {
+          "run_id": 231539851593043,
+          "trigger": "ONE_TIME",
+          "state": "SUCCESS",
+          "started": "2026-10-15 20:43:20 SGT",
+          "seconds": 43
+        }
+      ]
+    },
+    "daily_digest_job": {
+      "name": "meridian-dq-digest",
+      "job_id": "690998560140263",
+      "runs": []
+    },
+    "gold_refresh_job": {
+      "name": "meridian-acquirer-status",
+      "job_id": "972702946966498",
+      "runs": [
+        {
+          "run_id": 105430370750112,
+          "trigger": "TABLE",
+          "state": "SUCCESS",
+          "started": "2026-10-15 20:46:02 SGT",
+          "seconds": 41
+        },
+        {
+          "run_id": 969423176933221,
+          "trigger": "ONE_TIME",
+          "state": "SUCCESS",
+          "started": "2026-10-15 20:41:58 SGT",
+          "seconds": 41
+        }
+      ]
+    },
+    "ingest_chargebacks": {
+      "name": "meridian-ingest-chargebacks",
+      "job_id": "713862277437145",
+      "runs": []
+    },
+    "ingest_disputes": {
+      "name": "meridian-ingest-disputes",
+      "job_id": "462613746854723",
+      "runs": []
+    },
+    "ingest_fx_rates": {
+      "name": "meridian-ingest-fx-rates",
+      "job_id": "101080449295906",
+      "runs": [
+        {
+          "run_id": 182112414821743,
+          "trigger": "PERIODIC",
+          "state": "SUCCESS",
+          "started": "2026-10-15 20:00:02 SGT",
+          "seconds": 29
+        },
+        {
+          "run_id": 855743778435145,
+          "trigger": "PERIODIC",
+          "state": "SUCCESS",
+          "started": "2026-10-15 19:00:05 SGT",
+          "seconds": 29
+        }
+      ]
+    },
+    "ingest_job": {
+      "name": "meridian-ingest",
+      "job_id": "610318584747637",
+      "runs": [
+        {
+          "run_id": 64507441566324,
+          "trigger": "ONE_TIME",
+          "state": "SUCCESS",
+          "started": "2026-10-15 18:38:52 SGT",
+          "seconds": 270
+        },
+        {
+          "run_id": 354440852242979,
+          "trigger": "FILE_ARRIVAL",
+          "state": "FAILED",
+          "started": "2026-10-15 18:14:49 SGT",
+          "seconds": 1
+        }
+      ]
+    },
+    "ingest_merchant_master": {
+      "name": "meridian-ingest-merchant-master",
+      "job_id": "270304195204718",
+      "runs": []
+    },
+    "ingest_settlements": {
+      "name": "meridian-ingest-settlements",
+      "job_id": "717275184823739",
+      "runs": [
+        {
+          "run_id": 386834501531989,
+          "trigger": "PERIODIC",
+          "state": "SUCCESS",
+          "started": "2026-10-15 20:15:02 SGT",
+          "seconds": 26
+        },
+        {
+          "run_id": 536927237975116,
+          "trigger": "PERIODIC",
+          "state": "SUCCESS",
+          "started": "2026-10-15 19:15:03 SGT",
+          "seconds": 24
+        }
+      ]
+    },
+    "quality_checks_job": {
+      "name": "meridian-quality-checks",
+      "job_id": "565469610870126",
+      "runs": [
+        {
+          "run_id": 212773508250311,
+          "trigger": "RUN_JOB_TASK",
+          "state": "SUCCESS_WITH_FAILURES",
+          "started": "2026-10-15 18:40:36 SGT",
+          "seconds": 163
+        }
+      ]
+    },
+    "reprocess_quarantine_job": {
+      "name": "meridian-reprocess-quarantine",
+      "job_id": "706756048529744",
+      "runs": []
+    }
+  }
+}

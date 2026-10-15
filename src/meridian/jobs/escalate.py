@@ -33,7 +33,7 @@ def main() -> None:
         table = n.table(layer, name)
         if not spark.catalog.tableExists(table):
             continue
-        for r in spark.sql(f"SELECT check_name, message FROM {table} WHERE run_id = '{args.run_id}' "
+        for r in spark.sql(f"SELECT DISTINCT check_name, message FROM {table} WHERE run_id = '{args.run_id}' "
                            "AND breached ORDER BY check_name").collect():
             lines.append(f"• [{r['check_name']}] {r['message']}")
     if not lines:

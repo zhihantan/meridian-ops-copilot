@@ -1,0 +1,21 @@
+"""The observability SQL file parses into complete statements for a target (T06b), offline."""
+
+from pathlib import Path
+
+from meridian.common.sqlfile import statements
+
+SQL = Path(__file__).resolve().parents[1] / "sql" / "obs_views.sql"
+VALUES = {"catalog": "meridian", "target": "prod", "workspace_id": "123", "obs": "meridian.obs",
+          "gov": "meridian.gov", "quarantine": "meridian.quarantine"}
+
+
+def test_every_placeholder_is_filled():
+    parsed = statements(str(SQL), VALUES)
+    assert parsed and all("${" not in s and not s.endswith(";") for s in parsed)
+
+
+def test_one_statement_per_view():
+    views = [s.split()[4] for s in statements(str(SQL), VALUES)]
+    assert views == [f"meridian.obs.{v}" for v in ("v_job_runs", "v_task_runs", "v_pipeline_events",
+                                                    "v_expectation_metrics", "v_query_history", "v_audit",
+                                                    "v_pipeline_health")]

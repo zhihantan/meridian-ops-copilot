@@ -1,0 +1,283 @@
+{
+  "task": "T06 bad backfill drill",
+  "target": "dev",
+  "collected_at": "2026-10-15T13:44:30.089695+00:00",
+  "silver": "meridian_dev.dev_zhihan_tan_silver.payments",
+  "bad_writes": [
+    {
+      "version": "22",
+      "at": "2026-10-15T13:26:21.000Z",
+      "operation": "MERGE",
+      "job": {
+        "jobName": "[dev zhihan_tan] meridian-backfill-fx-correction",
+        "jobId": "780823985398276",
+        "jobRunId": "953377235327726",
+        "triggerType": "manual"
+      },
+      "rows": "2311"
+    },
+    {
+      "version": "16",
+      "at": "2026-10-15T12:38:05.000Z",
+      "operation": "UPDATE",
+      "job": {
+        "jobName": "[dev zhihan_tan] meridian-backfill-fx-correction",
+        "jobId": "780823985398276",
+        "jobRunId": "344871850765561",
+        "triggerType": "manual"
+      },
+      "rows": "2311"
+    },
+    {
+      "version": "10",
+      "at": "2026-10-15T12:32:05.000Z",
+      "operation": "UPDATE",
+      "job": {
+        "jobName": "[dev zhihan_tan] meridian-backfill-fx-correction",
+        "jobId": "780823985398276",
+        "jobRunId": "720585150814262",
+        "triggerType": "manual"
+      },
+      "rows": "2311"
+    }
+  ],
+  "recovery_writes": [
+    {
+      "version": "23",
+      "at": "2026-10-15T13:33:52.000Z",
+      "operation": "DLT REFRESH"
+    }
+  ],
+  "corrupted_days": [
+    {
+      "day": "2026-10-12",
+      "rows": "2311",
+      "amount_before": "128291.27",
+      "amount_after_bad_write": "12829127.00",
+      "rows_now": "2311",
+      "amount_now": "128291.27",
+      "recovered": true
+    }
+  ],
+  "acquirer_status_versions": [
+    {
+      "version": "4",
+      "at": "2026-10-15T13:32:26.000Z",
+      "operation": "RESTORE",
+      "job": "[dev zhihan_tan] meridian-restore-table",
+      "run": "759024757422658",
+      "trigger": "manual",
+      "parameters": "{\"version\":\"2\",\"timestamp\":null}"
+    },
+    {
+      "version": "3",
+      "at": "2026-10-15T13:31:25.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "[dev zhihan_tan] meridian-acquirer-status",
+      "run": "242996265302188",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "2",
+      "at": "2026-10-15T12:39:24.000Z",
+      "operation": "RESTORE",
+      "job": null,
+      "run": null,
+      "trigger": null,
+      "parameters": "{\"version\":\"0\",\"timestamp\":null}"
+    },
+    {
+      "version": "1",
+      "at": "2026-10-15T12:38:27.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "[dev zhihan_tan] meridian-acquirer-status",
+      "run": "1060361159228633",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "0",
+      "at": "2026-10-15T12:37:16.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "[dev zhihan_tan] meridian-acquirer-status",
+      "run": "762988752603706",
+      "trigger": "manual",
+      "parameters": null
+    }
+  ],
+  "acquirer_status_now": [
+    [
+      "acq_1",
+      "16789.64",
+      "762988752603706"
+    ],
+    [
+      "acq_2",
+      "16988.38",
+      "762988752603706"
+    ],
+    [
+      "acq_3",
+      "16627.29",
+      "762988752603706"
+    ],
+    [
+      "acq_4",
+      "16610.67",
+      "762988752603706"
+    ],
+    [
+      "acq_5",
+      "16215.40",
+      "762988752603706"
+    ],
+    [
+      "acq_6",
+      "16416.39",
+      "762988752603706"
+    ],
+    [
+      "acq_7",
+      "16845.69",
+      "762988752603706"
+    ]
+  ],
+  "lineage_writes": [
+    {
+      "event_time": "2026-10-15T13:34:27.905Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "7cc6a94f-2215-45d0-a8f1-bb01941172e7",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T13:34:27.853Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "7cc6a94f-2215-45d0-a8f1-bb01941172e7",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T13:34:25.798Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "7cc6a94f-2215-45d0-a8f1-bb01941172e7",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T13:07:04.771Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "c117e906-858f-4a4d-bd47-ddfd454bc9c6",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:40:13.605Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "63fcca2b-66a8-428a-bb7b-8a3a66f9d184",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:40:13.593Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "63fcca2b-66a8-428a-bb7b-8a3a66f9d184",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:40:09.633Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "63fcca2b-66a8-428a-bb7b-8a3a66f9d184",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:35:44.462Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "6af06912-e37f-4d68-8dea-6b14f54113dc",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:35:44.367Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "6af06912-e37f-4d68-8dea-6b14f54113dc",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:35:42.381Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "6af06912-e37f-4d68-8dea-6b14f54113dc",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T09:20:13.421Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "540ab0c5-e3d2-4d41-b1f9-c12b355672f2",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T09:20:13.410Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "540ab0c5-e3d2-4d41-b1f9-c12b355672f2",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T09:20:09.629Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "540ab0c5-e3d2-4d41-b1f9-c12b355672f2",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T08:43:16.492Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "1ba31b49-d5cd-4486-a190-26a9231fe265",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T08:43:16.480Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "1ba31b49-d5cd-4486-a190-26a9231fe265",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T08:43:12.357Z",
+      "entity_type": "PIPELINE",
+      "writer": "[dev zhihan_tan] meridian-dlc",
+      "entity_id": "e8cc7ded-fce5-42b3-bdd4-4b0c1756f414",
+      "entity_run_id": "1ba31b49-d5cd-4486-a190-26a9231fe265",
+      "created_by": null
+    }
+  ],
+  "lineage_has_bad_write": false,
+  "checks": {
+    "bad write found in history": true,
+    "corrupted day recovered": true,
+    "acquirer_status restored": true
+  },
+  "status": "PASS"
+}

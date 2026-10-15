@@ -40,3 +40,16 @@ land:
 # Generated ingestion jobs from config/sources.yaml (T06c)
 gen-jobs:
 	uv run python scripts/gen_jobs.py
+
+.PHONY: job-graph job-runs drill-evidence
+# Cross-job graph from the bundle (T06, BUILD)
+job-graph:
+	uv run python scripts/job_graph.py --target $(TARGET)
+
+# Recent runs and their trigger types, from the Jobs API (T06 evidence)
+job-runs:
+	uv run --group dbx python scripts/job_runs.py --target $(TARGET) --out docs/evidence/T06/triggers_$(TARGET).json
+
+# Bad-backfill drill evidence: history, blast radius, restore, lineage (T06, read-only)
+drill-evidence:
+	uv run --group dbx python scripts/backfill_drill.py --target $(TARGET) --out docs/evidence/T06/drill_$(TARGET).json

@@ -1,6 +1,6 @@
 {
   "target": "dev",
-  "scored_at": "2026-10-15T08:45:03.242217+00:00",
+  "scored_at": "2026-10-15T13:43:20.814537+00:00",
   "anchor": "2026-10-15T07:00:00.000Z",
   "results": [
     {
@@ -97,21 +97,15 @@
     {
       "task": "T03",
       "check": "out-of-order event resolved by seq",
-      "expected": "Blk 210 Bishan St 23 #09-301, Singapore 570210",
-      "actual": "Blk 210 Bishan St 23 #09-301, Singapore 570210",
+      "expected": "sha256:b37b2c53e114717a",
+      "actual": "sha256:b37b2c53e114717a",
       "status": "PASS"
     },
     {
       "task": "T03",
       "check": "SCD2 history keeps sequence order",
-      "expected": [
-        "Blk 11 Holland Dr #05-120, Singapore 271011",
-        "Blk 210 Bishan St 23 #09-301, Singapore 570210"
-      ],
-      "actual": [
-        "Blk 11 Holland Dr #05-120, Singapore 271011",
-        "Blk 210 Bishan St 23 #09-301, Singapore 570210"
-      ],
+      "expected": "sha256:74238b59e8034532",
+      "actual": "sha256:74238b59e8034532",
       "status": "PASS"
     },
     {

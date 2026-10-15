@@ -17,10 +17,18 @@ variables:
   serverless_environment_version:
     description: Serverless environment version pinned for jobs and local development
     default: "4"
+  duration_warning_seconds:
+    description: Run-duration health rule for the ingest job (dev sets it low so every run exercises the warning)
+    default: 900
   ci_service_principal:
     description: CI service principal (application ID) that deploys and runs staging and prod
     lookup:
       service_principal: meridian-ci
+
+# Every job and pipeline carries its target, so system-table views can tell staging from prod (T06b).
+presets:
+  tags:
+    target: ${bundle.target}
 
 # Admins and the CI principal (which runs staging and prod) manage every deployment; data engineers
 # can view.
@@ -39,6 +47,7 @@ targets:
     default: true
     variables:
       catalog: meridian_dev
+      duration_warning_seconds: 120
 
   # Staging and prod are deployed by CI and run as the CI service principal, from its own folder.
   staging:

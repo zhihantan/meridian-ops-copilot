@@ -9,6 +9,11 @@ resources:
       channel: CURRENT
       photon: true
       continuous: false
+      # Published as a table so the health views and the daily log export can read it (T06b).
+      event_log:
+        catalog: "${var.catalog}"
+        schema: "${resources.schemas.obs.name}"
+        name: pipeline_event_log
       libraries:
         - file: {path: ../src/meridian/pipelines/payments.py}
         - file: {path: ../src/meridian/pipelines/customers.py}

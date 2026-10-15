@@ -1,0 +1,178 @@
+{
+  "task": "T06 bad backfill drill",
+  "target": "prod",
+  "collected_at": "2026-10-15T13:39:37.405605+00:00",
+  "silver": "meridian.silver.payments",
+  "bad_writes": [
+    {
+      "version": "4",
+      "at": "2026-10-15T12:43:58.000Z",
+      "operation": "UPDATE",
+      "job": {
+        "jobName": "meridian-backfill-fx-correction",
+        "jobId": "738494426269191",
+        "jobRunId": "231539851593043",
+        "triggerType": "manual"
+      },
+      "rows": "2311"
+    }
+  ],
+  "recovery_writes": [
+    {
+      "version": "7",
+      "at": "2026-10-15T13:38:27.000Z",
+      "operation": "DLT REFRESH"
+    }
+  ],
+  "corrupted_days": [
+    {
+      "day": "2026-10-12",
+      "rows": "2311",
+      "amount_before": "128291.27",
+      "amount_after_bad_write": "12829127.00",
+      "rows_now": "2311",
+      "amount_now": "128291.27",
+      "recovered": true
+    }
+  ],
+  "acquirer_status_versions": [
+    {
+      "version": "3",
+      "at": "2026-10-15T13:36:41.000Z",
+      "operation": "RESTORE",
+      "job": "meridian-restore-table",
+      "run": "335456651615219",
+      "trigger": "manual",
+      "parameters": "{\"version\":\"0\",\"timestamp\":null}"
+    },
+    {
+      "version": "2",
+      "at": "2026-10-15T13:00:54.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "meridian-acquirer-status",
+      "run": "216334050419110",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "1",
+      "at": "2026-10-15T12:46:38.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "meridian-acquirer-status",
+      "run": "105430370750112",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "0",
+      "at": "2026-10-15T12:42:34.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "meridian-acquirer-status",
+      "run": "969423176933221",
+      "trigger": "manual",
+      "parameters": null
+    }
+  ],
+  "acquirer_status_now": [
+    [
+      "acq_1",
+      "16884.82",
+      "969423176933221"
+    ],
+    [
+      "acq_2",
+      "17056.41",
+      "969423176933221"
+    ],
+    [
+      "acq_3",
+      "16745.69",
+      "969423176933221"
+    ],
+    [
+      "acq_4",
+      "16772.83",
+      "969423176933221"
+    ],
+    [
+      "acq_5",
+      "15952.88",
+      "969423176933221"
+    ],
+    [
+      "acq_6",
+      "16568.66",
+      "969423176933221"
+    ],
+    [
+      "acq_7",
+      "16955.22",
+      "969423176933221"
+    ]
+  ],
+  "lineage_writes": [
+    {
+      "event_time": "2026-10-15T13:17:13.910Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "485297a6-ce8a-4719-a255-12577411546c",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:57:04.278Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:57:04.267Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T12:57:00.026Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T10:40:27.634Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T10:40:27.625Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T10:40:23.723Z",
+      "entity_type": "PIPELINE",
+      "writer": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
+      "created_by": null
+    }
+  ],
+  "lineage_has_bad_write": false,
+  "checks": {
+    "bad write found in history": true,
+    "corrupted day recovered": true,
+    "acquirer_status restored": true
+  },
+  "status": "PASS"
+}

@@ -15,7 +15,7 @@ resources:
           wait_after_last_change_seconds: 60
       health:
         rules:
-          - {metric: RUN_DURATION_SECONDS, op: GREATER_THAN, value: 900}
+          - {metric: RUN_DURATION_SECONDS, op: GREATER_THAN, value: "${var.duration_warning_seconds}"}
       email_notifications:
         on_failure: ["${var.notification_email}"]
         on_duration_warning_threshold_exceeded: ["${var.notification_email}"]
@@ -35,11 +35,16 @@ resources:
           spec:
             environment_version: "${var.serverless_environment_version}"
             dependencies: ["pyyaml>=6.0"]
+      # Checks fail on purpose, so serverless auto-optimization (which retries failed tasks) is off.
+      # Each failing check emails, and the escalate task posts the run's breaches to Slack. The run
+      # ends SUCCESS_WITH_FAILURES, which job-level on_failure does not cover, so the emails are per task.
       email_notifications:
         on_failure: ["${var.notification_email}"]
       tasks:
         - task_key: drift_check
           environment_key: default
+          disable_auto_optimization: true
+          email_notifications: {on_failure: ["${var.notification_email}"]}
           spark_python_task:
             python_file: ../src/meridian/jobs/quality_checks.py
             parameters: [--check, drift, --fail-on-breach, --catalog, "${var.catalog}",
@@ -47,6 +52,8 @@ resources:
                          --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
         - task_key: freshness_check
           environment_key: default
+          disable_auto_optimization: true
+          email_notifications: {on_failure: ["${var.notification_email}"]}
           spark_python_task:
             python_file: ../src/meridian/jobs/quality_checks.py
             parameters: [--check, freshness, --fail-on-breach, --catalog, "${var.catalog}",
@@ -54,6 +61,8 @@ resources:
                          --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
         - task_key: pii_coverage
           environment_key: default
+          disable_auto_optimization: true
+          email_notifications: {on_failure: ["${var.notification_email}"]}
           spark_python_task:
             python_file: ../src/meridian/jobs/quality_checks.py
             parameters: [--check, pii_coverage, --fail-on-breach, --catalog, "${var.catalog}",
@@ -131,6 +140,25 @@ resources:
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src",
                          --days-ago, "{{job.parameters.days_ago}}", --run-id, "{{job.run_id}}"]
+
+    restore_table_job:
+      name: meridian-restore-table
+      description: "Runbook: RESTORE an ordinary Delta table to a version, as the deploying principal (refuses pipeline tables)."
+      tags: {project: meridian-poc}
+      parameters:
+        - {name: table, default: gold.acquirer_status}
+        - {name: version, default: ""}
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      tasks:
+        - task_key: restore
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/restore_table.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --table, "{{job.parameters.table}}",
+                         --version, "{{job.parameters.version}}", --run-id, "{{job.run_id}}"]
 
     daily_digest_job:
       name: meridian-dq-digest

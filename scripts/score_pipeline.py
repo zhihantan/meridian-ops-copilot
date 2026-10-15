@@ -9,6 +9,7 @@ rescued, redacted, or applied as CDC. Exits non-zero on any FAIL, so CI blocks a
 from __future__ import annotations
 
 import argparse
+import hashlib
 import json
 import sys
 from datetime import UTC, datetime
@@ -26,6 +27,11 @@ def in_list(values) -> str:
     return ", ".join(f"'{v}'" for v in values)
 
 
+def fingerprint(value) -> str:
+    """Stable, non-reversible stand-in for a value, so evidence can show equality without the data."""
+    return "sha256:" + hashlib.sha256(json.dumps(value, sort_keys=True).encode()).hexdigest()[:16]
+
+
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--target", default="dev")
@@ -41,11 +47,13 @@ def main() -> None:
     w = WorkspaceClient()
     results: list[dict] = []
 
-    def check(task: str, name: str, expected, actual) -> None:
+    def check(task: str, name: str, expected, actual, pii: bool = False) -> None:
+        """Record one check; values that are (synthetic) personal data go to the evidence as hashes."""
         ok = expected == actual
-        results.append({"task": task, "check": name, "expected": expected, "actual": actual,
+        shown = (fingerprint(expected), fingerprint(actual)) if pii else (expected, actual)
+        results.append({"task": task, "check": name, "expected": shown[0], "actual": shown[1],
                         "status": "PASS" if ok else "FAIL"})
-        print(f"{'PASS' if ok else 'FAIL'}  {task}  {name}: expected {expected}, got {actual}")
+        print(f"{'PASS' if ok else 'FAIL'}  {task}  {name}: expected {shown[0]}, got {shown[1]}")
 
     def one(statement: str):
         return sql(w, statement)[0][0]
@@ -87,10 +95,10 @@ def main() -> None:
         f"SELECT count(*) FROM {t('silver', 'customers')} WHERE customer_id IN ({in_list(cdc['deleted'])})")))
     ooo = cdc["out_of_order"]
     check("T03", "out-of-order event resolved by seq", ooo["final_address"], one(
-        f"SELECT address FROM {t('silver', 'customers')} WHERE customer_id = '{ooo['customer_id']}'"))
+        f"SELECT address FROM {t('silver', 'customers')} WHERE customer_id = '{ooo['customer_id']}'"), pii=True)
     history = [r[0] for r in sql(w, f"SELECT address FROM {t('silver', 'customers_history')} "
                                     f"WHERE customer_id = '{ooo['customer_id']}' ORDER BY __START_AT")]
-    check("T03", "SCD2 history keeps sequence order", ooo["history_order"], history[-2:])
+    check("T03", "SCD2 history keeps sequence order", ooo["history_order"], history[-2:], pii=True)
     check("T04", "card numbers in notes quarantined",
           sorted(x["customer_id"] for x in cust["notes_card_quarantine"]),
           sorted(r[0] for r in sql(w, f"SELECT customer_id FROM {t('quarantine', 'customers')} "
