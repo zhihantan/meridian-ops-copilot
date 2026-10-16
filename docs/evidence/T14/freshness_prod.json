@@ -1,0 +1,331 @@
+{
+  "task": "T14 freshness",
+  "target": "prod",
+  "collected_at": "2026-10-16T05:59:49.420030+00:00",
+  "job_run": "1115883605232320",
+  "note": "run 1 started before the 10-minute sweep existed: its edit timed out (20 min) and its delete waited for the sweep, deployed mid-run",
+  "with_sweep_runs_2_to_5": [
+    {
+      "source": "slack",
+      "phase": "create",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "355.0",
+      "p95_s": "519.0",
+      "max_s": "536.7"
+    },
+    {
+      "source": "slack",
+      "phase": "delete",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "623.0",
+      "p95_s": "714.0",
+      "max_s": "727.5"
+    },
+    {
+      "source": "slack",
+      "phase": "edit",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "218.0",
+      "p95_s": "315.0",
+      "max_s": "320.1"
+    },
+    {
+      "source": "volume",
+      "phase": "create",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "355.0",
+      "p95_s": "518.0",
+      "max_s": "536.1"
+    },
+    {
+      "source": "volume",
+      "phase": "delete",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "623.0",
+      "p95_s": "710.0",
+      "max_s": "722.9"
+    },
+    {
+      "source": "volume",
+      "phase": "edit",
+      "runs": "4",
+      "completed": "4",
+      "p50_s": "217.0",
+      "p95_s": "315.0",
+      "max_s": "320.0"
+    }
+  ],
+  "all_runs": [
+    {
+      "source": "slack",
+      "phase": "create",
+      "runs": "5",
+      "completed": "5",
+      "p50_s": "294.0",
+      "p95_s": "513.0",
+      "max_s": "536.7"
+    },
+    {
+      "source": "slack",
+      "phase": "delete",
+      "runs": "5",
+      "completed": "5",
+      "p50_s": "639.0",
+      "p95_s": "1035.0",
+      "max_s": "1111.4"
+    },
+    {
+      "source": "slack",
+      "phase": "edit",
+      "runs": "5",
+      "completed": "4",
+      "p50_s": "218.0",
+      "p95_s": "315.0",
+      "max_s": "320.1"
+    },
+    {
+      "source": "volume",
+      "phase": "create",
+      "runs": "5",
+      "completed": "5",
+      "p50_s": "294.0",
+      "p95_s": "512.0",
+      "max_s": "536.1"
+    },
+    {
+      "source": "volume",
+      "phase": "delete",
+      "runs": "5",
+      "completed": "5",
+      "p50_s": "639.0",
+      "p95_s": "1033.0",
+      "max_s": "1110.5"
+    },
+    {
+      "source": "volume",
+      "phase": "edit",
+      "runs": "5",
+      "completed": "4",
+      "p50_s": "217.0",
+      "p95_s": "315.0",
+      "max_s": "320.0"
+    }
+  ],
+  "measurements": [
+    {
+      "run": "1",
+      "source": "slack",
+      "phase": "create",
+      "seconds_to_ingest": "230.9",
+      "seconds_to_index": "293.9"
+    },
+    {
+      "run": "1",
+      "source": "volume",
+      "phase": "create",
+      "seconds_to_ingest": "229.8",
+      "seconds_to_index": "293.7"
+    },
+    {
+      "run": "1",
+      "source": "slack",
+      "phase": "delete",
+      "seconds_to_ingest": "1047.1",
+      "seconds_to_index": "1111.4"
+    },
+    {
+      "run": "1",
+      "source": "volume",
+      "phase": "delete",
+      "seconds_to_ingest": "1044.9",
+      "seconds_to_index": "1110.5"
+    },
+    {
+      "run": "1",
+      "source": "slack",
+      "phase": "edit",
+      "seconds_to_ingest": null,
+      "seconds_to_index": null
+    },
+    {
+      "run": "1",
+      "source": "volume",
+      "phase": "edit",
+      "seconds_to_ingest": null,
+      "seconds_to_index": null
+    },
+    {
+      "run": "2",
+      "source": "slack",
+      "phase": "create",
+      "seconds_to_ingest": "406.4",
+      "seconds_to_index": "536.7"
+    },
+    {
+      "run": "2",
+      "source": "volume",
+      "phase": "create",
+      "seconds_to_ingest": "405.6",
+      "seconds_to_index": "536.1"
+    },
+    {
+      "run": "2",
+      "source": "slack",
+      "phase": "delete",
+      "seconds_to_ingest": "424.5",
+      "seconds_to_index": "489.3"
+    },
+    {
+      "run": "2",
+      "source": "volume",
+      "phase": "delete",
+      "seconds_to_ingest": "435.2",
+      "seconds_to_index": "489.1"
+    },
+    {
+      "run": "2",
+      "source": "slack",
+      "phase": "edit",
+      "seconds_to_ingest": "28.0",
+      "seconds_to_index": "116.4"
+    },
+    {
+      "run": "2",
+      "source": "volume",
+      "phase": "edit",
+      "seconds_to_ingest": "27.2",
+      "seconds_to_index": "114.7"
+    },
+    {
+      "run": "3",
+      "source": "slack",
+      "phase": "create",
+      "seconds_to_ingest": "219.5",
+      "seconds_to_index": "276.8"
+    },
+    {
+      "run": "3",
+      "source": "volume",
+      "phase": "create",
+      "seconds_to_ingest": "218.7",
+      "seconds_to_index": "276.5"
+    },
+    {
+      "run": "3",
+      "source": "slack",
+      "phase": "delete",
+      "seconds_to_ingest": "581.7",
+      "seconds_to_index": "639.0"
+    },
+    {
+      "run": "3",
+      "source": "volume",
+      "phase": "delete",
+      "seconds_to_ingest": "581.0",
+      "seconds_to_index": "638.8"
+    },
+    {
+      "run": "3",
+      "source": "slack",
+      "phase": "edit",
+      "seconds_to_ingest": "255.0",
+      "seconds_to_index": "320.1"
+    },
+    {
+      "run": "3",
+      "source": "volume",
+      "phase": "edit",
+      "seconds_to_ingest": "254.2",
+      "seconds_to_index": "320.0"
+    },
+    {
+      "run": "4",
+      "source": "slack",
+      "phase": "create",
+      "seconds_to_ingest": "288.4",
+      "seconds_to_index": "416.8"
+    },
+    {
+      "run": "4",
+      "source": "volume",
+      "phase": "create",
+      "seconds_to_ingest": "287.6",
+      "seconds_to_index": "416.7"
+    },
+    {
+      "run": "4",
+      "source": "slack",
+      "phase": "delete",
+      "seconds_to_ingest": "544.2",
+      "seconds_to_index": "606.6"
+    },
+    {
+      "run": "4",
+      "source": "volume",
+      "phase": "delete",
+      "seconds_to_ingest": "543.5",
+      "seconds_to_index": "606.3"
+    },
+    {
+      "run": "4",
+      "source": "slack",
+      "phase": "edit",
+      "seconds_to_ingest": "85.1",
+      "seconds_to_index": "149.6"
+    },
+    {
+      "run": "4",
+      "source": "volume",
+      "phase": "edit",
+      "seconds_to_ingest": "83.8",
+      "seconds_to_index": "149.3"
+    },
+    {
+      "run": "5",
+      "source": "slack",
+      "phase": "create",
+      "seconds_to_ingest": "220.8",
+      "seconds_to_index": "293.3"
+    },
+    {
+      "run": "5",
+      "source": "volume",
+      "phase": "create",
+      "seconds_to_ingest": "219.9",
+      "seconds_to_index": "293.1"
+    },
+    {
+      "run": "5",
+      "source": "slack",
+      "phase": "delete",
+      "seconds_to_ingest": "588.3",
+      "seconds_to_index": "727.5"
+    },
+    {
+      "run": "5",
+      "source": "volume",
+      "phase": "delete",
+      "seconds_to_ingest": "587.6",
+      "seconds_to_index": "722.9"
+    },
+    {
+      "run": "5",
+      "source": "slack",
+      "phase": "edit",
+      "seconds_to_ingest": "223.0",
+      "seconds_to_index": "285.5"
+    },
+    {
+      "run": "5",
+      "source": "volume",
+      "phase": "edit",
+      "seconds_to_ingest": "222.1",
+      "seconds_to_index": "285.3"
+    }
+  ]
+}
