@@ -10,7 +10,7 @@ import os
 import time
 
 from databricks.sdk import WorkspaceClient
-from databricks.sdk.service.sql import StatementState
+from databricks.sdk.service.sql import StatementParameterListItem, StatementState
 
 
 def warehouse_id(w: WorkspaceClient) -> str:
@@ -24,10 +24,15 @@ def warehouse_id(w: WorkspaceClient) -> str:
     return serverless[0].id
 
 
-def sql(w: WorkspaceClient, statement: str, warehouse: str | None = None, timeout_s: int = 300) -> list[list]:
-    """Run one statement and return its rows (all values as strings, as the API returns them)."""
+def sql(w: WorkspaceClient, statement: str, warehouse: str | None = None, timeout_s: int = 300,
+        parameters: dict[str, str] | None = None) -> list[list]:
+    """Run one statement and return its rows (all values as strings, as the API returns them).
+
+    parameters: named values for :name markers, sent separately from the SQL text (no quoting needed).
+    """
+    params = [StatementParameterListItem(name=k, value=v) for k, v in (parameters or {}).items()] or None
     resp = w.statement_execution.execute_statement(
-        statement=statement, warehouse_id=warehouse or warehouse_id(w), wait_timeout="50s"
+        statement=statement, warehouse_id=warehouse or warehouse_id(w), wait_timeout="50s", parameters=params
     )
     deadline = time.time() + timeout_s
     while resp.status.state in (StatementState.PENDING, StatementState.RUNNING):

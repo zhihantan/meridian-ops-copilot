@@ -19,3 +19,12 @@ def test_one_statement_per_view():
     assert views == [f"meridian.obs.{v}" for v in ("v_job_runs", "v_task_runs", "v_pipeline_events",
                                                     "v_expectation_metrics", "v_query_history", "v_audit",
                                                     "v_pipeline_health")]
+
+
+def test_procedures_stay_whole():
+    sql = Path(__file__).resolve().parents[1] / "sql" / "workflow_objects.sql"
+    parsed = statements(str(sql), {"agent": "c.agent", "kb": "c.kb", "silver": "c.silver", "refund_threshold": "500"})
+    procedures = [s for s in parsed if s.upper().startswith("CREATE OR REPLACE PROCEDURE")]
+    assert len(procedures) == 8
+    assert all(p.rstrip().upper().endswith("END") and "BEGIN" in p for p in procedures)
+    assert len(parsed) == 8 + 8  # eight tables, eight procedures

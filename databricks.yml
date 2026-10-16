@@ -35,6 +35,18 @@ variables:
         condition: ANY_UPDATED
         min_time_between_triggers_seconds: 60
         wait_after_last_change_seconds: 90
+  warehouse_id:
+    description: SQL warehouse for the governed workflow procedures (T18)
+    lookup:
+      warehouse: "⚡ Serverless Warehouse ⚡"
+  ava_principal:
+    description: Ava's service principal (support persona), owner of RB-014 v3
+    lookup:
+      service_principal: meridian-ava
+  ben_principal:
+    description: Ben's service principal (finance persona), owner of the RB-014 v4 draft
+    lookup:
+      service_principal: meridian-ben
   ci_service_principal:
     description: CI service principal (application ID) that deploys and runs staging and prod
     lookup:
