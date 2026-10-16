@@ -1,0 +1,110 @@
+{
+  "task": "T12 incremental sync",
+  "target": "dev",
+  "at": "2026-10-16T02:46:39.165171+00:00",
+  "doc": "DOC-RB-009",
+  "steps": [
+    {
+      "step": "rerun, nothing changed",
+      "run_id": "959328410077257",
+      "source_docs": 33,
+      "new": 0,
+      "changed": 0,
+      "unchanged": 33,
+      "deleted": 0,
+      "failed": 0,
+      "chunks_written": 0,
+      "chunks_deleted": 0,
+      "doc_revision_chunks_deleted": [
+        [
+          "1",
+          "1",
+          "false"
+        ]
+      ]
+    },
+    {
+      "step": "edit DOC-RB-009",
+      "run_id": "818541107402778",
+      "source_docs": 33,
+      "new": 0,
+      "changed": 1,
+      "unchanged": 32,
+      "deleted": 0,
+      "failed": 0,
+      "chunks_written": 1,
+      "chunks_deleted": 1,
+      "doc_revision_chunks_deleted": [
+        [
+          "2",
+          "1",
+          "false"
+        ]
+      ]
+    },
+    {
+      "step": "delete DOC-RB-009",
+      "run_id": "893989998086294",
+      "source_docs": 32,
+      "new": 0,
+      "changed": 0,
+      "unchanged": 32,
+      "deleted": 1,
+      "failed": 0,
+      "chunks_written": 0,
+      "chunks_deleted": 1,
+      "doc_revision_chunks_deleted": [
+        [
+          "2",
+          "0",
+          "true"
+        ]
+      ]
+    },
+    {
+      "step": "re-add DOC-RB-009",
+      "run_id": "225516773564357",
+      "source_docs": 33,
+      "new": 1,
+      "changed": 0,
+      "unchanged": 32,
+      "deleted": 0,
+      "failed": 0,
+      "chunks_written": 1,
+      "chunks_deleted": 0,
+      "doc_revision_chunks_deleted": [
+        [
+          "3",
+          "1",
+          "false"
+        ]
+      ]
+    },
+    {
+      "step": "full refresh",
+      "run_id": "200570571263420",
+      "source_docs": 33,
+      "new": 0,
+      "changed": 33,
+      "unchanged": 0,
+      "deleted": 0,
+      "failed": 0,
+      "chunks_written": 35,
+      "chunks_deleted": 35,
+      "doc_revision_chunks_deleted": [
+        [
+          "3",
+          "1",
+          "false"
+        ]
+      ]
+    }
+  ],
+  "checks": {
+    "a rerun with no changes rewrites nothing": true,
+    "an edit reprocesses only that document": true,
+    "a source delete removes its chunks": true,
+    "full refresh reprocesses every document": true
+  },
+  "status": "PASS"
+}

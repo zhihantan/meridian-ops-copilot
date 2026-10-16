@@ -60,3 +60,7 @@ personas:
 knowledge_tiers:
   general: [meridian-support, meridian-finance, meridian-admin]
   finance: [meridian-finance, meridian-admin]
+# Slack channels synced into the knowledge base and the tier each lands in (T11). A channel that is
+# not listed is not indexed (fail closed).
+knowledge_slack_channels:
+  ops-incidents: general

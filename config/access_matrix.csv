@@ -2,9 +2,11 @@ principal,privileges,securable_type,securable,purpose,targets
 meridian-support,USE_CATALOG,CATALOG,{catalog},support agents browse the catalog,
 meridian-support,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,customer and payment lookups (masked and filtered by ABAC),
 meridian-support,USE_SCHEMA|SELECT,SCHEMA,{prefix}gold,incident metrics,
+meridian-support,USE_SCHEMA,SCHEMA,{prefix}kb,knowledge search; SELECT is per tier index (T13) and not on the chunk tables,
 meridian-finance,USE_CATALOG,CATALOG,{catalog},finance analysts,
 meridian-finance,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,all markets (excepted from the market filter),
 meridian-finance,USE_SCHEMA|SELECT,SCHEMA,{prefix}gold,incident and refund metrics,
+meridian-finance,USE_SCHEMA,SCHEMA,{prefix}kb,knowledge search; SELECT is per tier index (T13) and not on the chunk tables,
 meridian-de,USE_CATALOG|BROWSE,CATALOG,{catalog},data engineers see every layer,
 meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}bronze,raw records,
 meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}silver,validated records,
@@ -15,3 +17,10 @@ meridian-de,USE_SCHEMA|SELECT,SCHEMA,{prefix}gov,PII coverage and lineage change
 meridian-de,USE_SCHEMA|READ_VOLUME,SCHEMA,{prefix}landing,inspect landed files,
 meridian-de,USE_SCHEMA,SCHEMA,secrets,dev credentials schema (T08),dev
 meridian-de,READ_SECRET,SECRET,secrets.*,developers read dev credentials; staging and prod jobs run as the CI principal (T08),dev
+meridian-de,USE_SCHEMA,SCHEMA,{prefix}kb,knowledge sync operations; no chunk content,
+meridian-de,SELECT,TABLE,{prefix}kb.docs,document metadata; content stays behind the tier indexes,
+meridian-de,SELECT,TABLE,{prefix}kb.sync_runs,knowledge sync runs,
+meridian-de,SELECT,TABLE,{prefix}kb.ingest_failures,knowledge ingest failures,
+meridian-de,SELECT,TABLE,{prefix}kb.sync_status,knowledge sync health,
+meridian-admin,USE_CATALOG,CATALOG,{catalog},platform admins and approvers,
+meridian-admin,USE_SCHEMA|SELECT,SCHEMA,{prefix}kb,admins are entitled to every knowledge tier,

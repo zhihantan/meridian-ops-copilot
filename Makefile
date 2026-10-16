@@ -53,3 +53,15 @@ job-runs:
 # Bad-backfill drill evidence: history, blast radius, restore, lineage (T06, read-only)
 drill-evidence:
 	uv run --group dbx python scripts/backfill_drill.py --target $(TARGET) --out docs/evidence/T06/drill_$(TARGET).json
+
+.PHONY: land-kb kb-sync kb-drill
+# Knowledge corpus into the landing volume by tier (T10, T11); kb_sync runs on file arrival (or kb-sync)
+land-kb:
+	scripts/land.sh $(TARGET) kb
+
+kb-sync:
+	databricks bundle run -t $(TARGET) kb_sync_job
+
+# Incremental sync drill: rerun, edit, delete, re-add, full refresh (T12)
+kb-drill:
+	uv run --group dbx python scripts/kb_drill.py --target $(TARGET)

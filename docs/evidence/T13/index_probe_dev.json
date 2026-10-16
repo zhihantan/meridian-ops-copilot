@@ -1,0 +1,71 @@
+{
+  "task": "T13 indexes",
+  "target": "dev",
+  "at": "2026-10-16T02:50:12.825592+00:00",
+  "query": "acq_7 service credit when the failure rate is too high",
+  "indexes": {
+    "general": {
+      "ready": true,
+      "indexed_rows": 33,
+      "message": "Index creation succeeded. Check latest status: <url>"
+    },
+    "finance": {
+      "ready": true,
+      "indexed_rows": 2,
+      "message": "Index creation succeeded. Check latest status: <url>"
+    }
+  },
+  "access": {
+    "eli (admin) / general": {
+      "result": "allowed",
+      "top_docs": [
+        "SLACK-OPS-023",
+        "SLACK-OPS-002",
+        "SLACK-OPS-007"
+      ]
+    },
+    "eli (admin) / finance": {
+      "result": "allowed",
+      "top_docs": [
+        "DOC-FEE-001",
+        "DOC-FEE-001"
+      ]
+    },
+    "ben (finance) / general": {
+      "result": "allowed",
+      "top_docs": [
+        "SLACK-OPS-023",
+        "SLACK-OPS-002",
+        "SLACK-OPS-007"
+      ]
+    },
+    "ben (finance) / finance": {
+      "result": "allowed",
+      "top_docs": [
+        "DOC-FEE-001",
+        "DOC-FEE-001"
+      ]
+    },
+    "ava (support) / general": {
+      "result": "allowed",
+      "top_docs": [
+        "SLACK-OPS-023",
+        "SLACK-OPS-002",
+        "SLACK-OPS-007"
+      ]
+    },
+    "ava (support) / finance": {
+      "result": "denied",
+      "error": "PermissionDenied",
+      "message": "You do not have the SELECT privilege on 'meridian_dev.dev_zhihan_tan_kb.idx_finance', which is required for this operation. Note that being "
+    }
+  },
+  "checks": {
+    "both indexes online": true,
+    "hybrid query returns results": true,
+    "ava cannot query the finance index": true,
+    "ben can query the finance index": true,
+    "ava can query the general index": true
+  },
+  "status": "PASS"
+}

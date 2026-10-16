@@ -17,6 +17,12 @@ variables:
   serverless_environment_version:
     description: Serverless environment version pinned for jobs and local development
     default: "4"
+  search_endpoint:
+    description: AI Search endpoint shared by the knowledge indexes (created once, outside the bundle)
+    default: meridian-search
+  embedding_endpoint:
+    description: Databricks-managed embedding model for the knowledge indexes
+    default: databricks-gte-large-en
   duration_warning_seconds:
     description: Run-duration health rule for the ingest job (dev sets it low so every run exercises the warning)
     default: 900

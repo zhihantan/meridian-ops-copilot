@@ -1,0 +1,38 @@
+# AI Search indexes (T13): one Delta Sync index per access tier, with Databricks-managed embeddings and
+# UC grants by tier (config/scenario.yaml knowledge_tiers). Defined for dev and prod only: an index needs
+# its chunk table to exist, which kb_sync creates on its first run, and staging and ci deployments are
+# fresh. Triggered sync; kb_sync starts it after writing chunks.
+targets:
+  dev:
+    resources:
+      vector_search_indexes: &kb_indexes
+        idx_general:
+          name: "${var.catalog}.${resources.schemas.kb.name}.idx_general"
+          endpoint_name: "${var.search_endpoint}"
+          primary_key: chunk_id
+          index_type: DELTA_SYNC
+          delta_sync_index_spec:
+            source_table: "${var.catalog}.${resources.schemas.kb.name}.chunks_general"
+            pipeline_type: TRIGGERED
+            embedding_source_columns:
+              - {name: text, embedding_model_endpoint_name: "${var.embedding_endpoint}"}
+          grants:
+            - {principal: meridian-support, privileges: [SELECT]}
+            - {principal: meridian-finance, privileges: [SELECT]}
+            - {principal: meridian-admin, privileges: [SELECT]}
+        idx_finance:
+          name: "${var.catalog}.${resources.schemas.kb.name}.idx_finance"
+          endpoint_name: "${var.search_endpoint}"
+          primary_key: chunk_id
+          index_type: DELTA_SYNC
+          delta_sync_index_spec:
+            source_table: "${var.catalog}.${resources.schemas.kb.name}.chunks_finance"
+            pipeline_type: TRIGGERED
+            embedding_source_columns:
+              - {name: text, embedding_model_endpoint_name: "${var.embedding_endpoint}"}
+          grants:
+            - {principal: meridian-finance, privileges: [SELECT]}
+            - {principal: meridian-admin, privileges: [SELECT]}
+  prod:
+    resources:
+      vector_search_indexes: *kb_indexes

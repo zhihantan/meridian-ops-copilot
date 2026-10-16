@@ -136,6 +136,11 @@ def main() -> None:
                 if not schema_exists(w, securable):
                     print(f"skipped {securable}: schema does not exist yet")
                     continue
+            if row["securable_type"] == "TABLE":
+                securable = f"{catalog}.{securable}"
+                if not w.tables.exists(securable).table_exists:
+                    print(f"skipped {securable}: table does not exist yet")
+                    continue
             privileges = ", ".join(p.replace("_", " ") for p in row["privileges"].split("|"))
             for target in expand(w, catalog, row["securable_type"], securable):
                 if row["securable_type"] == "SECRET":  # SQL GRANT ON SECRET fails on the warehouse here

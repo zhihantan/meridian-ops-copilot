@@ -1,0 +1,40 @@
+# Knowledge base (T12): a file landing under raw/kb/ (documents or Slack history pages) runs kb_sync.
+resources:
+  jobs:
+    kb_sync_job:
+      name: meridian-kb-sync
+      description: "Event-driven: sync knowledge sources into kb.docs and the per-tier chunk tables behind the indexes."
+      tags: {project: meridian-poc}
+      max_concurrent_runs: 1
+      trigger:
+        file_arrival:
+          url: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb/"
+          min_time_between_triggers_seconds: 60
+          wait_after_last_change_seconds: 60
+      parameters:
+        - {name: full_refresh, default: "false"}
+      environments:
+        - environment_key: default
+          spec:
+            environment_version: "${var.serverless_environment_version}"
+            dependencies: ["pyyaml>=6.0"]
+      email_notifications:
+        on_failure: ["${var.notification_email}"]
+      tasks:
+        - task_key: sync
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/kb_sync.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src",
+                         --kb-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb",
+                         --sql-file, "${workspace.file_path}/sql/kb_objects.sql",
+                         --scenario, "${workspace.file_path}/config/scenario.yaml",
+                         --full-refresh, "{{job.parameters.full_refresh}}", --run-id, "{{job.run_id}}"]
+        - task_key: sync_indexes
+          depends_on: [{task_key: sync}]
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/sync_indexes.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
