@@ -1,4 +1,4 @@
-# Observability (T06b): centralized log views, a daily log export, the lineage changelog, and a
+# Observability (T06b, T21): centralized log views, daily log and audit exports, the lineage changelog, and a
 # finance export that is a new consumer of a gold table.
 resources:
   jobs:
@@ -27,6 +27,34 @@ resources:
           environment_key: default
           spark_python_task:
             python_file: ../src/meridian/jobs/export_logs.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+
+    export_audit_job:
+      name: meridian-export-audit
+      description: "T21. Daily 00:45 SGT: refresh the provenance views, then export knowledge and workflow audit files to the exports volume."
+      tags: {project: meridian-poc}
+      schedule:
+        quartz_cron_expression: "0 45 0 * * ?"
+        timezone_id: Asia/Singapore
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      email_notifications:
+        on_failure: ["${var.notification_email}"]
+      tasks:
+        - task_key: views
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/obs_views.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/obs_views.sql",
+                         --target, "${bundle.target}", --workspace-id, "{{workspace.id}}", --run-id, "{{job.run_id}}"]
+        - task_key: export
+          depends_on: [{task_key: views}]
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/export_audit.py
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
 

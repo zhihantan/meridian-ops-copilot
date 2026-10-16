@@ -4,7 +4,8 @@ search_kb searches only the indexes the caller's groups entitle them to (meridia
 caller's own token, drops any hit outside those tiers before the model sees it, and returns nothing when the
 best hit scores below the abstention threshold. ask_genie asks the Genie space as the caller (T22), so Genie's
 SQL runs under the caller's grants and ABAC policies; results come back with a citable Genie label.
-start_workflow and run_step drive governed runbook runs step by step (T18, copilot/workflow.py).
+start_workflow and run_step drive governed runbook runs step by step (T18, copilot/workflow.py); remember
+and recall keep per-user long-term memory (T25, copilot/memory.py), using the sources this invocation read.
 """
 
 from __future__ import annotations
@@ -16,7 +17,7 @@ import mlflow
 from databricks.sdk import WorkspaceClient
 from mlflow.entities import Document, SpanType
 
-from copilot import workflow
+from copilot import memory, workflow
 from meridian.agent.answer import CONFIG
 from meridian.kb.retrieve import Retriever
 
@@ -30,6 +31,7 @@ DEFINITIONS = [
                     "English. Returns Genie's SQL and rows labelled like [GENIE-1a2b3c4d]; cite that label.",
      "input_schema": {"type": "object", "properties": {"question": {"type": "string"}}, "required": ["question"]}},
     *workflow.DEFINITIONS,
+    *memory.DEFINITIONS,
 ]
 
 
@@ -44,6 +46,9 @@ class Tools:
         self.caller = caller
         self.retriever = Retriever(caller.client, os.environ.get("MERIDIAN_KB_SCHEMA", "meridian.kb"))
         self.workflows = workflow.Workflows(self)
+        self.memory = memory.Memory(self)
+        self.question = ""                     # the caller's latest message, set by the runtime
+        self.sources_used: list[dict] = []     # knowledge passages returned in this invocation, with their tier
 
     @property
     def tiers(self) -> list[str]:
@@ -59,6 +64,10 @@ class Tools:
                                         args.get("window_hours", 0))
         if name == "run_step":
             return self.workflows.step(str(args.get("run_id", "")), str(args.get("step_id", "")))
+        if name == "remember":
+            return self.memory.remember(str(args.get("kind", "fact")), str(args.get("text", "")))
+        if name == "recall":
+            return self.memory.recall(str(args.get("query", "")))
         return {"error": f"unknown tool {name}"}
 
     def search_kb(self, query: str, only: list[str] | None = None) -> dict:
@@ -73,6 +82,8 @@ class Tools:
             span.set_outputs([Document(page_content=h.text, metadata={"doc_uri": h.doc_id, "page": h.page,
                                                                       "tier": h.tier, "score": h.score})
                               for h in hits])
+        self.sources_used += [{"doc_id": h.doc_id, "page": h.page, "tier": h.tier, "version": h.source_version}
+                              for h in hits]
         if not hits:
             return {"results": [], "note": "Nothing in the knowledge base is relevant enough to answer this."}
         return {"results": [{"source": f"[{h.doc_id} p.{h.page}]", "title": h.title, "version": h.source_version,

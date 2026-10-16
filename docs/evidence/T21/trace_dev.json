@@ -1,0 +1,167 @@
+{
+  "task": "T21 audit",
+  "target": "dev",
+  "at": "2026-10-16T20:00:25.661956+00:00",
+  "traces": [
+    {
+      "question": "Above what amount does a refund batch need approval?",
+      "answer": "A refund batch needs approval from a member of meridian-admin when its total is above SGD 500 [DOC-RB-014 p.2]. The other current sources agree [DOC-REF-003 p.1][DOC-RB-021 p.1]. The older DOC-NOTE-250 (2025-09-10) says SGD 250 [DOC-NOTE-250 p.1]. I followed the most recently modified source, DOC-RB-014 (2",
+      "cited": [
+        "DOC-NOTE-250",
+        "DOC-RB-014",
+        "DOC-RB-021",
+        "DOC-REF-003"
+      ],
+      "provenance": [
+        {
+          "doc_id": "DOC-RB-021",
+          "source": "volume",
+          "tier": "general",
+          "source_version": "1",
+          "revision": "1",
+          "synced_at": "2026-10-16T03:34:47.245Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T02:31:42.733Z",
+          "change": "filesPut",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        },
+        {
+          "doc_id": "DOC-RB-014",
+          "source": "volume",
+          "tier": "general",
+          "source_version": "3",
+          "revision": "1",
+          "synced_at": "2026-10-16T02:46:18.012Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T02:31:35.769Z",
+          "change": "filesPut",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        },
+        {
+          "doc_id": "DOC-REF-003",
+          "source": "volume",
+          "tier": "general",
+          "source_version": "3",
+          "revision": "1",
+          "synced_at": "2026-10-16T02:46:18.012Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T02:31:28.517Z",
+          "change": "filesPut",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        },
+        {
+          "doc_id": "DOC-NOTE-250",
+          "source": "volume",
+          "tier": "general",
+          "source_version": "1",
+          "revision": "1",
+          "synced_at": "2026-10-16T02:46:18.012Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T02:31:50.300Z",
+          "change": "filesPut",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        }
+      ]
+    },
+    {
+      "question": "Which PagerDuty schedule is the PayOps on-call?",
+      "answer": "The PayOps on-call is the PagerDuty schedule payops-primary [SLACK-OPS-004 p.1]. RB-014 also says to page the PayOps on-call before step s1 of an acquirer degradation response [DOC-RB-014 p.1].",
+      "cited": [
+        "DOC-RB-014",
+        "SLACK-OPS-004"
+      ],
+      "provenance": [
+        {
+          "doc_id": "DOC-RB-014",
+          "source": "volume",
+          "tier": "general",
+          "source_version": "3",
+          "revision": "1",
+          "synced_at": "2026-10-16T02:46:18.012Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T02:31:35.769Z",
+          "change": "filesPut",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        },
+        {
+          "doc_id": "SLACK-OPS-004",
+          "source": "slack",
+          "tier": "general",
+          "source_version": null,
+          "revision": "1",
+          "synced_at": "2026-10-16T02:46:18.012Z",
+          "last_editor": "eli",
+          "edited_at": "2026-08-29T01:27:12.000Z",
+          "change": "Slack message",
+          "correction_submitted_by": null,
+          "last_audit_actor": null,
+          "last_audit_action": null,
+          "last_audit_reason": null,
+          "last_audit_at": null
+        }
+      ]
+    },
+    {
+      "question": "Reporting a suspected card-testing attack: what should I do?",
+      "answer": "Report it in #risk-alerts and page the risk on-call using the PagerDuty schedule risk-primary. Don't block the merchant yourself, because Risk decides [CORR-5EAB54A9 p.1].",
+      "cited": [
+        "CORR-5EAB54A9"
+      ],
+      "provenance": [
+        {
+          "doc_id": "CORR-5EAB54A9",
+          "source": "correction",
+          "tier": "general",
+          "source_version": "1",
+          "revision": "1",
+          "synced_at": "2026-10-16T19:45:38.447Z",
+          "last_editor": "eli",
+          "edited_at": "2026-10-16T19:43:21.726Z",
+          "change": "approved: drill: checked with the owning team",
+          "correction_submitted_by": "ava",
+          "last_audit_actor": "eli",
+          "last_audit_action": "kb_sync add",
+          "last_audit_reason": "revision 1",
+          "last_audit_at": "2026-10-16T19:45:38.447Z"
+        }
+      ]
+    }
+  ],
+  "export_folder": "/Volumes/<catalog>/dev_zhihan_tan_obs/exports/audit/2026-10-16",
+  "export_files": [
+    "audit_log.csv",
+    "corrections.csv",
+    "history_corrections.csv",
+    "history_docs.csv",
+    "kb_changes.csv",
+    "manifest.json",
+    "violations.csv"
+  ],
+  "checks": {
+    "every answer cites at least one document": true,
+    "every cited document has version, editor or sync, time and reason": true,
+    "a correction's approver and reason are traceable": true,
+    "today's audit export exists": true
+  },
+  "status": "PASS"
+}

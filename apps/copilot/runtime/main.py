@@ -43,6 +43,7 @@ async def invoke(value, context: InvocationContext) -> dict:
     messages = payload.get("messages") or []
     caller = resolve_caller(context)
     tools = Tools(caller)
+    tools.question = next((str(m.get("content")) for m in reversed(messages) if m.get("role") == "user"), "")
     outputs: list[dict] = []
 
     async def emit(event: dict) -> int:

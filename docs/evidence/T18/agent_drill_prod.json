@@ -608,37 +608,37 @@
     [
       "agent guard: run_step s3",
       "out of order: the next step is s1 (Query payment data)",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ],
     [
       "agent guard: run_step s6",
       "out of order: the next step is s1 (Query payment data)",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ],
     [
       "agent guard: run_step s6",
       "waiting for approval AP-b461fbaa31 (pending) from meridian-admin; the agent cannot approve",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ],
     [
       "agent guard: run_step s6",
       "the run is complete",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ],
     [
       "agent guard: run_step s3",
       "the run has stopped at s2 not_entitled: escalate to Finance",
-      "0f4090d7-de18-48e2-bab9-fe7975207c37"
+      "ava"
     ],
     [
       "agent guard: run_step s3",
       "no run run-8608108c9a67 started by you",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ],
     [
       "agent guard: run_step s6",
       "no run run-a0f2448e20be started by you",
-      "0da313b1-82fb-4cdc-959c-c9106489c559"
+      "ben"
     ]
   ],
   "guard_refusals_logged": 7,

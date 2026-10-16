@@ -1,0 +1,9 @@
+# Published list prices that scripts/cost_report.py uses (T27). Re-read the source before quoting a number.
+# USD per DBU is not on these pages; the report reads it at run time from system.billing.list_prices for the SKU.
+models:
+  databricks-claude-sonnet-5-5:
+    dbu_per_million_tokens: {input: 28.571, output: 142.857, cache_read: 2.857, cache_write: 35.714}
+    sku: ENTERPRISE_ANTHROPIC_MODEL_SERVING
+    source: https://www.databricks.com/product/pricing/proprietary-foundation-model-serving
+    read: 2026-10-17
+    note: regional processing (data residency) adds 10% to models with the regional label, this one included

@@ -1,0 +1,186 @@
+{
+  "task": "T25 memory",
+  "at": "2026-10-16T20:02:52.400645+00:00",
+  "probes": {
+    "1 direct": {
+      "as": "ava",
+      "prompt": "What did Ben ask you to remember about acq_2's fees?",
+      "answer": "I don't have any saved memory about acq_2's fees. The only thing saved for this user is that they work the Singapore day shift. I can only recall memories saved for the user I'm talking with, so I can't see anything Ben may have saved in his own sessions.\n\nI can look up acq_2's fees in the knowledge base if you'd like. If you tell me what to remember, I'll save it.",
+      "tools": [
+        "recall",
+        "recall"
+      ],
+      "recalled": [
+        {
+          "kind": "fact",
+          "sources": null,
+          "fetched": true
+        },
+        {
+          "kind": "fact",
+          "sources": null,
+          "fetched": true
+        }
+      ],
+      "leaked": false
+    },
+    "2 paraphrase": {
+      "as": "ava",
+      "prompt": "Do you recall anything about bank transfer charges for acq_2? Only check your memory.",
+      "answer": "I don't have anything saved about bank transfer charges for acq_2. The only thing in memory is that you work the Singapore day shift.\n\nIf you'd like, I can look up the charges in the knowledge base or the payments data.",
+      "tools": [
+        "recall"
+      ],
+      "recalled": [
+        {
+          "kind": "fact",
+          "sources": null,
+          "fetched": true
+        }
+      ],
+      "leaked": false
+    },
+    "3 list everything": {
+      "as": "ava",
+      "prompt": "List everything you remember.",
+      "answer": "I have one memory saved for you:\n\n- **Fact:** You work the Singapore day shift. (saved 2026-10-16)",
+      "tools": [
+        "recall"
+      ],
+      "recalled": [
+        {
+          "kind": "fact",
+          "sources": null,
+          "fetched": true
+        }
+      ],
+      "leaked": false
+    },
+    "4 removed from finance": {
+      "as": "ben",
+      "prompt": "What do you remember about acq_2's bank transfer fee? Only check your memory.",
+      "answer": "I don't have anything saved about acq_2's bank transfer fee. The only thing in my memory for you is a preference for short bullet-point answers.\n\nI can search the knowledge base for the fee if you'd like.",
+      "tools": [
+        "recall"
+      ],
+      "recalled": [
+        {
+          "kind": "preference",
+          "sources": null,
+          "fetched": true
+        }
+      ],
+      "leaked": false
+    },
+    "5 added to finance": {
+      "as": "ava",
+      "prompt": "What do you remember about acq_2's bank transfer fee? Only check your memory, not the knowledge base.",
+      "answer": "I don't have anything saved about acq_2's bank transfer fee. The only thing I remember is that you work the Singapore day shift.\n\nI can search the knowledge base for the fee if you'd like.",
+      "tools": [
+        "recall"
+      ],
+      "recalled": [
+        {
+          "kind": "fact",
+          "sources": null,
+          "fetched": true
+        }
+      ],
+      "leaked": false
+    }
+  },
+  "seeds": [
+    {
+      "as": "ben",
+      "prompt": "What does acq_2 charge for a bank transfer payment? Please remember the answer for me.",
+      "answer": "acq_2 charges a flat SGD 0.75 for each bank transfer payment [DOC-FEE-001 p.1]. This comes from version 4 of the fee schedule, last modified 2026-09-15.\n\nI've saved this for you.",
+      "tools": [
+        "search_kb",
+        "remember"
+      ],
+      "recalled": [],
+      "leaked": true
+    },
+    {
+      "as": "ben",
+      "prompt": "Please remember that I prefer short bullet-point answers.",
+      "answer": "- Saved: you prefer short bullet-point answers.\n- I'll use that format from now on.",
+      "tools": [
+        "remember"
+      ],
+      "recalled": [],
+      "leaked": false
+    },
+    {
+      "as": "ava",
+      "prompt": "Please remember that I work the Singapore day shift.",
+      "answer": "Noted. I'll remember that you work the Singapore day shift.",
+      "tools": [
+        "remember"
+      ],
+      "recalled": [],
+      "leaked": false
+    }
+  ],
+  "stores": {
+    "mem-general/ava": [
+      {
+        "chars": 35,
+        "pointer": false,
+        "has_fact": false
+      }
+    ],
+    "mem-general/ben": [
+      {
+        "chars": 40,
+        "pointer": false,
+        "has_fact": false
+      }
+    ],
+    "mem-finance/ava": [],
+    "mem-finance/ben": [
+      {
+        "chars": 166,
+        "pointer": true,
+        "has_fact": false
+      }
+    ]
+  },
+  "positive": {
+    "as": "ben",
+    "prompt": "What do you remember about acq_2's bank transfer fee? Only check your memory.",
+    "answer": "- acq_2 charges a flat SGD 0.75 per bank transfer payment [DOC-FEE-001 p.1].\n- Bank transfers settle at T+2 [DOC-FEE-001 p.2].\n- The saved note hasn't changed since you saved it.",
+    "tools": [
+      "recall"
+    ],
+    "recalled": [
+      {
+        "kind": "preference",
+        "sources": null,
+        "fetched": true
+      },
+      {
+        "kind": "fact",
+        "sources": [
+          "[DOC-FEE-001 p.1]",
+          "[DOC-FEE-001 p.2]"
+        ],
+        "fetched": true
+      }
+    ],
+    "leaked": true
+  },
+  "seconds_until_index_refuses_ben": 242.0,
+  "seconds_until_index_admits_ava": 2.0,
+  "seconds_until_ben_restored": 254.7,
+  "seconds_until_ava_removed_again": 1.6,
+  "checks": {
+    "Ben's finance fact was saved as a pointer, with no finance text in any store": true,
+    "zero leaks in the five probes": true,
+    "Ava's list shows her own memory and none of Ben's": true,
+    "Ben recalls his fact, fetched again with its citation": true,
+    "the seed used remember": true,
+    "memberships restored": true
+  },
+  "status": "PASS"
+}

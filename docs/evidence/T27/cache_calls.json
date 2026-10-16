@@ -1,0 +1,570 @@
+{
+  "task": "T27 prompt caching",
+  "model": "databricks-claude-sonnet-5-5",
+  "requester": "eli (the presenter)",
+  "window_utc": [
+    "2026-10-16 19:54:02",
+    "2026-10-16 19:55:01"
+  ],
+  "prefix": "copilot system prompt and tool definitions",
+  "summary": {
+    "cache on": {
+      "calls": 30,
+      "input": 2820,
+      "cache_write": 1538,
+      "cache_read": 44602,
+      "output": 90,
+      "median_seconds": 0.9
+    },
+    "cache off": {
+      "calls": 30,
+      "input": 48960,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 90,
+      "median_seconds": 0.85
+    }
+  },
+  "calls": [
+    {
+      "mode": "cache on",
+      "i": 0,
+      "seconds": 1.92,
+      "input": 94,
+      "cache_write": 1538,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 1,
+      "seconds": 0.94,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 2,
+      "seconds": 1.13,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 3,
+      "seconds": 0.9,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 4,
+      "seconds": 0.88,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 5,
+      "seconds": 0.91,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 6,
+      "seconds": 0.93,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 7,
+      "seconds": 0.9,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 8,
+      "seconds": 0.91,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 9,
+      "seconds": 0.87,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 10,
+      "seconds": 0.84,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 11,
+      "seconds": 0.8,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 12,
+      "seconds": 0.87,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 13,
+      "seconds": 0.85,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 14,
+      "seconds": 0.94,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 15,
+      "seconds": 0.85,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 16,
+      "seconds": 1.4,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 17,
+      "seconds": 0.89,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 18,
+      "seconds": 0.85,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 19,
+      "seconds": 0.89,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 20,
+      "seconds": 1.42,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 21,
+      "seconds": 0.83,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 22,
+      "seconds": 0.92,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 23,
+      "seconds": 0.83,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 24,
+      "seconds": 0.83,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 25,
+      "seconds": 0.86,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 26,
+      "seconds": 0.88,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 27,
+      "seconds": 0.91,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 28,
+      "seconds": 0.93,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache on",
+      "i": 29,
+      "seconds": 1.41,
+      "input": 94,
+      "cache_write": 0,
+      "cache_read": 1538,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 0,
+      "seconds": 0.87,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 1,
+      "seconds": 0.99,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 2,
+      "seconds": 0.83,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 3,
+      "seconds": 0.97,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 4,
+      "seconds": 1.0,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 5,
+      "seconds": 0.84,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 6,
+      "seconds": 0.84,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 7,
+      "seconds": 0.83,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 8,
+      "seconds": 0.84,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 9,
+      "seconds": 0.85,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 10,
+      "seconds": 0.86,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 11,
+      "seconds": 0.8,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 12,
+      "seconds": 0.85,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 13,
+      "seconds": 0.82,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 14,
+      "seconds": 0.82,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 15,
+      "seconds": 0.85,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 16,
+      "seconds": 0.88,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 17,
+      "seconds": 0.82,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 18,
+      "seconds": 0.87,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 19,
+      "seconds": 0.92,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 20,
+      "seconds": 0.86,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 21,
+      "seconds": 0.85,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 22,
+      "seconds": 0.8,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 23,
+      "seconds": 0.83,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 24,
+      "seconds": 0.81,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 25,
+      "seconds": 0.89,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 26,
+      "seconds": 0.85,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 27,
+      "seconds": 1.15,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 28,
+      "seconds": 0.82,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    },
+    {
+      "mode": "cache off",
+      "i": 29,
+      "seconds": 0.98,
+      "input": 1632,
+      "cache_write": 0,
+      "cache_read": 0,
+      "output": 3
+    }
+  ]
+}

@@ -1,4 +1,4 @@
-"""Governed workflow objects (T18): apply sql/workflow_objects.sql through a SQL warehouse, seed kb.workflows.
+"""Governed procedures (T18, T20): apply the SQL files through a SQL warehouse in order, seed kb.workflows.
 
 The SQL runs as this job's identity, so the SQL SECURITY DEFINER procedures are owned by the deploying
 principal. The membership mirrors the procedures check (agent.approvers, agent.tier_members) are filled by
@@ -6,7 +6,7 @@ apply_governance.py as an admin, because this job's principal cannot read group 
 Workflow versions are seeded from config/workflows/*.yaml with an owner principal and a checksum of their steps;
 existing versions are never overwritten, so an approval made in the workspace stands.
 
-    workflow_setup.py --catalog C --bronze-schema S --sql-file F --workflows-dir D --scenario Y --warehouse-id W
+    workflow_setup.py --catalog C --bronze-schema S --sql-file F [--sql-file F2] --workflows-dir D --scenario Y --warehouse-id W
                       --principal ava=<app id> --principal ben=<app id>
 """
 
@@ -32,7 +32,8 @@ from meridian.jobs.common import names, parser
 
 def main() -> None:
     p = parser(__doc__.splitlines()[0])
-    for flag in ("--sql-file", "--workflows-dir", "--scenario", "--warehouse-id"):
+    p.add_argument("--sql-file", action="append", required=True, help="applied in order")
+    for flag in ("--workflows-dir", "--scenario", "--warehouse-id"):
         p.add_argument(flag, required=True)
     p.add_argument("--principal", action="append", default=[], help="persona=principal, for workflow owners")
     args = p.parse_args()
@@ -42,9 +43,10 @@ def main() -> None:
     values = {"agent": f"{n.catalog}.{n.schema('agent')}", "kb": f"{n.catalog}.{n.schema('kb')}",
               "silver": f"{n.catalog}.{n.schema('silver')}",
               "refund_threshold": str(scenario["policy"]["refund_approval_threshold_sgd"])}
-    for statement in statements(args.sql_file, values):
-        sql(w, statement, warehouse=args.warehouse_id)
-        print("ok:", " ".join(statement.split()[:6]))
+    for sql_file in args.sql_file:
+        for statement in statements(sql_file, values):
+            sql(w, statement, warehouse=args.warehouse_id)
+            print("ok:", " ".join(statement.split()[:6]))
 
     principals = dict(item.split("=", 1) for item in args.principal)
     for path in sorted(Path(args.workflows_dir).glob("*.yaml")):

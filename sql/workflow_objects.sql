@@ -8,7 +8,7 @@
 -- (apply_governance.py), and entitlement checks use agent.tier_members, mirrored from the tier groups the same way.
 -- A run (start_run) is pinned to the latest approved workflow version and owned by whoever started it; every
 -- later step checks both. Steps the agent performs itself (data, knowledge, status checks) are logged with
--- log_step; the others log themselves.
+-- log_step; the others log themselves. kb.audit_log is created with the knowledge objects (sql/kb_objects.sql).
 
 CREATE TABLE IF NOT EXISTS ${kb}.workflows (
   workflow_id STRING, version INT, status STRING, title STRING, owner STRING, approved_by STRING,
@@ -49,10 +49,6 @@ CREATE TABLE IF NOT EXISTS ${agent}.runs (
   run_id STRING, workflow_id STRING, version INT, acquirer_id STRING, window_hours INT, started_by STRING,
   started_at TIMESTAMP)
 COMMENT 'BUILD: workflow runs, each pinned when it starts to the latest approved version of its workflow';
-
-CREATE TABLE IF NOT EXISTS ${kb}.audit_log (
-  ts TIMESTAMP, actor STRING, action STRING, target STRING, reason STRING, details STRING)
-COMMENT 'BUILD: who changed governed knowledge and workflows, when and why';
 
 -- The latest approved version only; drafts are never returned.
 CREATE OR REPLACE PROCEDURE ${agent}.get_workflow(IN p_workflow_id STRING)

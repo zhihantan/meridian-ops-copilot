@@ -31,6 +31,7 @@ from databricks.sdk import WorkspaceClient
 
 from meridian.agent.client import ask
 from meridian.common.bundle import target_names
+from meridian.common.personas import principal_names, scrub
 from meridian.common.workspace import bearer_token, sql
 
 REPO = Path(__file__).resolve().parents[1]
@@ -218,7 +219,7 @@ def main() -> None:
               "zero unapproved refunds": not unapproved} | result.get("agent", {}).get("checks", {})
     result["checks"], result["status"] = checks, "PASS" if all(checks.values()) else "FAIL"
     out = REPO / "docs" / "evidence" / "T18" / f"agent_drill_{args.target}.json"
-    out.write_text(json.dumps(result, indent=2, default=str) + "\n")
+    out.write_text(json.dumps(scrub(result, principal_names(eli)), indent=2) + "\n")
     print(result["status"], json.dumps(checks, indent=1))
 
 

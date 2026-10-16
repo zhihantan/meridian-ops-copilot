@@ -1,0 +1,34 @@
+{
+  "task": "T24 external agent",
+  "at": "2026-10-16T19:30:53.929944+00:00",
+  "question": "What does acq_2 charge for a bank transfer payment, and above what amount does a refund batch need approval?",
+  "runtime": "uv run --isolated --no-project --with anthropic, from a temporary folder",
+  "ava": {
+    "answer": "**acq_2 bank transfer fee:** I can't tell you. Fee and SLA terms are probably in the finance knowledge base, but my query to it was refused with PERMISSION_DENIED, because I lack SELECT on `meridian.kb.idx_finance`. The general index had nothing on acq_2's bank transfer charges. I haven't guessed a figure. To get it, ask Finance or a metastore admin for access to that index.\n\n**Refund batch approval threshold:** A refund batch needs approval when its total is above SGD 500.\n- The refund policy says any batch above SGD 500 needs approval from a member of meridian-admin before it runs, and the approver must be a different person from the requester [DOC-REF-003 p.1].\n- The approval runbook says the same. Batches at or below SGD 500 run without approval but are still logged [DOC-RB-021 p.1].\n- The acquirer degradation runbook also makes the approval step required above SGD 500 [DOC-RB-014 p.2].\n\nOne older ops note says refunds over SGD 250 need a second approver [DOC-NOTE-250 p.1]. It is dated 2025-09-10 and conflicts with the newer policy documents (version 3 of the refund policy, effective 2026-08-26 for RB-021). I treated SGD 500 as current, but you may want to confirm that.",
+    "cited": [
+      "DOC-NOTE-250",
+      "DOC-RB-014",
+      "DOC-RB-021",
+      "DOC-REF-003"
+    ],
+    "exit": 0
+  },
+  "ben": {
+    "answer": "**Bank transfer fee for acq_2:** acq_2 charges a flat SGD 0.75 per bank transfer payment [DOC-FEE-001 p.1]. That document is marked as restricted to Finance.\n\n**Refund batch approval:** A refund batch needs approval when its total is above SGD 500. A member of meridian-admin must approve it, and the approver must be a different person from the requester [DOC-REF-003 p.1] [DOC-RB-021 p.1]. Batches at or below SGD 500 run without approval but are still logged [DOC-RB-021 p.1]. The runbook says the same thing [DOC-RB-014 p.2].\n\n**Conflicting source:** An older ops note, DOC-NOTE-250, says refunds over SGD 250 need a second approver [DOC-NOTE-250 p.1]. It is dated 2025-09-10. The SGD 500 threshold comes from newer documents: the refund policy v3 (2026-08-31) and RB-021 (2026-08-26). I treated SGD 500 as current, but I can't confirm from the documents that the older note was formally withdrawn.",
+    "cited": [
+      "DOC-FEE-001",
+      "DOC-NOTE-250",
+      "DOC-RB-014",
+      "DOC-RB-021",
+      "DOC-REF-003"
+    ],
+    "exit": 0
+  },
+  "checks": {
+    "the agent ran outside the project with only the anthropic package": true,
+    "Ava: the finance fee is refused, not answered": true,
+    "Ava: the refund threshold is answered with a citation": true,
+    "Ben: the fee is answered from the finance document": true
+  },
+  "status": "PASS"
+}

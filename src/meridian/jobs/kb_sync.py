@@ -1,9 +1,9 @@
 """Knowledge sync (T12, BUILD): sources to kb.docs to per-tier chunk tables, incrementally.
 
 Reads kb.v_source_docs, hashes every document and compares with kb.docs: new and changed documents are
-parsed (ai_parse_document for PDF and DOCX, as-is for Markdown, text and Slack), chunked and written to
-kb.chunks_<tier>, replacing that document's old chunks; unchanged documents are not touched; documents
-gone from the source have their chunks hard-deleted. The chunk tables have Change Data Feed on, so the
+parsed (ai_parse_document for PDF and DOCX, as-is for Markdown, text, Slack and approved corrections),
+chunked and written to kb.chunks_<tier>, replacing that document's old chunks; unchanged documents are not
+touched; documents gone from the source (a deleted file, a reverted correction) have their chunks hard-deleted. The chunk tables have Change Data Feed on, so the
 Delta Sync indexes follow. A document that fails is written to kb.ingest_failures and keeps its previous
 chunks; it is retried on the next run. --full-refresh reprocesses every document.
 
@@ -32,7 +32,7 @@ from meridian.kb.chunking import chunk_id, chunk_parsed, chunk_text
 
 TIERS = ("general", "finance")
 PARSED_FORMATS = ("pdf", "docx")
-TEXT_FORMATS = ("md", "txt", "slack")
+TEXT_FORMATS = ("md", "txt", "slack", "correction")
 CHUNK_SCHEMA = ("chunk_id STRING, doc_id STRING, title STRING, source STRING, uri STRING, tier STRING, page INT, "
                 "seq INT, text STRING, doc_revision INT, source_version STRING, modified_at TIMESTAMP, "
                 "synced_at TIMESTAMP, run_id STRING")
@@ -144,6 +144,17 @@ def main() -> None:
         listed = ", ".join(f"'{d}'" for d in gone)
         spark.sql(f"UPDATE {kb}.docs SET deleted_at = current_timestamp(), chunks = 0, run_id = '{args.run_id}' "
                   f"WHERE doc_id IN ({listed})")
+    # Audit (T21): every document this run added, changed or removed, with the reason.
+    actor = spark.sql("SELECT current_user()").first()[0]
+    sources = {d["doc_id"]: d["source"] for d in source} | {doc_id: r["source"] for doc_id, r in known.items()}
+    audit = [(now, actor, "kb_sync add" if d[0] not in known else "kb_sync update", d[0], f"revision {d[7]}",
+              json.dumps({"run_id": args.run_id, "chunks": d[9], "source": d[1]})) for d in doc_rows]
+    audit += [(now, actor, "kb_sync delete", doc_id,
+               "correction reverted" if sources.get(doc_id) == "correction" else "source removed",
+               json.dumps({"run_id": args.run_id})) for doc_id in gone]
+    if audit:
+        spark.createDataFrame(audit, spark.table(f"{kb}.audit_log").schema).write.mode("append") \
+            .saveAsTable(f"{kb}.audit_log")
     if failures:
         spark.createDataFrame([(now, args.run_id, *f) for f in failures],
                               "failed_at TIMESTAMP, run_id STRING, doc_id STRING, uri STRING, stage STRING, reason STRING") \

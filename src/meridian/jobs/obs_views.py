@@ -29,7 +29,7 @@ def main() -> None:
     n = names(args)
     spark = SparkSession.builder.getOrCreate()
     values = {"catalog": n.catalog, "target": args.target, "workspace_id": args.workspace_id,
-              **{layer: f"{n.catalog}.{n.schema(layer)}" for layer in ("obs", "gov", "quarantine")}}
+              **{layer: f"{n.catalog}.{n.schema(layer)}" for layer in ("obs", "gov", "quarantine", "kb")}}
     for statement in statements(args.sql_file, values):
         spark.sql(statement)
         print("ok:", statement.split("\n", 1)[0])

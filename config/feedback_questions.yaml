@@ -1,0 +1,45 @@
+# Knowledge gaps for the feedback and corrections loop (T20). Separate from the golden set, so T16's out-of-scope
+# questions stay unanswerable. Each question fails today: the copilot abstains or misses the key fact. The asker
+# gives feedback and proposes the correction below; Eli (meridian-admin) decides as listed.
+questions:
+  - id: F01
+    persona: ava
+    tier: general
+    question: Where should support report a suspected card-testing attack?
+    key_fact: "#risk-alerts"
+    correction:
+      title: Reporting a suspected card-testing attack
+      text: >-
+        Support reports a suspected card-testing attack in #risk-alerts and pages the risk on-call (PagerDuty
+        schedule risk-primary). Do not block the merchant yourself; Risk decides.
+    decision: approve
+  - id: F02
+    persona: ava
+    tier: general
+    question: What is the cut-off time for a same-day PayNow refund?
+    key_fact: "16:00 SGT"
+    correction:
+      title: Same-day PayNow refund cut-off
+      text: >-
+        A PayNow refund settles the same day when it is submitted by 16:00 SGT on a business day. Later requests
+        settle on the next business day.
+    decision: approve
+    revert: true        # reverted after the re-run, to show it stops being served
+  - id: F03
+    persona: ben
+    tier: finance
+    question: What FX markup applies when a USD card payment is refunded in SGD?
+    key_fact: "1.5%"
+    correction:
+      title: FX markup on USD refunds
+      text: A 1.5% FX markup applies when a USD card payment is refunded in SGD.
+    decision: reject    # not verified with the acquirer: never served
+  - id: F04
+    persona: ava
+    tier: general
+    question: How does support reach the merchant support team after hours?
+    key_fact: "merchant-oncall"
+    correction:
+      title: Merchant support after hours
+      text: After 19:00 SGT, support reaches the merchant support team through the PagerDuty schedule merchant-oncall.
+    decision: leave     # still proposed: not served until someone in meridian-admin approves it

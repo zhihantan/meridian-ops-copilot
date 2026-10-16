@@ -1,0 +1,361 @@
+{
+  "task": "T20 feedback and corrections",
+  "target": "dev",
+  "at": "2026-10-16T19:35:17.758354+00:00",
+  "attacks": {
+    "Ava proposes a finance correction": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: you can only correct a tier you are entitled to "
+    },
+    "Ava (not an admin) approves a correction": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: only meridian-admin can decide corrections "
+    },
+    "Eli approves his own correction": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: the submitter cannot approve their own correction "
+    },
+    "Ava reads kb.corrections directly": {
+      "ok": false,
+      "reason": "[INSUFFICIENT_PERMISSIONS] Insufficient privileges:"
+    },
+    "approve a rejected correction": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: only a proposed correction can be approved or rejected (it is rejected) "
+    }
+  },
+  "reset": {
+    "CORR-e903e82a": 120.3
+  },
+  "golden_test_before": {
+    "G02": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G04": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": false
+    },
+    "G06": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": false
+    },
+    "G08": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G10": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G12": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G15": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G16": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G18": {
+      "abstention_ok": true,
+      "cites_expected": null,
+      "key_fact": null
+    },
+    "G20": {
+      "abstention_ok": true,
+      "cites_expected": null,
+      "key_fact": null
+    }
+  },
+  "kb_sync_seconds": 235.3,
+  "seconds_until_indexed": {
+    "F01": 13.3,
+    "F02": 13.4
+  },
+  "golden_test_after": {
+    "G02": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G04": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": false
+    },
+    "G06": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": false
+    },
+    "G08": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G10": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G12": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G15": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G16": {
+      "abstention_ok": true,
+      "cites_expected": true,
+      "key_fact": true
+    },
+    "G18": {
+      "abstention_ok": true,
+      "cites_expected": null,
+      "key_fact": null
+    },
+    "G20": {
+      "abstention_ok": true,
+      "cites_expected": null,
+      "key_fact": null
+    }
+  },
+  "kb_sync_after_revert_seconds": 172.1,
+  "seconds_until_unindexed": 47.7,
+  "audit_log": [
+    [
+      "approve_correction",
+      "2"
+    ],
+    [
+      "decide_correction refused",
+      "3"
+    ],
+    [
+      "reject_correction",
+      "2"
+    ],
+    [
+      "revert_correction",
+      "2"
+    ],
+    [
+      "submit_correction",
+      "5"
+    ],
+    [
+      "submit_correction refused",
+      "1"
+    ]
+  ],
+  "rows": {
+    "F01": {
+      "question": "Where should support report a suspected card-testing attack?",
+      "persona": "ava",
+      "tier": "general",
+      "decision": "approve",
+      "baseline": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      },
+      "feedback_id": "FB-8E01EFDC42",
+      "correction_id": "CORR-5EAB54A9",
+      "submitted": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-5EAB54A9",
+            "proposed"
+          ]
+        ]
+      },
+      "decided": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-5EAB54A9",
+            "approved",
+            "eli"
+          ]
+        ]
+      },
+      "after": {
+        "answer": "Support should report a suspected card-testing attack in #risk-alerts and page the risk on-call (PagerDuty schedule risk-primary). Support should not block the merchant themselves, because Risk decides [CORR-5EAB54A9 p.1].",
+        "abstained": false,
+        "cited": [
+          "CORR-5EAB54A9"
+        ],
+        "key_fact_stated": true,
+        "cites_correction": true
+      }
+    },
+    "F02": {
+      "question": "What is the cut-off time for a same-day PayNow refund?",
+      "persona": "ava",
+      "tier": "general",
+      "decision": "approve",
+      "baseline": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      },
+      "feedback_id": "FB-464A7380AF",
+      "correction_id": "CORR-6E31C061",
+      "submitted": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-6E31C061",
+            "proposed"
+          ]
+        ]
+      },
+      "decided": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-6E31C061",
+            "approved",
+            "eli"
+          ]
+        ]
+      },
+      "after": {
+        "answer": "A PayNow refund settles the same day if it is submitted by 16:00 SGT on a business day. Later requests settle on the next business day [CORR-6E31C061 p.1].",
+        "abstained": false,
+        "cited": [
+          "CORR-6E31C061"
+        ],
+        "key_fact_stated": true,
+        "cites_correction": true
+      },
+      "reverted": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-6E31C061",
+            "reverted",
+            "eli"
+          ]
+        ]
+      },
+      "after_revert": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      }
+    },
+    "F03": {
+      "question": "What FX markup applies when a USD card payment is refunded in SGD?",
+      "persona": "ben",
+      "tier": "finance",
+      "decision": "reject",
+      "baseline": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      },
+      "feedback_id": "FB-6103B9D4A3",
+      "correction_id": "CORR-4E180150",
+      "submitted": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-4E180150",
+            "proposed"
+          ]
+        ]
+      },
+      "decided": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-4E180150",
+            "rejected",
+            "eli"
+          ]
+        ]
+      },
+      "after": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      }
+    },
+    "F04": {
+      "question": "How does support reach the merchant support team after hours?",
+      "persona": "ava",
+      "tier": "general",
+      "decision": "leave",
+      "baseline": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      },
+      "feedback_id": "FB-3F0A1870E1",
+      "correction_id": "CORR-6074CB42",
+      "submitted": {
+        "ok": true,
+        "rows": [
+          [
+            "CORR-6074CB42",
+            "proposed"
+          ]
+        ]
+      },
+      "after": {
+        "answer": "I don't have that in the knowledge base.",
+        "abstained": true,
+        "cited": [],
+        "key_fact_stated": false,
+        "cites_correction": false
+      }
+    }
+  },
+  "improved": [
+    "F01",
+    "F02"
+  ],
+  "golden_test_passed": {
+    "before": "8/10",
+    "after": "8/10"
+  },
+  "checks": {
+    "every gap failed at baseline": true,
+    "at least 2 improved after approval": true,
+    "rejected and unreviewed corrections are not served": true,
+    "no regression on the test split": true,
+    "revert stops the correction being served": true,
+    "every attack refused": true
+  },
+  "status": "PASS"
+}

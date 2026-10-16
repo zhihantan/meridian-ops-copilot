@@ -4,6 +4,7 @@ Spans are written as OpenTelemetry records straight into Delta tables (<prefix>_
 through artifact uploads, which the app cannot reach here. The app's service principal can write them;
 meridian-admin can read them. Traces hold questions, retrieved passages and answers, finance ones included, so no
 other group gets access. Then bind it: `agentbricks tracing bind --experiment-name <name> --source apps/copilot`.
+Last, the observability views in sql/agent_views.sql (T27): runs with tokens, tool latency, denials.
 
     uv run --group dbx --group agent python scripts/setup_traces.py --target prod --app agent-bricks-meridian-copilot
 """
@@ -12,15 +13,18 @@ from __future__ import annotations
 
 import argparse
 import os
+from pathlib import Path
 
 import mlflow
 from databricks.sdk import WorkspaceClient
 from mlflow.entities.trace_location import UnityCatalog
 
 from meridian.common.bundle import target_names
+from meridian.common.sqlfile import statements
 from meridian.common.workspace import sql
 
 EXPERIMENT = "/Shared/agentbricks_traces/meridian-copilot-uc"
+REPO = Path(__file__).resolve().parents[1]
 
 
 def main() -> None:
@@ -47,6 +51,10 @@ def main() -> None:
     sql(w, f"GRANT USE CATALOG ON CATALOG {t.catalog} TO `{app_sp}`")
     sql(w, f"GRANT USE SCHEMA ON SCHEMA {t.catalog}.{schema} TO `{app_sp}`")
     print(f"app principal can write {len(tables)} trace table(s): {', '.join(tables)}; meridian-admin can read them")
+    for statement in statements(str(REPO / "sql" / "agent_views.sql"), {"agent": f"{t.catalog}.{schema}",
+                                                                       "prefix": args.prefix}):
+        sql(w, statement)
+        print("ok:", " ".join(statement.split()[:5]))
 
 
 if __name__ == "__main__":

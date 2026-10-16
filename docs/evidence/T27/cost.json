@@ -1,0 +1,136 @@
+{
+  "task": "T27 cost",
+  "at": "2026-10-16T20:28:23.872577+00:00",
+  "prices": {
+    "model": "databricks-claude-sonnet-5-5",
+    "dbu_per_million_tokens": {
+      "input": 28.571,
+      "output": 142.857,
+      "cache_read": 2.857,
+      "cache_write": 35.714
+    },
+    "source": "https://www.databricks.com/product/pricing/proprietary-foundation-model-serving",
+    "read": "2026-10-17",
+    "usd_per_dbu": 0.07,
+    "usd_per_dbu_source": "system.billing.list_prices, SKU ENTERPRISE_ANTHROPIC_MODEL_SERVING",
+    "note": "regional processing (data residency) adds 10% to models with the regional label, this one included"
+  },
+  "caching": {
+    "cache on": {
+      "tokens": {
+        "input": 2820,
+        "cache_write": 1538,
+        "cache_read": 44602,
+        "output": 90
+      },
+      "calls": 30,
+      "median_seconds": 0.9,
+      "usd": 0.019305
+    },
+    "cache off": {
+      "tokens": {
+        "input": 48960,
+        "cache_write": 0,
+        "cache_read": 0,
+        "output": 90
+      },
+      "calls": 30,
+      "median_seconds": 0.85,
+      "usd": 0.098819
+    },
+    "saving_pct": 80.5,
+    "gateway_usage_cross_check": {
+      "rows_landed": 61,
+      "expected": 60,
+      "input": 99338,
+      "output": 369,
+      "cache_read": 44602,
+      "cache_write": 1538
+    }
+  },
+  "poc_cost": {
+    "since": "2026-10-13",
+    "billing_data_through": "2026-10-16",
+    "rows": [
+      {
+        "category": "AI Search endpoint meridian-search",
+        "product": "VECTOR_SEARCH",
+        "dbu": 131.84,
+        "usd_list": 9.23
+      },
+      {
+        "category": "copilot app compute",
+        "product": "APPS",
+        "dbu": 5.02,
+        "usd_list": 4.77
+      },
+      {
+        "category": "jobs and pipelines tagged project=meridian-poc",
+        "product": "JOBS",
+        "dbu": 56.86,
+        "usd_list": 25.59
+      },
+      {
+        "category": "model, Genie and other usage run as Meridian principals",
+        "product": "DLT",
+        "dbu": 2.54,
+        "usd_list": 1.14
+      },
+      {
+        "category": "model, Genie and other usage run as Meridian principals",
+        "product": "GENIE",
+        "dbu": 13.18,
+        "usd_list": 0.92
+      },
+      {
+        "category": "model, Genie and other usage run as Meridian principals",
+        "product": "MODEL_SERVING",
+        "dbu": 5.84,
+        "usd_list": 0.41
+      },
+      {
+        "category": "model, Genie and other usage run as Meridian principals",
+        "product": "AI_FUNCTIONS",
+        "dbu": 0.25,
+        "usd_list": 0.02
+      },
+      {
+        "category": "not counted: SQL warehouse, shared with other projects",
+        "product": "SQL",
+        "dbu": 1068.6,
+        "usd_list": 748.02
+      },
+      {
+        "category": "not counted: SQL warehouse, shared with other projects",
+        "product": "AI_FUNCTIONS",
+        "dbu": 0.14,
+        "usd_list": 0.01
+      },
+      {
+        "category": "not counted: SQL warehouse, shared with other projects",
+        "product": "MODEL_SERVING",
+        "dbu": 0.0,
+        "usd_list": 0.0
+      },
+      {
+        "category": "not counted: the presenters own model and Genie calls, all projects",
+        "product": "MODEL_SERVING",
+        "dbu": 954.52,
+        "usd_list": 66.82
+      },
+      {
+        "category": "not counted: the presenters own model and Genie calls, all projects",
+        "product": "GENIE",
+        "dbu": 121.44,
+        "usd_list": 1.51
+      }
+    ],
+    "counted_usd_list": 42.08,
+    "counted_dbu": 215.53,
+    "shared_warehouse_estimate": {
+      "meridian_share_of_execution_time": 0.014,
+      "usd_list": 10.34,
+      "method": "the warehouse's list-price cost times Meridian's share of statement execution time (Meridian principals, and the presenter's statements naming a meridian catalog)"
+    }
+  }
+}

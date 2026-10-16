@@ -4,9 +4,27 @@
 CREATE TABLE IF NOT EXISTS ${kb}.channel_tiers (channel STRING, tier STRING)
 COMMENT 'Tier of each synced Slack channel; kb_sync rewrites it from config/scenario.yaml';
 
+CREATE TABLE IF NOT EXISTS ${kb}.audit_log (
+  ts TIMESTAMP, actor STRING, action STRING, target STRING, reason STRING, details STRING)
+COMMENT 'BUILD: who changed governed knowledge and workflows, when and why: the procedures and kb_sync write it (T21)';
+
+-- Feedback and corrections (T20). Written only through the procedures in sql/kb_feedback.sql. An approved
+-- correction is a knowledge document in its own right (source 'correction'), served until it is reverted.
+CREATE TABLE IF NOT EXISTS ${kb}.feedback (
+  feedback_id STRING, ts TIMESTAMP, user STRING, question STRING, answer STRING, rating STRING, comment STRING,
+  invocation_id STRING)
+COMMENT 'BUILD: answer feedback (up or down) with the asker, the question and the answer';
+
+CREATE TABLE IF NOT EXISTS ${kb}.corrections (
+  correction_id STRING, version INT, status STRING, tier STRING, title STRING, text STRING, corrects_doc_id STRING,
+  reason STRING, feedback_id STRING, submitted_by STRING, submitted_at TIMESTAMP, decided_by STRING,
+  decided_at TIMESTAMP, decision_reason STRING)
+COMMENT 'BUILD: proposed, approved, rejected and reverted corrections; approved ones are served as documents';
+
 -- Source documents, normalized. Files: tier from the folder under kb/files/, title, version and date from
 -- the source manifest when listed. Slack: one document per message from the history pages under
 -- kb/slack/history/ (what a puller writes from conversations.history), tier from channel_tiers.
+-- Corrections: approved ones only, so a revert removes the document on the next sync.
 CREATE OR REPLACE VIEW ${kb}.v_source_docs
 COMMENT 'BUILD: knowledge source documents as doc_id, source, uri, format, tier, title, source_version, modified_at, file_modified_at and content'
 AS WITH files AS (
@@ -27,7 +45,7 @@ messages AS (
   LATERAL VIEW explode(h.messages) m AS msg)
 SELECT f.doc_id, 'volume' AS source, f.path AS uri, f.format,
        CASE WHEN f.folder IN ('general', 'finance') THEN f.folder END AS tier,
-       coalesce(m.title, f.doc_id) AS title, m.version AS source_version,
+       coalesce(m.title, f.doc_id) AS title, CAST(m.version AS STRING) AS source_version,
        coalesce(to_timestamp(m.modified_at), f.modified_at) AS modified_at,   -- the source's date, else the file's
        f.modified_at AS file_modified_at, f.content AS content_bytes, CAST(NULL AS STRING) AS content_text
 FROM files f LEFT JOIN manifest m ON f.doc_id = m.doc_id
@@ -39,7 +57,12 @@ SELECT 'SLACK-' || coalesce(msg.msg_key, msg.channel_id || '-' || msg.ts) AS doc
        coalesce(u.name, msg.user) || ' in #' || msg.channel
          || CASE WHEN msg.thread_ts IS NOT NULL AND msg.thread_ts <> msg.ts THEN ' (thread reply)' ELSE '' END
          || ': ' || msg.text AS content_text
-FROM messages msg LEFT JOIN ${kb}.channel_tiers t ON msg.channel = t.channel LEFT JOIN users u ON msg.user = u.id;
+FROM messages msg LEFT JOIN ${kb}.channel_tiers t ON msg.channel = t.channel LEFT JOIN users u ON msg.user = u.id
+UNION ALL
+SELECT c.correction_id, 'correction', 'correction://' || c.correction_id, 'correction', c.tier,
+       'Correction: ' || c.title, CAST(c.version AS STRING), c.decided_at, c.decided_at, CAST(NULL AS BINARY),
+       c.title || '\n\n' || c.text || coalesce('\n\nCorrects ' || c.corrects_doc_id || '.', '')
+FROM ${kb}.corrections c WHERE c.status = 'approved';
 
 CREATE TABLE IF NOT EXISTS ${kb}.docs (
   doc_id STRING, source STRING, uri STRING, format STRING, tier STRING, title STRING, source_version STRING,
