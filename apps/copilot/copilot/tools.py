@@ -4,6 +4,7 @@ search_kb searches only the indexes the caller's groups entitle them to (meridia
 caller's own token, drops any hit outside those tiers before the model sees it, and returns nothing when the
 best hit scores below the abstention threshold. ask_genie asks the Genie space as the caller (T22), so Genie's
 SQL runs under the caller's grants and ABAC policies; results come back with a citable Genie label.
+start_workflow and run_step drive governed runbook runs step by step (T18, copilot/workflow.py).
 """
 
 from __future__ import annotations
@@ -15,6 +16,7 @@ import mlflow
 from databricks.sdk import WorkspaceClient
 from mlflow.entities import Document, SpanType
 
+from copilot import workflow
 from meridian.agent.answer import CONFIG
 from meridian.kb.retrieve import Retriever
 
@@ -27,6 +29,7 @@ DEFINITIONS = [
      "description": "Ask the payments data (failure rates, volumes, refundable amounts, acquirer status) in plain "
                     "English. Returns Genie's SQL and rows labelled like [GENIE-1a2b3c4d]; cite that label.",
      "input_schema": {"type": "object", "properties": {"question": {"type": "string"}}, "required": ["question"]}},
+    *workflow.DEFINITIONS,
 ]
 
 
@@ -40,6 +43,7 @@ class Tools:
     def __init__(self, caller: Caller):
         self.caller = caller
         self.retriever = Retriever(caller.client, os.environ.get("MERIDIAN_KB_SCHEMA", "meridian.kb"))
+        self.workflows = workflow.Workflows(self)
 
     @property
     def tiers(self) -> list[str]:
@@ -50,12 +54,19 @@ class Tools:
             return self.search_kb(str(args.get("query", "")))
         if name == "ask_genie":
             return self.ask_genie(str(args.get("question", "")))
+        if name == "start_workflow":
+            return self.workflows.start(str(args.get("workflow_id", "")), str(args.get("acquirer_id", "")),
+                                        args.get("window_hours", 0))
+        if name == "run_step":
+            return self.workflows.step(str(args.get("run_id", "")), str(args.get("step_id", "")))
         return {"error": f"unknown tool {name}"}
 
-    def search_kb(self, query: str) -> dict:
+    def search_kb(self, query: str, only: list[str] | None = None) -> dict:
         with mlflow.start_span(name="search_kb", span_type=SpanType.RETRIEVER) as span:
-            span.set_inputs({"query": query, "tiers": self.tiers})
-            hits = self.retriever.search(query, CONFIG["retrieval_variant"], CONFIG["top_k"])
+            span.set_inputs({"query": query, "tiers": [t for t in self.tiers if only is None or t in only]})
+            hits = self.retriever.search(query, CONFIG["retrieval_variant"], CONFIG["top_k"], only)
+            if self.retriever.refused:
+                span.set_attribute("tiers_refused_by_index", sorted(self.retriever.refused))
             hits = [h for h in hits if h.tier in self.tiers]  # never a chunk from a tier the caller lacks
             if not hits or hits[0].score < CONFIG["abstain_below_score"]:
                 hits = []

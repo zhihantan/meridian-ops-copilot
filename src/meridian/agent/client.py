@@ -37,11 +37,12 @@ def final_answer(result: dict) -> str:
 
 
 def ask(url: str, token: str, question: str, session: str | None = None, background: bool = False,
-        timeout_s: int = 900) -> dict:
+        timeout_s: int = 900, history: list[dict] | None = None) -> dict:
     """One invocation (synchronous, or background with polling for long runs); returns the answer, its
-    citations, tool calls and seconds taken."""
+    citations, tool calls, tool result summaries and seconds taken. history: earlier user and assistant
+    messages of the conversation, oldest first."""
     body = {"id": str(uuid.uuid4()), "session_id": session or str(uuid.uuid4()),
-            "input": {"messages": [{"role": "user", "content": question}]}}
+            "input": {"messages": [*(history or []), {"role": "user", "content": question}]}}
     started = time.time()
     if background:
         post(url, token, {**body, "background": True})
@@ -57,4 +58,5 @@ def ask(url: str, token: str, question: str, session: str | None = None, backgro
     return {"answer": answer, "kb_citations": sorted({d for d, _ in KB_CITATION.findall(answer)}),
             "genie_citations": sorted(set(GENIE_CITATION.findall(answer))),
             "tools": [c["name"] for m in messages(result) for c in m.get("tool_calls") or []],
-            "status": result.get("status"), "seconds": round(time.time() - started, 1)}
+            "tool_results": [json.loads(m["content"]) for m in messages(result) if m.get("role") == "tool"],
+            "status": result.get("status"), "invocation_id": body["id"], "seconds": round(time.time() - started, 1)}

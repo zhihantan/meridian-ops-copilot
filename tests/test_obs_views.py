@@ -25,6 +25,7 @@ def test_procedures_stay_whole():
     sql = Path(__file__).resolve().parents[1] / "sql" / "workflow_objects.sql"
     parsed = statements(str(sql), {"agent": "c.agent", "kb": "c.kb", "silver": "c.silver", "refund_threshold": "500"})
     procedures = [s for s in parsed if s.upper().startswith("CREATE OR REPLACE PROCEDURE")]
-    assert len(procedures) == 8
+    text = sql.read_text()
+    assert len(procedures) == text.count("CREATE OR REPLACE PROCEDURE") == 11
     assert all(p.rstrip().upper().endswith("END") and "BEGIN" in p for p in procedures)
-    assert len(parsed) == 8 + 8  # eight tables, eight procedures
+    assert len(parsed) == text.count("CREATE TABLE") + text.count("CREATE OR REPLACE VIEW") + len(procedures)

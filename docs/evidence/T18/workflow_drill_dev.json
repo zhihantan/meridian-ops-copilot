@@ -1,12 +1,13 @@
 {
   "task": "T18 governed workflow",
   "target": "dev",
-  "at": "2026-10-16T07:26:11.751895+00:00",
+  "at": "2026-10-16T17:20:54.980608+00:00",
   "happy_path": {
-    "run": "drill-579f8668",
-    "batch": "RB-8953628b1c",
+    "run": "run-bab22c06e952",
+    "version": "3",
+    "batch": "RB-879a03c8d9",
     "total_sgd": "2130.61",
-    "approval": "AP-14f8dff5f7",
+    "approval": "AP-7ef1c8a8d2",
     "steps": {
       "s1": true,
       "s2": true,
@@ -20,7 +21,7 @@
       "ok": true,
       "rows": [
         [
-          "RB-8953628b1c",
+          "RB-879a03c8d9",
           "2130.61",
           "executed"
         ]
@@ -32,17 +33,33 @@
       "ok": false,
       "reason": "[USER_RAISED_EXCEPTION] refused: compute the impact (s3) before proposing a refund"
     },
+    "skip the knowledge step (impact without s2)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: the data and knowledge steps before s3 are not all complete"
+    },
     "reorder (approval before s4)": {
       "ok": false,
-      "reason": "[USER_RAISED_EXCEPTION] refused: no proposed batch with that id for this run"
+      "reason": "[USER_RAISED_EXCEPTION] refused: no proposed batch with that id in a run you started"
     },
     "direct refund as Ava, no workflow": {
       "ok": false,
-      "reason": "[USER_RAISED_EXCEPTION] refused: no proposed batch RB-0000000000 for run attack-4fcfd570"
+      "reason": "[USER_RAISED_EXCEPTION] refused: no run run-nonexistent started by the caller"
     },
     "over threshold without approval": {
       "ok": false,
       "reason": "[USER_RAISED_EXCEPTION] refused: no valid approval for this batch and total"
+    },
+    "a second batch for the same run": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: a batch was already proposed for this run"
+    },
+    "Ava continues Ben's run": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no run run-f3f8bc2c2cc3 started by the caller"
+    },
+    "Ava logs the finance step s2 (not entitled)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: you are not entitled to the knowledge this step reads"
     },
     "requester approves own refund": {
       "ok": false,
@@ -58,7 +75,7 @@
     },
     "agent logs a step it does not own": {
       "ok": false,
-      "reason": "[USER_RAISED_EXCEPTION] only s1 and s2 are logged by the agent; later steps log themselves"
+      "reason": "[USER_RAISED_EXCEPTION] refused: only steps the agent performs itself are logged here"
     },
     "read the approvals table directly": {
       "ok": false,
@@ -70,14 +87,10 @@
     "ok": false,
     "reason": "[USER_RAISED_EXCEPTION] only meridian-admin can approve workflows"
   },
-  "eli_approves_v4": {
-    "ok": true,
-    "rows": []
-  },
-  "get_workflow_version_after_approval": "4",
-  "violations_last_hour": 13,
+  "violations_logged": 12,
   "checks": {
     "get_workflow returns v3, not the draft": true,
+    "the run is pinned to v3": true,
     "owner cannot approve own draft": true,
     "happy path executes with an approval": true,
     "every attack refused": true,

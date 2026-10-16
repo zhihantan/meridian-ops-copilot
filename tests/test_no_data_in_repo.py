@@ -4,6 +4,7 @@ The only local data is the synthetic generator's output under data/ (gitignored,
 Fails on tracked data files and on local Spark or Delta artifacts anywhere else.
 """
 
+import re
 import subprocess
 from pathlib import Path
 
@@ -38,3 +39,24 @@ def test_no_local_spark_or_delta_artifacts():
         if path.name in LOCAL_SPARK_ARTIFACTS:
             found.append(str(path.relative_to(REPO)))
     assert not found, f"local Spark or Delta artifacts: {found}"
+
+
+HOST = re.compile(r"[a-z0-9-]+\.(?:cloud\.databricks\.com|azuredatabricks\.net|gcp\.databricks\.com)", re.IGNORECASE)
+PRIVATE_TERMS = REPO / "private" / "forbidden_terms.txt"  # gitignored: names that must never be published
+
+
+def publishable_files() -> list[str]:
+    untracked = subprocess.run(["git", "ls-files", "--others", "--exclude-standard"], cwd=REPO, capture_output=True,
+                               text=True, check=True).stdout.splitlines()
+    return [f for f in tracked_files() + untracked if (REPO / f).is_file()]
+
+
+def test_no_workspace_hosts_or_private_terms():
+    terms = [t.strip().lower() for t in PRIVATE_TERMS.read_text().splitlines()
+             if t.strip() and not t.startswith("#")] if PRIVATE_TERMS.exists() else []
+    found = []
+    for f in publishable_files():
+        text = (REPO / f).read_text(errors="ignore")
+        if HOST.search(text) or any(t in text.lower() for t in terms):
+            found.append(f)
+    assert not found, f"workspace hostnames or private terms in publishable files: {found}"

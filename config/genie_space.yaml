@@ -16,8 +16,10 @@ tables:
 instructions: >-
   The data is synthetic and does not run up to the present: "now", "today" and "the last 24 hours" are relative to
   the latest hour in acquirer_hourly (max(hour_sgt)). Times are Singapore time. Failure rate is failed payments
-  divided by payments, shown as a percentage with one decimal. Refundable means failure codes issuer_unavailable or
-  timeout, which acquirer_hourly already counts in refundable_failed_payments and refundable_failed_amount (SGD).
+  divided by payments, shown as a percentage with one decimal. acquirer_status stores recent_failure_rate and
+  baseline_failure_rate as fractions: show them as percentages with one decimal too, round(100 * rate, 1).
+  Refundable means failure codes issuer_unavailable or timeout, which acquirer_hourly already counts in
+  refundable_failed_payments and refundable_failed_amount (SGD).
 measures:
   - alias: failure_rate_pct
     display_name: failure rate (%)
@@ -41,6 +43,16 @@ example_sqls:
       SELECT sum(refundable_failed_payments) AS payments, sum(refundable_failed_amount) AS amount_sgd
       FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'
       AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+  - question: >-
+      For acq_7 in the last 24 hours, what is its failure rate compared with its 14-day baseline, and how many failed
+      payments had refundable failure codes, with their SGD value?
+    sql: >-
+      SELECT round(100 * sum(h.failed_payments) / sum(h.payments), 1) AS failure_rate_pct,
+      round(100 * max(s.baseline_failure_rate), 1) AS baseline_failure_rate_pct,
+      sum(h.refundable_failed_payments) AS refundable_failed_payments,
+      sum(h.refundable_failed_amount) AS refundable_failed_amount_sgd
+      FROM {gold}.acquirer_hourly h JOIN {gold}.acquirer_status s ON s.acquirer_id = h.acquirer_id
+      WHERE h.acquirer_id = 'acq_7' AND h.hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
   - question: Hourly payments and failures for acq_7 in the last 24 hours
     sql: >-
       SELECT hour_sgt, sum(payments) AS payments, sum(failed_payments) AS failed FROM {gold}.acquirer_hourly
@@ -50,7 +62,7 @@ benchmarks:
   - question: Which acquirers are currently degraded?
     sql: SELECT acquirer_id FROM {gold}.acquirer_status WHERE status = 'degraded'
   - question: What is the 14-day baseline failure rate for acq_7?
-    sql: SELECT 100 * baseline_failure_rate FROM {gold}.acquirer_status WHERE acquirer_id = 'acq_7'   # percent, per the instructions
+    sql: SELECT round(100 * baseline_failure_rate, 1) FROM {gold}.acquirer_status WHERE acquirer_id = 'acq_7'   # percent, one decimal, per the instructions
   - question: How many payments did acq_7 process in the last 24 hours?
     sql: >-
       SELECT sum(payments) FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'

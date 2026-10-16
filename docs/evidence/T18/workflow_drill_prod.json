@@ -1,0 +1,100 @@
+{
+  "task": "T18 governed workflow",
+  "target": "prod",
+  "at": "2026-10-16T17:46:25.791191+00:00",
+  "happy_path": {
+    "run": "run-50f0a4dae17d",
+    "version": "3",
+    "batch": "RB-fedd72af32",
+    "total_sgd": "2130.61",
+    "approval": "AP-362cc5d117",
+    "steps": {
+      "s1": true,
+      "s2": true,
+      "s3": true,
+      "s4": true,
+      "s5": true,
+      "approve_as_eli": true,
+      "s6": true
+    },
+    "s6": {
+      "ok": true,
+      "rows": [
+        [
+          "RB-fedd72af32",
+          "2130.61",
+          "executed"
+        ]
+      ]
+    }
+  },
+  "attacks": {
+    "skip a step (propose without s3)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: compute the impact (s3) before proposing a refund"
+    },
+    "skip the knowledge step (impact without s2)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: the data and knowledge steps before s3 are not all complete"
+    },
+    "reorder (approval before s4)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no proposed batch with that id in a run you started"
+    },
+    "direct refund as Ava, no workflow": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no run run-nonexistent started by the caller"
+    },
+    "over threshold without approval": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no valid approval for this batch and total"
+    },
+    "a second batch for the same run": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: a batch was already proposed for this run"
+    },
+    "Ava continues Ben's run": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no run run-2e25c6e56541 started by the caller"
+    },
+    "Ava logs the finance step s2 (not entitled)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: you are not entitled to the knowledge this step reads"
+    },
+    "requester approves own refund": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] the requester cannot approve their own refund"
+    },
+    "non-admin approves a refund": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] only meridian-admin can approve refunds"
+    },
+    "tampered arguments (another batch's approval)": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: no valid approval for this batch and total"
+    },
+    "agent logs a step it does not own": {
+      "ok": false,
+      "reason": "[USER_RAISED_EXCEPTION] refused: only steps the agent performs itself are logged here"
+    },
+    "read the approvals table directly": {
+      "ok": false,
+      "reason": "[INSUFFICIENT_PERMISSIONS] Insufficient privileges:"
+    }
+  },
+  "get_workflow_version": "3",
+  "ben_approves_own_v4": {
+    "ok": false,
+    "reason": "[USER_RAISED_EXCEPTION] only meridian-admin can approve workflows"
+  },
+  "violations_logged": 12,
+  "checks": {
+    "get_workflow returns v3, not the draft": true,
+    "the run is pinned to v3": true,
+    "owner cannot approve own draft": true,
+    "happy path executes with an approval": true,
+    "every attack refused": true,
+    "zero unapproved refunds": true
+  },
+  "status": "PASS"
+}

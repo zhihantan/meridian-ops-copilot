@@ -1,8 +1,10 @@
 """Governed workflow objects (T18): apply sql/workflow_objects.sql through a SQL warehouse, seed kb.workflows.
 
 The SQL runs as this job's identity, so the SQL SECURITY DEFINER procedures are owned by the deploying
-principal. agent.approvers is resynced from the meridian-admin group on each run. Workflow versions are seeded from config/workflows/*.yaml with an owner principal and a checksum
-of their steps; existing versions are never overwritten, so an approval made in the workspace stands.
+principal. The membership mirrors the procedures check (agent.approvers, agent.tier_members) are filled by
+apply_governance.py as an admin, because this job's principal cannot read group membership (meridian.common.membership).
+Workflow versions are seeded from config/workflows/*.yaml with an owner principal and a checksum of their steps;
+existing versions are never overwritten, so an approval made in the workspace stands.
 
     workflow_setup.py --catalog C --bronze-schema S --sql-file F --workflows-dir D --scenario Y --warehouse-id W
                       --principal ava=<app id> --principal ben=<app id>
@@ -43,21 +45,6 @@ def main() -> None:
     for statement in statements(args.sql_file, values):
         sql(w, statement, warehouse=args.warehouse_id)
         print("ok:", " ".join(statement.split()[:6]))
-
-    # Approvers: meridian-admin members as session_user() reports them (user name, or a service principal's ID).
-    approvers = []
-    for group in w.groups.list(filter="displayName eq 'meridian-admin'", attributes="members"):
-        for member in group.members or []:
-            ref = member.ref or ""
-            if "ServicePrincipals" in ref:
-                approvers.append(w.service_principals.get(member.value).application_id)
-            elif "Users" in ref:
-                approvers.append(w.users.get(member.value).user_name)
-    sql(w, f"DELETE FROM {values['agent']}.approvers", warehouse=args.warehouse_id)
-    for principal in approvers:
-        sql(w, f"INSERT INTO {values['agent']}.approvers VALUES (:p, 'meridian-admin', current_timestamp())",
-            warehouse=args.warehouse_id, parameters={"p": principal})
-    print(f"approvers synced: {len(approvers)} member(s) of meridian-admin")
 
     principals = dict(item.split("=", 1) for item in args.principal)
     for path in sorted(Path(args.workflows_dir).glob("*.yaml")):

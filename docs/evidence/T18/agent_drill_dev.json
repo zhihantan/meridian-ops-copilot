@@ -1,0 +1,244 @@
+{
+  "task": "T18 agent-level guardrails",
+  "target": "dev",
+  "at": "2026-10-16T17:28:56.118955+00:00",
+  "guard": {
+    "run": "run-60c32e471285",
+    "ava_run": "run-025bd2aa3f99",
+    "trail": [
+      {
+        "as": "ben",
+        "call": "start_workflow",
+        "expect": "started on the approved version",
+        "run_id": "run-60c32e471285",
+        "next_step": "s1",
+        "workflow": "RB-014 v3",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s3",
+        "expect": "refused: out of order",
+        "run_id": "run-60c32e471285",
+        "step": "s3",
+        "refused": "out of order: the next step is s1 (Query payment data)",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s6",
+        "expect": "refused: out of order",
+        "run_id": "run-60c32e471285",
+        "step": "s6",
+        "refused": "out of order: the next step is s1 (Query payment data)",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s1",
+        "expect": "ok",
+        "run_id": "run-60c32e471285",
+        "step": "s1",
+        "status": "ok",
+        "next_step": "s2",
+        "sources": [
+          "[GENIE-79e85758]"
+        ],
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s2",
+        "expect": "ok",
+        "run_id": "run-60c32e471285",
+        "step": "s2",
+        "status": "ok",
+        "next_step": "s3",
+        "sources": [
+          "[DOC-FEE-001 p.2]",
+          "[DOC-FEE-001 p.1]"
+        ],
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s3",
+        "expect": "ok",
+        "run_id": "run-60c32e471285",
+        "step": "s3",
+        "status": "ok",
+        "next_step": "s4",
+        "total_sgd": "2130.61",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s4",
+        "expect": "ok",
+        "run_id": "run-60c32e471285",
+        "step": "s4",
+        "status": "ok",
+        "next_step": "s5",
+        "batch_id": "RB-292265f872",
+        "total_sgd": "2130.61",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s5",
+        "expect": "pending approval",
+        "run_id": "run-60c32e471285",
+        "step": "s5",
+        "status": "pending",
+        "waiting": "waiting for approval AP-c77548ee1b (pending) from meridian-admin; the agent cannot approve",
+        "next_step": null,
+        "approval_id": "AP-c77548ee1b",
+        "total_sgd": "2130.61",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s6",
+        "expect": "refused: waiting for approval",
+        "run_id": "run-60c32e471285",
+        "step": "s6",
+        "refused": "waiting for approval AP-c77548ee1b (pending) from meridian-admin; the agent cannot approve",
+        "as_expected": true
+      },
+      {
+        "as": "eli",
+        "call": "approve_refund (SQL, a person)",
+        "expect": "approved",
+        "approval_id": "AP-c77548ee1b",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s6",
+        "expect": "ok: executed with the approval",
+        "run_id": "run-60c32e471285",
+        "step": "s6",
+        "status": "ok",
+        "next_step": null,
+        "batch_id": "RB-292265f872",
+        "approval_id": "AP-c77548ee1b",
+        "total_sgd": "2130.61",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s6",
+        "expect": "refused: the run is complete",
+        "run_id": "run-60c32e471285",
+        "step": "s6",
+        "refused": "the run is complete",
+        "as_expected": true
+      },
+      {
+        "as": "ava",
+        "call": "start_workflow",
+        "expect": "started",
+        "run_id": "run-025bd2aa3f99",
+        "next_step": "s1",
+        "workflow": "RB-014 v3",
+        "as_expected": true
+      },
+      {
+        "as": "ava",
+        "call": "run_step s1",
+        "expect": "ok",
+        "run_id": "run-025bd2aa3f99",
+        "step": "s1",
+        "status": "ok",
+        "next_step": "s2",
+        "sources": [
+          "[GENIE-54f435a3]"
+        ],
+        "as_expected": true
+      },
+      {
+        "as": "ava",
+        "call": "run_step s2",
+        "expect": "not_entitled: the run stops, escalate to Finance",
+        "run_id": "run-025bd2aa3f99",
+        "step": "s2",
+        "status": "not_entitled",
+        "stopped": "s2 not_entitled: escalate to Finance",
+        "next_step": null,
+        "as_expected": true
+      },
+      {
+        "as": "ava",
+        "call": "run_step s3",
+        "expect": "refused: the run has stopped",
+        "run_id": "run-025bd2aa3f99",
+        "step": "s3",
+        "refused": "the run has stopped at s2 not_entitled: escalate to Finance",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "run_step s3",
+        "expect": "refused: not Ben's run",
+        "run_id": "run-025bd2aa3f99",
+        "step": "s3",
+        "refused": "no run run-025bd2aa3f99 started by you",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "start_workflow",
+        "expect": "refused: unknown acquirer (arguments are parameters, never SQL)",
+        "refused": "unknown acquirer, or the window is not a positive number of hours",
+        "as_expected": true
+      },
+      {
+        "as": "ben",
+        "call": "start_workflow",
+        "expect": "refused: no approved version",
+        "refused": "no approved version of that workflow",
+        "as_expected": true
+      }
+    ],
+    "all_as_expected": true
+  },
+  "violations_logged": [
+    [
+      "agent guard: run_step s3",
+      "out of order: the next step is s1 (Query payment data)",
+      "0da313b1-82fb-4cdc-959c-c9106489c559"
+    ],
+    [
+      "agent guard: run_step s6",
+      "out of order: the next step is s1 (Query payment data)",
+      "0da313b1-82fb-4cdc-959c-c9106489c559"
+    ],
+    [
+      "agent guard: run_step s6",
+      "waiting for approval AP-c77548ee1b (pending) from meridian-admin; the agent cannot approve",
+      "0da313b1-82fb-4cdc-959c-c9106489c559"
+    ],
+    [
+      "agent guard: run_step s6",
+      "the run is complete",
+      "0da313b1-82fb-4cdc-959c-c9106489c559"
+    ],
+    [
+      "agent guard: run_step s3",
+      "the run has stopped at s2 not_entitled: escalate to Finance",
+      "0f4090d7-de18-48e2-bab9-fe7975207c37"
+    ],
+    [
+      "agent guard: run_step s3",
+      "no run run-025bd2aa3f99 started by you",
+      "0da313b1-82fb-4cdc-959c-c9106489c559"
+    ]
+  ],
+  "guard_refusals_logged": 6,
+  "checks": {
+    "guard: every call as expected": true,
+    "guard refusals are logged in agent.violations": true,
+    "zero unapproved refunds": true
+  },
+  "status": "PASS"
+}

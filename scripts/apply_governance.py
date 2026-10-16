@@ -11,6 +11,8 @@
    The mask also matches Data Classification's own tags, so a newly classified column is masked with
    no change here.
 5. Grants from config/access_matrix.csv, and CAN_USE on the SQL warehouse for the persona groups.
+6. Membership mirrors for the workflow procedures (T18): agent.approvers and agent.tier_members from live group
+   membership, which only an admin can read (meridian.common.membership). Rerun after a membership change.
 
     uv run --group dbx python scripts/apply_governance.py --target dev
 """
@@ -21,10 +23,12 @@ import argparse
 import csv
 from pathlib import Path
 
+import yaml
 from databricks.sdk import WorkspaceClient
 from databricks.sdk.errors import NotFound
 from databricks.sdk.service.sql import WarehouseAccessControlRequest, WarehousePermissionLevel
 
+from meridian.common import membership
 from meridian.common.bundle import target_names
 from meridian.common.pii import CLASS_TAGS
 from meridian.common.workspace import sql, warehouse_id
@@ -156,6 +160,14 @@ def main() -> None:
         for g in PERSONA_GROUPS
     ])
     print(f"CAN_USE on warehouse {wh} for {', '.join(PERSONA_GROUPS)}")
+
+    agent = f"{catalog}.{names.schemas['agent']}"
+    if w.tables.exists(f"{agent}.tier_members").table_exists:
+        tiers = yaml.safe_load((REPO / "config" / "scenario.yaml").read_text())["knowledge_tiers"]
+        approvers, entitled = membership.sync(w, agent, tiers)
+        print(f"membership mirrors: {approvers} approver(s), {entitled} tier entitlement(s) in {agent}")
+    else:
+        print(f"skipped membership mirrors: {agent}.tier_members does not exist yet (run meridian-workflow-setup)")
 
 
 if __name__ == "__main__":

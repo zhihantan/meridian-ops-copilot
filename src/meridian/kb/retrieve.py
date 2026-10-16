@@ -3,7 +3,9 @@
 The caller's groups come from their own verified identity (SCIM Me), and knowledge_tiers in
 config/scenario.yaml maps groups to tiers, so a support agent never searches the finance index. Each
 entitled index is then queried with the caller's own credentials, so Unity Catalog grants on the index
-apply too: two layers, and neither is the model's judgment. Hits from several indexes merge by score.
+apply too: two layers, and neither is the model's judgment. If the index refuses (the group list can
+briefly lag a membership change that Unity Catalog already enforces, observed in T19), that tier is
+dropped for the call, not raised. Hits from several indexes merge by score.
 
 Variants for the ablation: V0 ANN, V1 hybrid, V2 hybrid with the Databricks reranker.
 """
@@ -15,6 +17,7 @@ from pathlib import Path
 
 import yaml
 from databricks.ai_search.client import AISearchClient
+from databricks.ai_search.exceptions import PermissionDenied
 from databricks.ai_search.reranker import DatabricksReranker
 from databricks.sdk import WorkspaceClient
 
@@ -60,6 +63,7 @@ class Retriever:
         self.groups = caller_groups(w)
         self.tiers = entitled_tiers(self.groups)
         self.kb_schema, self.endpoint = kb_schema, endpoint
+        self.refused: set[str] = set()  # tiers whose index refused this caller
         self.client = AISearchClient(workspace_url=w.config.host, personal_access_token=bearer_token(w),
                                      disable_notice=True)
         self._indexes = {}
@@ -69,16 +73,21 @@ class Retriever:
             self._indexes[tier] = self.client.get_index(self.endpoint, f"{self.kb_schema}.idx_{tier}")
         return self._indexes[tier]
 
-    def search(self, query: str, variant: str = "V1", k: int = 5) -> list[Hit]:
-        """Top k hits over the caller's entitled indexes. ANN similarity and reranker scores compare across
-        indexes; hybrid scores are normalized per index, so hybrid lists merge by reciprocal rank."""
+    def search(self, query: str, variant: str = "V1", k: int = 5, only: list[str] | None = None) -> list[Hit]:
+        """Top k hits over the caller's entitled indexes (narrowed to `only`, if given). ANN similarity and
+        reranker scores compare across indexes; hybrid scores are normalized per index, so hybrid lists merge
+        by reciprocal rank."""
         spec = VARIANTS[variant]
         per_tier: list[list[Hit]] = []
-        for tier in self.tiers:  # never an index the caller is not entitled to
+        for tier in [t for t in self.tiers if only is None or t in only]:  # never an index the caller lacks
             kwargs = {"query_type": spec["query_type"], "disable_notice": True}
             if spec.get("rerank"):
                 kwargs["reranker"] = DatabricksReranker(columns_to_rerank=["text"])
-            res = self.index(tier).similarity_search(columns=COLUMNS, query_text=query, num_results=k, **kwargs)
+            try:
+                res = self.index(tier).similarity_search(columns=COLUMNS, query_text=query, num_results=k, **kwargs)
+            except PermissionDenied:
+                self.refused.add(tier)
+                continue
             names = [c["name"] for c in res.get("manifest", {}).get("columns", [])]
             per_tier.append([self._hit(dict(zip(names, row))) for row in res.get("result", {}).get("data_array") or []])
         if spec["query_type"] == "HYBRID" and not spec.get("rerank") and len(per_tier) > 1:
