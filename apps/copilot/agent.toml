@@ -13,4 +13,4 @@ required = true
 additional_api_scopes = ["vector-search", "ai-gateway", "model-serving", "sql", "dashboards.genie"]
 
 [tracing]
-experiment_name = "/Shared/agentbricks_traces/meridian-copilot"
+experiment_name = "/Shared/agentbricks_traces/meridian-copilot-uc"   # linked to meridian.agent.copilot_otel_* (scripts/setup_traces.py)

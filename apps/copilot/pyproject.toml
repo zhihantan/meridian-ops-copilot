@@ -10,7 +10,7 @@ dependencies = [
     "databricks-sdk>=0.124.0",
     "anthropic>=0.70",
     "databricks-ai-search>=0.78",
-    "mlflow-skinny>=3.10",
+    "mlflow-skinny>=3.14",   # Unity Catalog trace locations
     "pyyaml>=6.0",
 ]
 
