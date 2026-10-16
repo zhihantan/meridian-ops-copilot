@@ -1,0 +1,503 @@
+{
+  "task": "T23 Claude Code over MCP",
+  "target": "prod",
+  "at": "2026-10-16T18:37:51.874696+00:00",
+  "client": "Claude Code (claude -p)",
+  "model_route": "this machine's managed settings, not the persona",
+  "identity": "per-persona bearer tokens (OAuth M2M service principals)",
+  "rows": [
+    {
+      "persona": "ava",
+      "prompt": "kb_threshold",
+      "started": "2026-10-16T18:35:56.701453+00:00",
+      "seconds": 18.7,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_general",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": false,
+          "result": "[{\"source\":\"volume\",\"tier\":\"general\",\"doc_revision\":1.0,\"page\":1.0,\"uri\":\"dbfs:/Volumes/meridian/landing/raw/kb/files/general/DOC-RB-021.md\",\"score\":0.6936205862466213,\"text\":\"Refund approval\\n> Meridian Commerce \u00b7 DOC-RB-021 \u00b7 v1 \u00b7 General"
+        },
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": true,
+          "result": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a metastore admin or the ob"
+        }
+      ],
+      "answer": "A refund batch needs approval when its total is **above SGD 500**.\n\n**Sources (`idx_general`)**\n- **DOC-RB-021** (Refund approval, v1, effective 2026-08-26): batches with a total above SGD 500 need approval from a member of `meridian-admin` before they run. Batches at or below SGD 500 run without approval but are still logged. The requester can't approve their own batch. Approvals expire after 48 hours.\n- **DOC-REF-003** (Refund policy, v3, which supersedes v2) gives the same threshold: above SGD 500 needs `meridian-admin` approval, from someone other than the requester.\n- **DOC-RB-014** (Acquirer degradation response runbook, v3) also says step s5 is required when the refund batch total is above SGD 500.\n\n**A conflicting source**\n- **DOC-NOTE-250** is an ops note from 2025-09-10. It says refunds over SGD 250 need a second approver. It is older than DOC-RB-021 and DOC-REF-003, which are both dated 2026-08. It is also an informal note, and the policy document is versioned and supersedes earlier versions. I'd treat it as outdated, but the documents don't say so explicitly.\n\n**Finance index**\n`idx_finance` returned a permission error: I don't have the SELECT privilege on `meridian.kb.idx_finance`. I couldn't search it, so it may hold a Finance-restricted clause that changes this answer. A metastore admin or the index owner would need to grant access: `GRANT SELECT ON TABLE meridian.kb.idx_finance TO <principal>`.",
+      "is_error": false,
+      "turns": 3,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 4783,
+        "cache_read_input_tokens": 7434,
+        "output_tokens": 691,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "ava",
+      "prompt": "genie_yesterday",
+      "started": "2026-10-16T18:35:56.608541+00:00",
+      "seconds": 62.4,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-genie__query_space_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "query": "What was the failure rate for acquirer acq_7 yesterday (2026-10-16)? Include total transactions and failed transactions."
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[],\"textAttachments\":[\"Query is still processing. Use the poll_response_01f1c933f522103dba5a35248e2ae0b8 tool with conversation_id and message_id to poll until the message reaches a completed state.\"],\"suggest"
+        },
+        {
+          "tool": "mcp__meridian-genie__poll_response_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "conversation_id": "01f1c99072b51448ac1429c7b846ae22",
+            "message_id": "01f1c99072c712eea41409401c9baf52"
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[{\"query\":\"WITH max_date AS (\\n  SELECT max(payment_date) AS max_d FROM meridian.gold.payment_failure_daily\\n)\\nSELECT\\n  payment_date,\\n  payments AS total_transactions,\\n  failed_payments AS failed_transacti"
+        },
+        {
+          "tool": "mcp__meridian-genie__query_space_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "conversation_id": "01f1c99072b51448ac1429c7b846ae22",
+            "query": "For acq_7, show payments, failed payments and failure rate for each of the last 5 payment dates available, plus the max payment_date in the table."
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[],\"textAttachments\":[\"Query is still processing. Use the poll_response_01f1c933f522103dba5a35248e2ae0b8 tool with conversation_id and message_id to poll until the message reaches a completed state.\"],\"suggest"
+        },
+        {
+          "tool": "mcp__meridian-genie__poll_response_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "conversation_id": "01f1c99072b51448ac1429c7b846ae22",
+            "message_id": "01f1c9907ff312bd903f0da17e075ff2"
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[{\"query\":\"WITH ranked AS (\\n  SELECT payment_date, payments, failed_payments,\\n         round(try_divide(100 * failed_payments,payments), 1) AS failure_rate_pct\\n  FROM meridian.gold.payment_failure_daily\\n  "
+        }
+      ],
+      "answer": "There's no data for yesterday (2026-10-16). The gold table `payment_failure_daily` stops at 2026-10-15, so I can't give you a failure rate for yesterday.\n\nHere are the most recent days for acq_7:\n\n| Date | Payments | Failed | Failure rate |\n|---|---|---|---|\n| 2026-10-15 (latest) | 192 | 28 | 14.6% |\n| 2026-10-14 | 350 | 27 | 7.7% |\n| 2026-10-13 | 335 | 4 | 1.2% |\n| 2026-10-12 | 324 | 7 | 2.2% |\n| 2026-10-11 | 339 | 3 | 0.9% |\n\n- **Genie's first answer:** It reported 7.7% and called that \"yesterday\". It had treated \"yesterday\" as the day before the latest data in the table (10-14). That 7.7% is for Oct 14, not Oct 16.\n- **Recent trend:** The failure rate jumped from about 1\u20132% to 7.7% on Oct 14 and 14.6% on Oct 15. The Oct 15 volume (192) is also much lower than usual, so that day may be incomplete.\n- **Account matching:** Genie matched the account with `ILIKE '%acq_7%'`, which is a partial match. It could also pick up IDs like `acq_70` if any exist. I haven't checked for that.\n\nThe table may be lagging, or the Oct 16 load may not have run yet. I can check the pipeline or look for fresher data in another table if you want.",
+      "is_error": false,
+      "turns": 5,
+      "usage": {
+        "input_tokens": 10,
+        "cache_creation_input_tokens": 6114,
+        "cache_read_input_tokens": 25865,
+        "output_tokens": 1223,
+        "output_tokens_details": {
+          "thinking_tokens": 69
+        }
+      }
+    },
+    {
+      "persona": "ava",
+      "prompt": "dev_table",
+      "started": "2026-10-16T18:35:56.696684+00:00",
+      "seconds": 17.0,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-sql__execute_sql_read_only",
+          "input": {
+            "query": "DESCRIBE TABLE meridian.bronze.payments"
+          },
+          "refused": true,
+          "result": "{\"statement_id\":\"01f1c990-7283-1507-94ed-e3ea6c9cbe11\",\"status\":{\"state\":\"FAILED\",\"error\":{\"error_code\":\"BAD_REQUEST\",\"message\":\"PERMISSION_DENIED: User does not have USE SCHEMA on Schema 'meridian.bronze'.\"},\"sql_state\":\"42501\"}}"
+        }
+      ],
+      "answer": "I can't answer this. The read-only SQL tool failed with `PERMISSION_DENIED: User does not have USE SCHEMA on Schema 'meridian.bronze'`. I ran `DESCRIBE TABLE meridian.bronze.payments` to find the ingestion timestamp column, and it was rejected. A `COUNT(*)` or `MAX(...)` query on that table would hit the same missing permission, so I didn't try one.\n\nI also didn't go around the restriction. The Genie space only covers the gold tables, so it isn't a stand-in for bronze, and I'd rather not present gold numbers as bronze numbers.\n\nTo get this answered, you could:\n- **Get access:** ask a workspace or catalog admin to grant `USE SCHEMA` on `meridian.bronze`, plus `SELECT` on `meridian.bronze.payments`. Then I can run the count and the max ingestion timestamp.\n- **Check the identity:** confirm the MCP server is connecting as the user or service principal you expect, since it may be using a different identity than you.\n- **Use a different table:** if a gold or silver table would do, tell me which one and I'll query that instead. It might not match bronze exactly.",
+      "is_error": false,
+      "turns": 2,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 2810,
+        "cache_read_input_tokens": 7439,
+        "output_tokens": 603,
+        "output_tokens_details": {
+          "thinking_tokens": 97
+        }
+      }
+    },
+    {
+      "persona": "ava",
+      "prompt": "finance_fee",
+      "started": "2026-10-16T18:36:17.081500+00:00",
+      "seconds": 14.6,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "acq_2 fee for bank transfer payment"
+          },
+          "refused": true,
+          "result": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a metastore admin or the ob"
+        }
+      ],
+      "answer": "I couldn't search the finance index. The call failed with `PERMISSION_DENIED`: your account doesn't have the `SELECT` privilege on `meridian.kb.idx_finance`. Being a workspace admin doesn't grant that privilege.\n\nTo fix it, a metastore admin or the index owner can run:\n\n```sql\nGRANT SELECT ON TABLE meridian.kb.idx_finance TO `<your-principal>`;\n```\n\nI don't have an answer for what acq_2 charges for bank transfers. I haven't tried other sources, because you asked me to use the finance index. Two options:\n- Search `idx_general` instead. It may not hold the fee schedule, and it could be governed differently from the finance index.\n- Query the Genie space or SQL tables for acq_2 fee data. Those cover payment volumes and acquirer health, so they may not include pricing.\n\nTell me if you want me to try either one.",
+      "is_error": false,
+      "turns": 2,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 2756,
+        "cache_read_input_tokens": 7424,
+        "output_tokens": 382,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "ben",
+      "prompt": "kb_threshold",
+      "started": "2026-10-16T18:36:19.414781+00:00",
+      "seconds": 19.8,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": false,
+          "result": "[{\"source\":\"volume\",\"tier\":\"finance\",\"doc_revision\":1.0,\"page\":1.0,\"uri\":\"dbfs:/Volumes/meridian/landing/raw/kb/files/finance/DOC-FEE-001.pdf\",\"score\":0.5243024487889448,\"text\":\"Acquirer fee schedule and SLA terms\\nThis schedule sets the me"
+        },
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_general",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": false,
+          "result": "[{\"source\":\"volume\",\"tier\":\"general\",\"doc_revision\":1.0,\"page\":1.0,\"uri\":\"dbfs:/Volumes/meridian/landing/raw/kb/files/general/DOC-RB-021.md\",\"score\":0.6935585159503388,\"text\":\"Refund approval\\n> Meridian Commerce \u00b7 DOC-RB-021 \u00b7 v1 \u00b7 General"
+        }
+      ],
+      "answer": "A refund batch needs approval when its total is **above SGD 500**.\n\n- **DOC-RB-021** (Refund approval runbook, v1, effective 2026-08-26): batches with a total above SGD 500 need approval from a member of `meridian-admin` before they run. The requester can't approve their own batch. Approvals expire after 48 hours. Batches at or below SGD 500 run without approval but are still logged.\n- **DOC-REF-003** (Refund policy, v3, which supersedes v2) gives the same rule: above SGD 500 requires `meridian-admin` approval, and the approver must be a different person from the requester.\n- **DOC-RB-014** (Acquirer degradation response, v3) agrees. Its step s5 is required when the refund batch total is above SGD 500.\n\n**Conflicting source:** DOC-NOTE-250, an ops note from 2025-09-10, says refunds over SGD 250 need a second approver. It is a year older than the other documents and is a informal note rather than a policy or runbook. I treated it as outdated. The 2026 policy (DOC-REF-003) and runbook (DOC-RB-021) both say SGD 500, so SGD 500 is the current figure. Someone may still want to retire that note.\n\nI searched both indexes. `idx_finance` returned only DOC-FEE-001, the acquirer fee schedule, which has nothing on refund approval. The relevant documents are all in `idx_general`.",
+      "is_error": false,
+      "turns": 3,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 6005,
+        "cache_read_input_tokens": 7432,
+        "output_tokens": 629,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "ben",
+      "prompt": "genie_yesterday",
+      "started": "2026-10-16T18:36:36.610893+00:00",
+      "seconds": 75.0,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-genie__query_space_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "query": "What was the failure rate for acquirer acq_7 yesterday (2026-10-16)? Include failed count and total transaction count."
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[],\"textAttachments\":[\"Query is still processing. Use the poll_response_01f1c933f522103dba5a35248e2ae0b8 tool with conversation_id and message_id to poll until the message reaches a completed state.\"],\"suggest"
+        },
+        {
+          "tool": "mcp__meridian-genie__poll_response_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "conversation_id": "01f1c9908aee15bc8cd7fe429f1a7ffa",
+            "message_id": "01f1c9908afc157b879db1823d7d1d33"
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[{\"query\":\"WITH `latest` AS (SELECT MAX(`hour_sgt`) AS `max_hour_sgt` FROM `meridian`.`gold`.`acquirer_hourly`), `target_day` AS (SELECT CAST(`max_hour_sgt` AS DATE) - INTERVAL 1 DAY AS `payment_date` FROM `la"
+        },
+        {
+          "tool": "mcp__meridian-genie__query_space_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "query": "For acq_7, show failed payments, total payments and failure rate per day for 2026-10-14 through 2026-10-17, and also the latest hour_sgt available in acquirer_hourly.",
+            "conversation_id": "01f1c9908aee15bc8cd7fe429f1a7ffa"
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[],\"textAttachments\":[\"Query is still processing. Use the poll_response_01f1c933f522103dba5a35248e2ae0b8 tool with conversation_id and message_id to poll until the message reaches a completed state.\"],\"suggest"
+        },
+        {
+          "tool": "mcp__meridian-genie__poll_response_01f1c933f522103dba5a35248e2ae0b8",
+          "input": {
+            "conversation_id": "01f1c9908aee15bc8cd7fe429f1a7ffa",
+            "message_id": "01f1c9909faa13bfa5f9012475fe8c8f"
+          },
+          "refused": false,
+          "result": "{\"content\":{\"queryAttachments\":[{\"query\":\"WITH `latest_hour` AS (\\n  SELECT MAX(`hour_sgt`) AS `latest_hour_sgt`\\n  FROM `meridian`.`gold`.`acquirer_hourly`\\n)\\nSELECT\\n  `d`.`payment_date`,\\n  `d`.`acquirer_id`,\\n  `d`.`failed_payments`,\\n"
+        }
+      ],
+      "answer": "The data has no rows for acq_7 on yesterday (2026-10-16). The latest data is from 2026-10-15 at 12:00, and that day is only partly covered.\n\nHere are the most recent days that do have data:\n\n| Date | Failed | Total | Failure rate |\n|---|---|---|---|\n| 2026-10-14 | 27 | 350 | 7.7% |\n| 2026-10-15 (partial, data ends at 12:00) | 28 | 192 | 14.6% |\n\n- **The first Genie answer was for the wrong day.** It reported 7.7%, but that was for 2026-10-14. Genie treated \"yesterday\" as one day before the latest data, not as yesterday by today's date.\n- **The data looks stale.** It stops about a day and a half before now. That could be a pipeline delay.\n- **Treat the 14.6% with caution.** It covers only part of 10-15, so it isn't directly comparable to the full day on 10-14.\n\nIf you meant \"the last full day of data\", the answer is 7.7% for 2026-10-14.",
+      "is_error": false,
+      "turns": 5,
+      "usage": {
+        "input_tokens": 10,
+        "cache_creation_input_tokens": 6452,
+        "cache_read_input_tokens": 26616,
+        "output_tokens": 1139,
+        "output_tokens_details": {
+          "thinking_tokens": 117
+        }
+      }
+    },
+    {
+      "persona": "ben",
+      "prompt": "dev_table",
+      "started": "2026-10-16T18:36:42.310422+00:00",
+      "seconds": 15.6,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-sql__execute_sql_read_only",
+          "input": {
+            "query": "DESCRIBE TABLE meridian.bronze.payments"
+          },
+          "refused": true,
+          "result": "{\"statement_id\":\"01f1c990-8dad-19e1-abaa-64b12a6c9ea5\",\"status\":{\"state\":\"FAILED\",\"error\":{\"error_code\":\"BAD_REQUEST\",\"message\":\"PERMISSION_DENIED: User does not have USE SCHEMA on Schema 'meridian.bronze'.\"},\"sql_state\":\"42501\"}}"
+        }
+      ],
+      "answer": "I can't answer this. The read-only SQL call failed with `PERMISSION_DENIED: User does not have USE SCHEMA on Schema 'meridian.bronze'`. That means I can't describe the table, count its rows, or read its latest ingestion timestamp.\n\nTo fix it, someone with the right privileges would need to grant `USE SCHEMA` on `meridian.bronze` and `SELECT` on `meridian.bronze.payments` to the account the SQL tool runs as. Once that's done, I can run these:\n\n```sql\nSELECT COUNT(*) AS row_count, MAX(<ingestion_ts_column>) AS latest_ingested\nFROM meridian.bronze.payments\n```\n\nI'd confirm the ingestion column name with `DESCRIBE TABLE` first.\n\nThe Genie space and the knowledge base index are other tools I could try, but the Genie space only covers the gold tables. I haven't tried either, because you asked for the SQL tools and they wouldn't give a reliable answer about the bronze table. If you want, I can try them anyway.",
+      "is_error": false,
+      "turns": 2,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 2812,
+        "cache_read_input_tokens": 7441,
+        "output_tokens": 520,
+        "output_tokens_details": {
+          "thinking_tokens": 59
+        }
+      }
+    },
+    {
+      "persona": "ben",
+      "prompt": "finance_fee",
+      "started": "2026-10-16T18:37:01.783109+00:00",
+      "seconds": 20.8,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "acq_2 bank transfer payment fee charge"
+          },
+          "refused": false,
+          "result": "[{\"source\":\"volume\",\"tier\":\"finance\",\"doc_revision\":1.0,\"page\":1.0,\"uri\":\"dbfs:/Volumes/meridian/landing/raw/kb/files/finance/DOC-FEE-001.pdf\",\"score\":0.6104057345116018,\"text\":\"Acquirer fee schedule and SLA terms\\nThis schedule sets the me"
+        }
+      ],
+      "answer": "According to the Acquirer fee schedule and SLA terms (DOC-FEE-001), acq_2 charges a flat **SGD 0.75** per bank transfer payment.\n\nRelated acq_2 terms from the same document:\n- **Monthly minimum processing fee:** SGD 1,200.\n- **Settlement for bank transfer:** T+2.\n- **Chargebacks:** SGD 15.00 each. Refunds: SGD 0.20 each. These two fees are listed for all acquirers, not just acq_2.\n\nThe document is marked as restricted to Finance, so don't share these rates outside that team.",
+      "is_error": false,
+      "turns": 2,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 3981,
+        "cache_read_input_tokens": 7428,
+        "output_tokens": 284,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "gus",
+      "prompt": "kb_threshold",
+      "started": "2026-10-16T18:37:03.409877+00:00",
+      "seconds": 15.0,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": true,
+          "result": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a metastore admin or the ob"
+        },
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_general",
+          "input": {
+            "query": "refund batch approval threshold amount"
+          },
+          "refused": true,
+          "result": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_general', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a metastore admin or the ob"
+        }
+      ],
+      "answer": "I couldn't find the threshold. Both searches failed with `PERMISSION_DENIED`, so I have no document to cite.\n\n- `meridian.kb.idx_finance`: no SELECT privilege.\n- `meridian.kb.idx_general`: no SELECT privilege.\n\nA metastore admin or the index owner needs to run these, with your principal filled in:\n\n```sql\nGRANT SELECT ON TABLE meridian.kb.idx_finance TO `<your-principal>`;\nGRANT SELECT ON TABLE meridian.kb.idx_general TO `<your-principal>`;\n```\n\nI didn't try to get around the permission error, for example by querying the underlying tables through the SQL tool. Once access is granted, tell me and I'll rerun both searches and cite the document id.",
+      "is_error": false,
+      "turns": 3,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 4745,
+        "cache_read_input_tokens": 4242,
+        "output_tokens": 411,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "gus",
+      "prompt": "genie_yesterday",
+      "started": "2026-10-16T18:37:22.413641+00:00",
+      "seconds": 12.2,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [],
+      "answer": "I can't use the meridian-genie tools here. They aren't available in this session. I only have the `meridian-sql` tools (Databricks SQL) and the `meridian-kb` vector search indexes (`idx_finance`, `idx_general`).\n\nI could answer with read-only SQL instead. I'd look for the table that holds `acq_7`, then compute yesterday's (2026-10-16) failure rate. That might not match how the Genie space defines \"failure rate\", though. Do you want me to do that, or would you rather get the Genie tools connected first?",
+      "is_error": false,
+      "turns": 1,
+      "usage": {
+        "input_tokens": 2,
+        "cache_creation_input_tokens": 2503,
+        "cache_read_input_tokens": 1724,
+        "output_tokens": 388,
+        "output_tokens_details": {
+          "thinking_tokens": 209
+        }
+      }
+    },
+    {
+      "persona": "gus",
+      "prompt": "dev_table",
+      "started": "2026-10-16T18:37:25.677977+00:00",
+      "seconds": 21.4,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-sql__execute_sql_read_only",
+          "input": {
+            "query": "DESCRIBE TABLE meridian.bronze.payments"
+          },
+          "refused": false,
+          "result": "{\"statement_id\":\"01f1c990-a679-1bac-b641-99c96b7d3037\",\"status\":{\"state\":\"SUCCEEDED\"},\"manifest\":{\"format\":\"JSON_ARRAY\",\"schema\":{\"column_count\":3,\"columns\":[{\"name\":\"col_name\",\"type_text\":\"STRING\",\"type_name\":\"STRING\",\"position\":0},{\"name\""
+        },
+        {
+          "tool": "mcp__meridian-sql__execute_sql_read_only",
+          "input": {
+            "query": "SELECT COUNT(*) AS row_count, MAX(_ingested_at) AS latest_ingested_at FROM meridian.bronze.payments"
+          },
+          "refused": false,
+          "result": "{\"statement_id\":\"01f1c990-ab95-1f96-ae44-f154df4768b2\",\"status\":{\"state\":\"SUCCEEDED\"},\"manifest\":{\"format\":\"JSON_ARRAY\",\"schema\":{\"column_count\":2,\"columns\":[{\"name\":\"row_count\",\"type_text\":\"BIGINT\",\"type_name\":\"LONG\",\"position\":0},{\"name\":"
+        }
+      ],
+      "answer": "`meridian.bronze.payments` has **34,511 rows**. The most recent row was ingested at **2026-10-15 12:56:22.935 UTC**, based on `MAX(_ingested_at)`. That is about two days before today, 2026-10-17.",
+      "is_error": false,
+      "turns": 3,
+      "usage": {
+        "input_tokens": 6,
+        "cache_creation_input_tokens": 4194,
+        "cache_read_input_tokens": 11420,
+        "output_tokens": 311,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    },
+    {
+      "persona": "gus",
+      "prompt": "finance_fee",
+      "started": "2026-10-16T18:37:37.755586+00:00",
+      "seconds": 14.1,
+      "mcp_servers": {
+        "meridian-kb": "connected",
+        "meridian-genie": "connected",
+        "meridian-sql": "connected"
+      },
+      "model": "system.ai.claude-sonnet-5-5[1m]",
+      "tool_calls": [
+        {
+          "tool": "mcp__meridian-kb__meridian__kb__idx_finance",
+          "input": {
+            "query": "acq_2 bank transfer payment fee"
+          },
+          "refused": true,
+          "result": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a metastore admin or the ob"
+        }
+      ],
+      "answer": "I couldn't search the finance index. The query failed with a permission error: you don't have the `SELECT` privilege on `meridian.kb.idx_finance`. I don't have an answer on what acq_2 charges for bank transfers.\n\nA metastore admin or the object owner can fix this by running:\n\n```sql\nGRANT SELECT ON TABLE meridian.kb.idx_finance TO `<your-principal>`;\n```\n\nBeing a workspace admin isn't enough on its own.\n\nI haven't tried the general index (`idx_general`) as a workaround. It's a different data source and might not hold the finance pricing details, so I didn't want to switch without asking. If you want, I can search it, or I can retry the finance index once access is granted.",
+      "is_error": false,
+      "turns": 2,
+      "usage": {
+        "input_tokens": 4,
+        "cache_creation_input_tokens": 2733,
+        "cache_read_input_tokens": 5960,
+        "output_tokens": 317,
+        "output_tokens_details": {
+          "thinking_tokens": 0
+        }
+      }
+    }
+  ],
+  "checks": {
+    "every MCP server connected for every persona": true,
+    "Ava: the finance index refuses her and the fee does not appear": true,
+    "Ava: the bronze table refuses her": true,
+    "Ben: the finance index answers him": true,
+    "Gus (data engineer) reads the bronze table": true
+  },
+  "status": "PASS"
+}
