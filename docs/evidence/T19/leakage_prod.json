@@ -1,0 +1,1169 @@
+{
+  "task": "T19 leakage matrix",
+  "target": "prod",
+  "at": "2026-10-16T18:18:00.486295+00:00",
+  "questions": 6,
+  "source_doc_id": "DOC-FEE-001",
+  "seconds_until_index_refuses_ben": 225.0,
+  "seconds_until_ben_restored": 255.6,
+  "rows": [
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L01",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L01",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "45da725d-4ac7-4bdd-b4a7-3c257d3448a8",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 18.5
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L02",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L02",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "829f3a5b-df2c-4d93-ae4f-02e3545ea3bd",
+      "tools": [
+        "search_kb",
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 24.4
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L03",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L03",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "c6233de5-5860-48a8-9cd3-08069a9de54b",
+      "tools": [
+        "search_kb",
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 31.2
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L04",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L04",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "c459c507-6e8c-4203-b37b-de59838f3eb5",
+      "tools": [
+        "search_kb",
+        "search_kb",
+        "search_kb"
+      ],
+      "seconds": 11.0
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L05",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L05",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "db8a1436-0cd0-450d-9a4e-869b3d898bc8",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 21.5
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:finance",
+      "id": "L06",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "index:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:finance",
+      "id": "L06",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "mcp:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ava",
+      "path": "agent",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "5d22a444-74bc-46d1-80d8-45fbd3f98831",
+      "tools": [
+        "search_kb"
+      ],
+      "seconds": 16.0
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L01",
+      "leaks": [
+        "1.60%",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L01",
+      "leaks": [
+        "1.60%",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L01",
+      "leaks": [
+        "1.60%",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "The ewallet merchant discount rate for acq_5 is 1.60% [DOC-FEE-001 p.1]. This comes from the acquirer fee schedule, version 4, last modified 2026-09-15.\n\nGenie has no pricing data, so it gave no figure for this [GENIE-1a2b3c4d].",
+      "cited": true,
+      "invocation_id": "c62092aa-4bf6-417a-9641-eda425bc0538",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 29.2
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L02",
+      "leaks": [
+        "SGD 0.75 flat",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L02",
+      "leaks": [
+        "SGD 0.75 flat",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L02",
+      "leaks": [
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "acq_2 charges a flat SGD 0.75 for each bank transfer payment [DOC-FEE-001 p.1]. That is the merchant discount rate Meridian pays the acquirer. The schedule is version 4, modified 2026-09-15.",
+      "cited": true,
+      "invocation_id": "d524c3fa-04e9-4f35-afbc-489776f7da98",
+      "tools": [
+        "search_kb"
+      ],
+      "seconds": 22.0
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L03",
+      "leaks": [
+        "SGD 1,800",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L03",
+      "leaks": [
+        "SGD 1,800",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L03",
+      "leaks": [
+        "SGD 1,800",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "The monthly minimum processing fee for acq_4 is SGD 1,800 [DOC-FEE-001 p.1]. This comes from the acquirer fee schedule, version 4, last modified 2026-09-15.",
+      "cited": true,
+      "invocation_id": "409782dc-3728-46b1-abbf-c732ca2cdc7d",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 16.8
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L04",
+      "leaks": [
+        "SGD 15.00",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L04",
+      "leaks": [
+        "SGD 15.00",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L04",
+      "leaks": [
+        "SGD 15.00",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "Meridian pays **SGD 15.00 per chargeback** in handling fees [DOC-FEE-001 p.1].",
+      "cited": true,
+      "invocation_id": "895efa44-5e30-406b-ac66-e2f024384a19",
+      "tools": [
+        "search_kb"
+      ],
+      "seconds": 9.0
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L05",
+      "leaks": [
+        "1.79% + SGD 0.35",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L05",
+      "leaks": [
+        "1.79% + SGD 0.35",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L05",
+      "leaks": [
+        "1.79% + SGD 0.35",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "**acq_7** has the lowest card merchant discount rate: **1.79% + SGD 0.35** per transaction [DOC-FEE-001 p.1].\n\nThe next lowest is acq_5 at 1.88% + SGD 0.32 [DOC-FEE-001 p.1]. acq_7 has the lowest percentage, but its fixed fee of SGD 0.35 is the highest of the seven acquirers [DOC-FEE-001 p.1]. So on very small transactions it may not be the cheapest overall.\n\nGenie has no merchant discount rate data, so this comes only from the fee schedule (version 4, modified 2026-09-15) [GENIE-none; DOC-FEE-001 p.1].",
+      "cited": true,
+      "invocation_id": "9d117c33-a9bc-4526-9f57-08ff042157a5",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 43.2
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L06",
+      "leaks": [
+        "21 days",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L06",
+      "leaks": [
+        "21 days",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "baseline",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L06",
+      "leaks": [
+        "21 days",
+        "DOC-FEE-001"
+      ],
+      "denied": false,
+      "got_finance_doc": true,
+      "answer": "Finance has **21 days from the breach** to file an acq_7 SLA credit claim [DOC-FEE-001 p.2].\n\nFinance must also be notified within 24 hours of the breach being detected [DOC-FEE-001 p.2].",
+      "cited": true,
+      "invocation_id": "112318cc-75cc-4d65-a4ac-9f6d9ee6f894",
+      "tools": [
+        "search_kb"
+      ],
+      "seconds": 29.7
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L01",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L01",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L01",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "af9b06f4-ef1c-4835-bb50-12fffda752e3",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 15.9
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L02",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L02",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L02",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "",
+      "cited": false,
+      "invocation_id": "7ed6772a-ceeb-4586-a7ec-6a2c13159f7a",
+      "tools": [],
+      "seconds": 10.5
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L03",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L03",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L03",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "88ca4c1d-b72a-4dd6-95d9-ad95100beb68",
+      "tools": [
+        "search_kb",
+        "search_kb"
+      ],
+      "seconds": 10.1
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L04",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L04",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L04",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "9d1c1131-2d81-49ba-a176-2c0f8dc54191",
+      "tools": [
+        "search_kb",
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 23.9
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L05",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L05",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L05",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "788d8e95-10ad-40fc-8fd0-74fe2a06e1af",
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "seconds": 24.3
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:finance",
+      "id": "L06",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog privileges. Ask a meta"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "index:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:finance",
+      "id": "L06",
+      "leaks": [],
+      "denied": true,
+      "got_finance_doc": false,
+      "error": "PERMISSION_DENIED: You do not have the SELECT privilege on 'meridian.kb.idx_finance', which is required for this operation. Note that being a workspace admin does not by itself grant Unity Catalog pri"
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "mcp:general",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false
+    },
+    {
+      "phase": "after removal from meridian-finance",
+      "persona": "ben",
+      "path": "agent",
+      "id": "L06",
+      "leaks": [],
+      "denied": false,
+      "got_finance_doc": false,
+      "answer": "I don't have that in the knowledge base.",
+      "cited": false,
+      "invocation_id": "5ffef22b-016b-4c73-8727-39a2103f6ab0",
+      "tools": [
+        "search_kb",
+        "search_kb",
+        "search_kb"
+      ],
+      "seconds": 18.7
+    }
+  ],
+  "trace_check": {
+    "invocations": 6,
+    "traces_landed": 6,
+    "spans_searched": 35,
+    "seconds_waited": 5.4,
+    "spans_with_finance_content": [],
+    "retrieval_tiers_seen": [
+      "general"
+    ]
+  },
+  "counts": {
+    "baseline | ava | index:finance": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 6,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ava | index:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ava | mcp:finance": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 6,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ava | mcp:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ava | agent": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ben | index:finance": {
+      "asked": 6,
+      "leaks": 6,
+      "denied": 0,
+      "finance_doc": 6,
+      "cited": 0
+    },
+    "baseline | ben | index:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ben | mcp:finance": {
+      "asked": 6,
+      "leaks": 6,
+      "denied": 0,
+      "finance_doc": 6,
+      "cited": 0
+    },
+    "baseline | ben | mcp:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "baseline | ben | agent": {
+      "asked": 6,
+      "leaks": 6,
+      "denied": 0,
+      "finance_doc": 6,
+      "cited": 6
+    },
+    "after removal from meridian-finance | ben | index:finance": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 6,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "after removal from meridian-finance | ben | index:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "after removal from meridian-finance | ben | mcp:finance": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 6,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "after removal from meridian-finance | ben | mcp:general": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    },
+    "after removal from meridian-finance | ben | agent": {
+      "asked": 6,
+      "leaks": 0,
+      "denied": 0,
+      "finance_doc": 0,
+      "cited": 0
+    }
+  },
+  "checks": {
+    "Ava: zero leaks on every path": true,
+    "Ava: the finance index refuses her (direct and MCP)": true,
+    "Ben: the finance index answers him (direct and MCP)": true,
+    "Ben: cited answers from the agent": true,
+    "Ben removed and asked again": true,
+    "Ben after removal: zero leaks on every path": true,
+    "Ben after removal: the finance index refuses him": true,
+    "Ben restored": true,
+    "traces: no finance chunk or fact entered Ava's model context": true
+  },
+  "status": "PASS"
+}
