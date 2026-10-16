@@ -2,9 +2,9 @@
 
 | Done when | Status | Evidence |
 |---|---|---|
-| A new edge appears in the changelog | PASS (dev) | baseline, then a new job (`meridian-merchant-export`, reads `gold.merchant_daily`) and the backfill: 4 data-layer edges `added` in `gov.lineage_changelog`; `obs_dev.json`. Prod baseline taken 21:20 SGT; the 02:00 SGT nightly run should flag the same edges |
+| A new edge appears in the changelog | PASS | dev (`obs_dev.json`) and prod (`obs_prod.json`): after the baseline, the nightly run flagged the new finance export reading `gold.merchant_daily` and the backfill writing `bronze.fx_corrections` from `silver.payments`. Prod's 02:00 run predates the data-layer filter, so it also listed the observability jobs' own edges |
 | The health view answers "what failed in the last 24h and why" in one query | PASS | `SELECT * FROM obs.v_pipeline_health WHERE status IN ('FAILED','ERROR','BREACH','QUARANTINED')`: check breaches with messages, pipeline errors, quarantine counts by rule, failed job and task runs |
-| A dated log file exists | PASS | `/Volumes/<catalog>/obs/exports/logs/<date>/`: `pipeline_health.jsonl`, `job_runs.csv`, `pipeline_events.jsonl`, `manifest.json`, in dev and prod |
+| A dated log file exists | PASS | `/Volumes/<catalog>/obs/exports/logs/<UTC date>/`: `pipeline_health.jsonl`, `job_runs.csv`, `pipeline_events.jsonl`, `manifest.json`, in dev and prod (prod also from the 00:30 SGT scheduled run) |
 
 What is native and what is BUILD:
 - Native: the pipeline event log, published as `obs.pipeline_event_log`; expectation metrics in it; system tables

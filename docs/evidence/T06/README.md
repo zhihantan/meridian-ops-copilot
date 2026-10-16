@@ -19,4 +19,8 @@ Limits found (also in `spikes.md`):
 - `DESCRIBE HISTORY` reports `triggerType: manual` for table-triggered runs; the Jobs API run says `TABLE`.
 - Lineage is a system table with a lag (7 to 30 min here), so the drill's bad write runs hours before it is shown.
 
-Open: prod MERGE drill started 2026-10-15 21:50 SGT (run `327365315463957`); recover and collect `drill_prod.json` on 16 Oct.
+Prod MERGE drill, PASS (`drill_prod.json`): the backfill ran 2026-10-15 21:50 SGT (run `327365315463957`) and
+multiplied 12 Oct by 100 (128,291.27 to 12,829,127.00); history named the job and run immediately; by morning lineage
+showed that run reading `silver.payments` into a new `bronze.fx_corrections`, and the 02:00 lineage changelog had flagged
+both edges. Recovered 2026-10-16 10:05 SGT: `meridian-restore-table` put `gold.acquirer_status` back to version 4, a
+selective full refresh recomputed silver (1.5 min), and prod scores 16/16.

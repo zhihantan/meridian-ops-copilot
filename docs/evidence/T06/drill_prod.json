@@ -1,9 +1,21 @@
 {
   "task": "T06 bad backfill drill",
   "target": "prod",
-  "collected_at": "2026-10-15T13:21:22.859294+00:00",
+  "collected_at": "2026-10-16T02:03:11.382947+00:00",
   "silver": "meridian.silver.payments",
   "bad_writes": [
+    {
+      "version": "12",
+      "at": "2026-10-15T13:49:54.000Z",
+      "operation": "MERGE",
+      "job": {
+        "jobName": "meridian-backfill-fx-correction",
+        "jobId": "738494426269191",
+        "jobRunId": "327365315463957",
+        "triggerType": "manual"
+      },
+      "rows": "2311"
+    },
     {
       "version": "4",
       "at": "2026-10-15T12:43:58.000Z",
@@ -17,7 +29,13 @@
       "rows": "2311"
     }
   ],
-  "recovery_writes": [],
+  "recovery_writes": [
+    {
+      "version": "13",
+      "at": "2026-10-16T02:00:38.000Z",
+      "operation": "DLT REFRESH"
+    }
+  ],
   "corrupted_days": [
     {
       "day": "2026-10-12",
@@ -25,11 +43,47 @@
       "amount_before": "128291.27",
       "amount_after_bad_write": "12829127.00",
       "rows_now": "2311",
-      "amount_now": "12829127.00",
-      "recovered": false
+      "amount_now": "128291.27",
+      "recovered": true
     }
   ],
   "acquirer_status_versions": [
+    {
+      "version": "6",
+      "at": "2026-10-16T01:59:24.000Z",
+      "operation": "RESTORE",
+      "job": "meridian-restore-table",
+      "run": "200160456197525",
+      "trigger": "manual",
+      "parameters": "{\"version\":\"4\",\"timestamp\":null}"
+    },
+    {
+      "version": "5",
+      "at": "2026-10-15T13:52:33.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "meridian-acquirer-status",
+      "run": "880939706173263",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "4",
+      "at": "2026-10-15T13:42:08.000Z",
+      "operation": "CREATE OR REPLACE TABLE AS SELECT",
+      "job": "meridian-acquirer-status",
+      "run": "588158860663328",
+      "trigger": "manual",
+      "parameters": null
+    },
+    {
+      "version": "3",
+      "at": "2026-10-15T13:36:41.000Z",
+      "operation": "RESTORE",
+      "job": "meridian-restore-table",
+      "run": "335456651615219",
+      "trigger": "manual",
+      "parameters": "{\"version\":\"0\",\"timestamp\":null}"
+    },
     {
       "version": "2",
       "at": "2026-10-15T13:00:54.000Z",
@@ -61,95 +115,459 @@
   "acquirer_status_now": [
     [
       "acq_1",
-      "143536.77",
-      "216334050419110"
+      "16789.64",
+      "588158860663328"
     ],
     [
       "acq_2",
-      "129020.01",
-      "216334050419110"
+      "16988.38",
+      "588158860663328"
     ],
     [
       "acq_3",
-      "138483.42",
-      "216334050419110"
+      "16627.29",
+      "588158860663328"
     ],
     [
       "acq_4",
-      "130481.33",
-      "216334050419110"
+      "16610.67",
+      "588158860663328"
     ],
     [
       "acq_5",
-      "160668.15",
-      "216334050419110"
+      "16215.40",
+      "588158860663328"
     ],
     [
       "acq_6",
-      "131701.30",
-      "216334050419110"
+      "16416.39",
+      "588158860663328"
     ],
     [
       "acq_7",
-      "129324.87",
-      "216334050419110"
+      "16845.69",
+      "588158860663328"
     ]
   ],
-  "lineage_writes": [
+  "lineage_touches": [
     {
-      "event_time": "2026-10-15T12:57:04.278Z",
+      "event_time": "2026-10-16T01:09:44.250Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "865283150557106",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-16T01:08:52.516Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "865283150557106",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-16T00:09:25.624Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "705475068749828",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-16T00:08:34.500Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "705475068749828",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T23:09:27.990Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "206923970390283",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T23:08:38.361Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "206923970390283",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T22:09:07.809Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "920302336998127",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T22:08:10.840Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "920302336998127",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T21:09:21.124Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "782690995354816",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T21:08:27.102Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "782690995354816",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T20:09:22.087Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1104531788185445",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T20:08:28.999Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1104531788185445",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T19:09:28.283Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "12376394292677",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T19:08:37.079Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "12376394292677",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T18:06:32.341Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "255268278038752",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T18:05:55.928Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "255268278038752",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T17:08:48.633Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "460817308533849",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T17:07:57.716Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "460817308533849",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T16:09:27.506Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "205957092438064",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T16:08:32.843Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "205957092438064",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T15:07:59.738Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1114015656209671",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T15:07:09.561Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1114015656209671",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T14:13:11.961Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1050134546449603",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T14:09:17.230Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "1050134546449603",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T13:52:33.306Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": "meridian-acquirer-status",
+      "entity_id": "972702946966498",
+      "entity_run_id": "880939706173263",
+      "other_table": "meridian.gold.acquirer_status",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:49:43.362Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": "meridian-backfill-fx-correction",
+      "entity_id": "738494426269191",
+      "entity_run_id": "327365315463957",
+      "other_table": "meridian.bronze.fx_corrections",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:42:08.123Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": "meridian-acquirer-status",
+      "entity_id": "972702946966498",
+      "entity_run_id": "588158860663328",
+      "other_table": "meridian.gold.acquirer_status",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:39:15.128Z",
+      "direction": "reads",
       "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "d2abceed-a3e3-4a3d-bcfe-74f1b8513aeb",
+      "other_table": "meridian.gold.acquirer_hourly",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:39:15.092Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "d2abceed-a3e3-4a3d-bcfe-74f1b8513aeb",
+      "other_table": "meridian.gold.merchant_daily",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:39:15.031Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "d2abceed-a3e3-4a3d-bcfe-74f1b8513aeb",
+      "other_table": "meridian.gold.payment_failure_daily",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:39:04.763Z",
+      "direction": "writes",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "d2abceed-a3e3-4a3d-bcfe-74f1b8513aeb",
+      "other_table": "meridian.bronze.payments",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T13:17:22.208Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "485297a6-ce8a-4719-a255-12577411546c",
+      "other_table": "meridian.gold.merchant_daily",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:17:22.065Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "485297a6-ce8a-4719-a255-12577411546c",
+      "other_table": "meridian.gold.payment_failure_daily",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:17:21.909Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "485297a6-ce8a-4719-a255-12577411546c",
+      "other_table": "meridian.gold.acquirer_hourly",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T13:17:13.910Z",
+      "direction": "writes",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
+      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
+      "entity_run_id": "485297a6-ce8a-4719-a255-12577411546c",
+      "other_table": "meridian.bronze.payments",
+      "created_by": null
+    },
+    {
+      "event_time": "2026-10-15T13:12:03.547Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "288338858016761",
+      "other_table": "meridian.obs.payments_profile_metrics",
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T13:09:17.176Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": null,
+      "entity_id": "1071364246743857",
+      "entity_run_id": "288338858016761",
+      "other_table": null,
+      "created_by": "<user>"
+    },
+    {
+      "event_time": "2026-10-15T13:00:54.325Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": "meridian-acquirer-status",
+      "entity_id": "972702946966498",
+      "entity_run_id": "216334050419110",
+      "other_table": "meridian.gold.acquirer_status",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T12:58:49.676Z",
+      "direction": "reads",
+      "entity_type": "JOB",
+      "job_or_pipeline": "meridian-quality-checks",
+      "entity_id": "565469610870126",
+      "entity_run_id": "160009192896124",
+      "other_table": null,
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
+    },
+    {
+      "event_time": "2026-10-15T12:57:18.981Z",
+      "direction": "reads",
+      "entity_type": "PIPELINE",
+      "job_or_pipeline": "meridian-dlc",
       "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
       "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
-      "created_by": null
-    },
-    {
-      "event_time": "2026-10-15T12:57:04.267Z",
-      "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
-      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
-      "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
-      "created_by": null
-    },
-    {
-      "event_time": "2026-10-15T12:57:00.026Z",
-      "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
-      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
-      "entity_run_id": "8a1e4cae-436a-4f19-9f9e-f879641580b4",
-      "created_by": null
-    },
-    {
-      "event_time": "2026-10-15T10:40:27.634Z",
-      "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
-      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
-      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
-      "created_by": null
-    },
-    {
-      "event_time": "2026-10-15T10:40:27.625Z",
-      "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
-      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
-      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
-      "created_by": null
-    },
-    {
-      "event_time": "2026-10-15T10:40:23.723Z",
-      "entity_type": "PIPELINE",
-      "writer": "meridian-dlc",
-      "entity_id": "75538953-4591-4224-ac13-e5b588e1bfc3",
-      "entity_run_id": "f6643906-c31d-4f94-822e-6683567c4d72",
-      "created_by": null
+      "other_table": "meridian.gold.acquirer_hourly",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94"
     }
   ],
-  "lineage_has_bad_write": false,
+  "lineage_bad_run": [
+    {
+      "event_time": "2026-10-15T13:49:31.628Z",
+      "source": null,
+      "target": "meridian.bronze.fx_corrections"
+    },
+    {
+      "event_time": "2026-10-15T13:49:43.362Z",
+      "source": "meridian.silver.payments",
+      "target": "meridian.bronze.fx_corrections"
+    }
+  ],
+  "lineage_names_bad_run": true,
   "checks": {
     "bad write found in history": true,
-    "corrupted day recovered": false,
-    "acquirer_status restored": false
+    "corrupted day recovered": true,
+    "acquirer_status restored": true
   },
-  "status": "OPEN"
+  "status": "PASS"
 }

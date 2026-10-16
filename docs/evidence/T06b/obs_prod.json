@@ -1,0 +1,580 @@
+{
+  "task": "T06b",
+  "target": "prod",
+  "collected_at": "2026-10-16T02:03:41.865700+00:00",
+  "lineage_changes": [
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "",
+      "target": "meridian.obs.pipeline_event_log",
+      "entity_type": "PIPELINE",
+      "entity": "meridian-dlc",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:16:29.603Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "",
+      "target": "meridian.bronze.fx_corrections",
+      "entity_type": "JOB",
+      "entity": "meridian-backfill-fx-correction",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:49:31.628Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "",
+      "target": "meridian.obs.recovery_audit",
+      "entity_type": "JOB",
+      "entity": "meridian-restore-table",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:36:48.687Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.gold.merchant_daily",
+      "target": "",
+      "entity_type": "JOB",
+      "entity": "meridian-merchant-export",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:57.901Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.gov.lineage_snapshot",
+      "target": "meridian.gov.lineage_changelog",
+      "entity_type": "JOB",
+      "entity": "meridian-lineage-changelog",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:15.391Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.gov.lineage_snapshot",
+      "target": "",
+      "entity_type": "JOB",
+      "entity": "meridian-lineage-changelog",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:15.862Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.gov.pii_coverage",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.drift_events",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.freshness_events",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.pipeline_event_log",
+      "target": "meridian.obs.v_pipeline_events",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:05.523Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.pipeline_event_log",
+      "target": "",
+      "entity_type": "PIPELINE",
+      "entity": "meridian-dlc",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:16:19.637Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_job_runs",
+      "target": "",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:52.100Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_job_runs",
+      "target": "meridian.obs.v_task_runs",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:02.820Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_job_runs",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_pipeline_events",
+      "target": "meridian.obs.v_expectation_metrics",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:06.894Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_pipeline_events",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_pipeline_events",
+      "target": "",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:55.346Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_pipeline_health",
+      "target": "",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:37.960Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_query_history",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.obs.v_task_runs",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.quarantine.payments",
+      "target": "meridian.obs.v_pipeline_health",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:15.792Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "meridian.silver.payments",
+      "target": "meridian.bronze.fx_corrections",
+      "entity_type": "JOB",
+      "entity": "meridian-backfill-fx-correction",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:49:43.362Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.access.audit",
+      "target": "meridian.obs.v_audit",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:10.412Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.access.table_lineage",
+      "target": "meridian.gov.lineage_snapshot",
+      "entity_type": "JOB",
+      "entity": "meridian-lineage-changelog",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:11.063Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.lakeflow.job_run_timeline",
+      "target": "meridian.obs.v_job_runs",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:17:59.852Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.lakeflow.job_task_run_timeline",
+      "target": "meridian.obs.v_task_runs",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:02.820Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.lakeflow.jobs",
+      "target": "meridian.gov.lineage_snapshot",
+      "entity_type": "JOB",
+      "entity": "meridian-lineage-changelog",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:11.063Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.lakeflow.jobs",
+      "target": "meridian.obs.v_job_runs",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:17:59.852Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.lakeflow.pipelines",
+      "target": "meridian.gov.lineage_snapshot",
+      "entity_type": "JOB",
+      "entity": "meridian-lineage-changelog",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:20:11.063Z"
+    },
+    {
+      "detected_at": "2026-10-15T18:00:55.424Z",
+      "change": "added",
+      "source": "system.query.history",
+      "target": "meridian.obs.v_query_history",
+      "entity_type": "JOB",
+      "entity": "meridian-export-logs",
+      "created_by": "20d545ad-7d71-42bf-b2dd-338af1f09b94",
+      "first_seen": "2026-10-15T13:18:08.949Z"
+    }
+  ],
+  "lineage_snapshots": [
+    [
+      "20261015T131934-569990221984948",
+      "39"
+    ],
+    [
+      "20261015T180019-939961428027672",
+      "69"
+    ]
+  ],
+  "what_failed_24h": [
+    {
+      "at": "2026-10-15T12:59:33.649Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.freshness_check",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:59:32.183Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.pii_coverage",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:59:25.548Z",
+      "source": "check:freshness",
+      "name": "meridian.bronze.payments.created_at",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "no payments event for 480 min (limit 60 min)"
+    },
+    {
+      "at": "2026-10-15T12:59:19.546Z",
+      "source": "check:pii_coverage",
+      "name": "meridian.silver.customers.secondary_email",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "meridian.silver.customers.secondary_email: tags none, strategy none: PII-like column with no protection"
+    },
+    {
+      "at": "2026-10-15T12:58:58.130Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.drift_check",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:58:52.786Z",
+      "source": "check:drift",
+      "name": "meridian.bronze.payments._rescued_data",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "50 rows did not match the reference schema, e.g. {\"amount\":\"22.22 SGD\",\"payment_method_v2\":\"paynow:local\",\"_file_path\":\"/Volumes/meridian/landing/raw/payments/p"
+    },
+    {
+      "at": "2026-10-15T12:58:50.558Z",
+      "source": "check:drift",
+      "name": "meridian.bronze.payments.device_id",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "null rate of device_id is 17.0% vs baseline 1.0% (limit +5.0pp)"
+    },
+    {
+      "at": "2026-10-15T12:58:49.889Z",
+      "source": "check:drift",
+      "name": "meridian.silver.payments.status",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "failure_rate for acq_7 is 14.7% vs baseline 1.9% (limit 3.0x baseline)"
+    },
+    {
+      "at": "2026-10-15T12:58:31.391Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.drift_check",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:58:25.944Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.freshness_check",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:58:25.291Z",
+      "source": "check:drift",
+      "name": "meridian.bronze.payments._rescued_data",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "50 rows did not match the reference schema, e.g. {\"amount\":\"22.22 SGD\",\"payment_method_v2\":\"paynow:local\",\"_file_path\":\"/Volumes/meridian/landing/raw/payments/p"
+    },
+    {
+      "at": "2026-10-15T12:58:24.180Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.pii_coverage",
+      "run_id": "160009192896124",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T12:58:22.375Z",
+      "source": "check:drift",
+      "name": "meridian.bronze.payments.device_id",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "null rate of device_id is 17.0% vs baseline 1.0% (limit +5.0pp)"
+    },
+    {
+      "at": "2026-10-15T12:58:21.267Z",
+      "source": "check:drift",
+      "name": "meridian.silver.payments.status",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "failure_rate for acq_7 is 14.7% vs baseline 1.9% (limit 3.0x baseline)"
+    },
+    {
+      "at": "2026-10-15T12:58:19.548Z",
+      "source": "check:freshness",
+      "name": "meridian.bronze.payments.created_at",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "no payments event for 478 min (limit 60 min)"
+    },
+    {
+      "at": "2026-10-15T12:58:12.070Z",
+      "source": "check:pii_coverage",
+      "name": "meridian.silver.customers.secondary_email",
+      "run_id": "160009192896124",
+      "status": "BREACH",
+      "detail": "meridian.silver.customers.secondary_email: tags none, strategy none: PII-like column with no protection"
+    },
+    {
+      "at": "2026-10-15T12:56:35.060Z",
+      "source": "quarantine",
+      "name": "amount_positive",
+      "run_id": null,
+      "status": "QUARANTINED",
+      "detail": "11 payment rows"
+    },
+    {
+      "at": "2026-10-15T12:56:35.060Z",
+      "source": "quarantine",
+      "name": "merchant_id_not_null",
+      "run_id": null,
+      "status": "QUARANTINED",
+      "detail": "14 payment rows"
+    },
+    {
+      "at": "2026-10-15T12:56:35.060Z",
+      "source": "quarantine",
+      "name": "currency_valid",
+      "run_id": null,
+      "status": "QUARANTINED",
+      "detail": "12 payment rows"
+    },
+    {
+      "at": "2026-10-15T12:56:35.060Z",
+      "source": "quarantine",
+      "name": "amount_present",
+      "run_id": null,
+      "status": "QUARANTINED",
+      "detail": "50 payment rows"
+    },
+    {
+      "at": "2026-10-15T10:42:32.745Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.freshness_check",
+      "run_id": "212773508250311",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T10:42:31.764Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.pii_coverage",
+      "run_id": "212773508250311",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    },
+    {
+      "at": "2026-10-15T10:42:25.972Z",
+      "source": "check:freshness",
+      "name": "meridian.bronze.payments.created_at",
+      "run_id": "212773508250311",
+      "status": "BREACH",
+      "detail": "no payments event for 1663 min (limit 60 min)"
+    },
+    {
+      "at": "2026-10-15T10:42:20.196Z",
+      "source": "check:pii_coverage",
+      "name": "meridian.silver.customers.secondary_email",
+      "run_id": "212773508250311",
+      "status": "BREACH",
+      "detail": "meridian.silver.customers.secondary_email: tags none, strategy none: PII-like column with no protection"
+    },
+    {
+      "at": "2026-10-15T10:41:32.335Z",
+      "source": "task_run",
+      "name": "meridian-quality-checks.freshness_check",
+      "run_id": "212773508250311",
+      "status": "FAILED",
+      "detail": "RUN_EXECUTION_ERROR"
+    }
+  ],
+  "health_by_source": [
+    [
+      "check:drift",
+      "BREACH",
+      "6"
+    ],
+    [
+      "check:freshness",
+      "BREACH",
+      "4"
+    ],
+    [
+      "check:pii_coverage",
+      "BREACH",
+      "4"
+    ],
+    [
+      "job_run",
+      "ERROR",
+      "1"
+    ],
+    [
+      "job_run",
+      "SUCCEEDED",
+      "54"
+    ],
+    [
+      "quarantine",
+      "QUARANTINED",
+      "4"
+    ],
+    [
+      "task_run",
+      "ERROR",
+      "1"
+    ],
+    [
+      "task_run",
+      "FAILED",
+      "10"
+    ],
+    [
+      "task_run",
+      "SKIPPED",
+      "1"
+    ]
+  ],
+  "log_export": {
+    "2026-10-15": [
+      "job_runs.csv",
+      "manifest.json",
+      "pipeline_events.jsonl",
+      "pipeline_health.jsonl"
+    ]
+  },
+  "checks": {
+    "lineage change detected": true,
+    "health view answers what failed": true,
+    "dated log export exists": true
+  },
+  "status": "PASS"
+}

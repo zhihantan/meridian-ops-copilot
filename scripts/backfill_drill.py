@@ -116,10 +116,13 @@ def main() -> None:
         LEFT JOIN pipes p ON l.entity_type = 'PIPELINE' AND l.entity_id = p.pipeline_id
         WHERE (l.target_table_full_name = '{silver}' OR l.source_table_full_name = '{silver}')
           AND l.event_date >= current_date() - INTERVAL 7 DAYS AND l.entity_type IN ('JOB', 'PIPELINE')
-        GROUP BY ALL ORDER BY 1 DESC LIMIT 25""")]
-    result["lineage_names_bad_run"] = any(
-        args.backfill_job in (r["job_or_pipeline"] or "") and r["entity_run_id"] == last["job"].get("jobRunId")
-        for r in result["lineage_touches"]) if last else False
+        GROUP BY ALL ORDER BY 1 DESC LIMIT 40""")]
+    # Everything the bad run touched, by run ID: the question the demo asks of lineage.
+    result["lineage_bad_run"] = [dict(zip(("event_time", "source", "target"), r)) for r in sql(w, f"""
+        SELECT event_time, source_table_full_name, target_table_full_name FROM system.access.table_lineage
+        WHERE event_date >= current_date() - INTERVAL 7 DAYS AND entity_run_id = '{last["job"].get("jobRunId")}'
+        ORDER BY event_time""")] if last else []
+    result["lineage_names_bad_run"] = any(r["source"] == silver for r in result["lineage_bad_run"])
 
     checks = {"bad write found in history": bool(bad),
               "corrupted day recovered": bool(result.get("corrupted_days"))
