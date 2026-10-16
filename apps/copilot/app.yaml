@@ -1,0 +1,6 @@
+command: ["uv", "run", "start-server"]
+env:
+  - name: MERIDIAN_CONFIG_DIR       # config/ is copied next to the code by scripts/build_copilot.sh
+    value: "config"
+  - name: MERIDIAN_KB_SCHEMA
+    value: "meridian.kb"

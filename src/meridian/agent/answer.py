@@ -8,16 +8,16 @@ Code, not the model, abstains first when the best reranker score is below the tu
 from __future__ import annotations
 
 import re
-from pathlib import Path
 
 import anthropic
 import yaml
 from databricks.sdk import WorkspaceClient
 
+from meridian.common.paths import config_dir
 from meridian.common.workspace import bearer_token
 from meridian.kb.retrieve import Hit
 
-CONFIG = yaml.safe_load((Path(__file__).resolve().parents[3] / "config" / "agent.yaml").read_text())
+CONFIG = yaml.safe_load((config_dir() / "agent.yaml").read_text())
 ABSTAIN = "I don't have that in the knowledge base."
 SYSTEM = f"""You are Meridian Commerce's operations copilot. Answer the question using only the numbered
 sources in the user message.

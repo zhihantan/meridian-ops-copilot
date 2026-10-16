@@ -1,0 +1,31 @@
+[project]
+name = "meridian-copilot"
+version = "0.1.0"
+description = "Meridian ops copilot: an Anthropic tool loop on the Agent Bricks durable runtime (synthetic data)"
+requires-python = ">=3.11"
+dependencies = [
+    "databricks-agentbricks>=0.5.1",
+    "uvicorn>=0.41.0",
+    "python-dotenv>=1.2.1",
+    "databricks-sdk>=0.124.0",
+    "anthropic>=0.70",
+    "databricks-ai-search>=0.78",
+    "mlflow-skinny>=3.10",
+    "pyyaml>=6.0",
+]
+
+[project.scripts]
+start-server = "runtime.main:main"
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["copilot", "runtime", "meridian"]
+
+[tool.ruff]
+extend = "../../pyproject.toml"
+
+[tool.ruff.lint.isort]
+known-first-party = ["copilot", "runtime", "meridian"]

@@ -11,7 +11,7 @@ test:
 	uv run pytest -q
 
 lint:
-	uv run ruff check src tests scripts
+	uv run ruff check src tests scripts apps
 
 # Synthetic data and planted.json, with timestamps anchored to ANCHOR (default: now)
 gen-data:

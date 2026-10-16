@@ -1,0 +1,16 @@
+schema_version = 1
+
+[agent]
+# Agent Bricks needs a framework label; this agent's handler is an Anthropic SDK tool loop (copilot/loop.py)
+# on the managed DurableAgentServer, not the OpenAI Agents SDK.
+framework = "openai"
+server = "agentbricks"
+deployment_name = "meridian-copilot"   # the App is agent-bricks-meridian-copilot
+
+# Every invocation carries the caller's own token; tools run as the caller (vector search, the gateway, SQL).
+[auth.user]
+required = true
+additional_api_scopes = ["vector-search", "ai-gateway", "model-serving", "sql"]
+
+[tracing]
+experiment_name = "/Shared/agentbricks_traces/meridian-copilot"

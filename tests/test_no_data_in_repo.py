@@ -10,6 +10,7 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parents[1]
 DATA_SUFFIXES = {".parquet", ".delta", ".orc", ".avro", ".csv", ".jsonl", ".ndjson", ".pdf", ".docx", ".xlsx"}
 ALLOWED_TRACKED = {"config/access_matrix.csv"}  # configuration, not data
+EVIDENCE = "docs/evidence/"  # metrics and summaries from evaluation runs, PII-free, not table data
 LOCAL_SPARK_ARTIFACTS = ("spark-warehouse", "metastore_db", "derby.log", "_delta_log")
 SKIP = {".git", ".venv", "data", "node_modules", ".ruff_cache", ".pytest_cache"}
 
@@ -20,7 +21,8 @@ def tracked_files() -> list[str]:
 
 
 def test_no_data_files_are_tracked():
-    data = [f for f in tracked_files() if Path(f).suffix.lower() in DATA_SUFFIXES and f not in ALLOWED_TRACKED]
+    data = [f for f in tracked_files() if Path(f).suffix.lower() in DATA_SUFFIXES and f not in ALLOWED_TRACKED
+            and not f.startswith(EVIDENCE)]
     assert not data, f"data files tracked in git: {data}"
 
 

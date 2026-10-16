@@ -1,0 +1,73 @@
+{
+  "task": "T17 copilot",
+  "app": "agent-bricks-meridian-copilot",
+  "at": "2026-10-16T07:02:19.339515+00:00",
+  "calls": [
+    {
+      "persona": "ava (support)",
+      "question": "general",
+      "mode": "sync",
+      "seconds": 10.0,
+      "answer": "A member of **meridian-admin** must approve any refund batch with a total above SGD 500. They must approve it before the batch is executed. The approver can't be the requester [DOC-REF-003 p.1][DOC-RB-021 p.1].\n\n- Approvals expire after 48 hours. If the batch hasn't run by then, request a new approval [DOC-RB-021 p.1].\n- Record the approval ID on the batch. The refund_batch function won't run with",
+      "citations": [
+        "DOC-NOTE-250",
+        "DOC-RB-021",
+        "DOC-REF-003"
+      ]
+    },
+    {
+      "persona": "ava (support)",
+      "question": "finance",
+      "mode": "sync",
+      "seconds": 12.2,
+      "answer": "I don't have that in the knowledge base.",
+      "citations": []
+    },
+    {
+      "persona": "ben (finance)",
+      "question": "general",
+      "mode": "sync",
+      "seconds": 20.0,
+      "answer": "A member of meridian-admin must approve any refund batch with a total above SGD 500. This must happen before the batch is executed, and the approver can't be the requester. [DOC-REF-003 p.1] [DOC-RB-021 p.1]\n\n- Approvals expire after 48 hours. If the batch hasn't run by then, request a new approval. [DOC-RB-021 p.1]\n- Record the approval ID on the batch, because the refund_batch function won't run",
+      "citations": [
+        "DOC-NOTE-250",
+        "DOC-RB-021",
+        "DOC-REF-003"
+      ]
+    },
+    {
+      "persona": "ben (finance)",
+      "question": "finance",
+      "mode": "sync",
+      "seconds": 15.2,
+      "answer": "For each breach, Meridian may claim a service credit of 10% of the month's processing fees paid to acq_7 [DOC-FEE-001 p.2].\n\n- **What counts as a breach:** acq_7's payment failure rate is above 5% over a rolling 6-hour window [DOC-FEE-001 p.2].\n- **Notice:** Meridian Finance must be notified within 24 hours of the breach being detected [DOC-FEE-001 p.2].\n- **Filing:** Finance files the credit clai",
+      "citations": [
+        "DOC-FEE-001"
+      ]
+    }
+  ],
+  "stream": {
+    "events": [
+      "run.started",
+      "message",
+      "message",
+      "message",
+      "message",
+      "message",
+      "run.completed"
+    ]
+  },
+  "background": {
+    "initial": "queued",
+    "final": "completed",
+    "answer": "A member of **meridian-admin** must approve any refund batch with a total above SGD 500 before it runs. The approver can't be the person who requested it. [DOC-REF-003 p.1], [DOC-RB-021 p.1]\n\n- Approvals expire after 48 hours. If the batch hasn't run by then, request a new approval. [DOC-RB-021 p.1]"
+  },
+  "checks": {
+    "ben gets a cited finance answer": true,
+    "ava is not given finance content": true,
+    "both get a cited general answer": true,
+    "stream mode emits events": true,
+    "background mode completes": true
+  },
+  "status": "PASS"
+}

@@ -18,9 +18,9 @@ from databricks.ai_search.client import AISearchClient
 from databricks.ai_search.reranker import DatabricksReranker
 from databricks.sdk import WorkspaceClient
 
+from meridian.common.paths import config_dir
 from meridian.common.workspace import bearer_token
 
-SCENARIO = Path(__file__).resolve().parents[3] / "config" / "scenario.yaml"
 COLUMNS = ["chunk_id", "doc_id", "title", "page", "text", "tier", "source_version", "uri", "modified_at"]
 VARIANTS = {"V0": {"query_type": "ANN"}, "V1": {"query_type": "HYBRID"}, "V2": {"query_type": "HYBRID", "rerank": True}}
 
@@ -39,8 +39,8 @@ class Hit:
     score: float
 
 
-def tier_groups(path: Path = SCENARIO) -> dict[str, list[str]]:
-    return yaml.safe_load(path.read_text())["knowledge_tiers"]
+def tier_groups(path: Path | None = None) -> dict[str, list[str]]:
+    return yaml.safe_load((path or config_dir() / "scenario.yaml").read_text())["knowledge_tiers"]
 
 
 def entitled_tiers(groups: set[str], tiers: dict[str, list[str]] | None = None) -> list[str]:
