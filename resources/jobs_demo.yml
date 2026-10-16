@@ -1,0 +1,19 @@
+# Demo reset (T29): the part that needs the tables' owner. Run by scripts/reset_demo.py, never on a schedule.
+resources:
+  jobs:
+    demo_reset_job:
+      name: meridian-demo-reset
+      description: "T29: clear the landing folders and rewrite demo state (RB-014 versions, workflow runs, approved corrections). No DROP."
+      tags: {project: meridian-poc}
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      tasks:
+        - task_key: reset
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/demo_reset.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src",
+                         --landing-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/raw",
+                         --run-id, "{{job.run_id}}"]

@@ -36,6 +36,11 @@ run-pipeline:
 land:
 	scripts/land.sh $(TARGET) $(BATCH)
 
+.PHONY: gen-dashboard
+# The ops dashboard for each target (T27); rerun after a view changes, before deploying
+gen-dashboard:
+	uv run --group dbx python scripts/gen_dashboard.py --target dev --target staging --target prod
+
 .PHONY: gen-jobs
 # Generated ingestion jobs from config/sources.yaml (T06c)
 gen-jobs:

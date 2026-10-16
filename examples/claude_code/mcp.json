@@ -3,17 +3,23 @@
     "meridian-kb": {
       "type": "http",
       "url": "${DATABRICKS_HOST}/api/2.0/mcp/vector-search/${MERIDIAN_CATALOG:-meridian}/${MERIDIAN_KB:-kb}",
-      "headers": {"Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"}
+      "headers": {
+        "Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"
+      }
     },
     "meridian-genie": {
       "type": "http",
       "url": "${DATABRICKS_HOST}/api/2.0/mcp/genie/${MERIDIAN_GENIE_SPACE_ID}",
-      "headers": {"Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"}
+      "headers": {
+        "Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"
+      }
     },
     "meridian-sql": {
       "type": "http",
-      "url": "${DATABRICKS_HOST}/api/2.0/mcp/sql",
-      "headers": {"Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"}
+      "url": "${DATABRICKS_HOST}/ai-gateway/mcp-services/system.ai.dbsql",
+      "headers": {
+        "Authorization": "Bearer ${MERIDIAN_MCP_TOKEN}"
+      }
     }
   }
 }

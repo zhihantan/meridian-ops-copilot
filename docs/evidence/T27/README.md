@@ -41,4 +41,14 @@ That is 80.5% less on this prefix, at list price.
 - `meridian.agent.v_copilot_denials`: step guard and procedure refusals, index refusals, model safeguard refusals and
   errors.
 
-Still to do: the dashboard over these views and `obs.v_pipeline_health`.
+**Dashboard as code.** "Meridian ops" (`resources/dashboards.yml`) has one definition. `scripts/gen_dashboard.py`
+(`make gen-dashboard`) generates it per target with that target's names, and the bundle promotes it dev to
+staging to prod. A page is included only where its tables exist:
+- **Pipeline health:** acquirer status, payments by market, and the last 24 hours of jobs, errors and breaches.
+- **Knowledge:** documents per tier, ingest failures, and who changed each document.
+- **Copilot (prod only, where the traces are):** cache tokens, runs by caller, the slowest tools, refusals and
+  denials.
+
+Viewers query with their own permissions (`embed_credentials: false`), so the market row filter and the masks
+apply per viewer. Every dataset query of the prod definition was executed before deploying. Staging's
+definition is empty until its observability views and knowledge tables exist.

@@ -1,9 +1,12 @@
 """Claude Code over MCP as each persona (T23): the same prompts, different results per user.
 
 Claude Code runs headless (`claude -p`) from an empty folder with project settings only (no user hooks or
-plugins) and examples/claude_code/mcp.json as its only MCP servers: Databricks managed MCP servers (PREVIEW) for AI Search over <catalog>.kb (both
-tier indexes), the Genie space and Databricks SQL, each called with the persona's own token. Built-in tools are
-off (--tools ""); only the MCP tools are allowed.
+plugins) and examples/claude_code/mcp.json as its only MCP servers, each called with the persona's own token:
+- AI Search over <catalog>.kb (both tier indexes) and the Genie space: the workspace endpoints, which the docs now
+  call legacy (they bypass Unity Gateway). There is no Unity Gateway AI Search server, and Unity Gateway's Genie
+  One server (GA) did not find this space's data here (observed 2026-10-17);
+- Databricks SQL: the Unity Gateway server system.ai.dbsql (Beta), so those calls show in Unity Gateway's tables.
+Built-in tools are off (--tools ""); only the MCP tools are allowed.
 
 Claude Code's own model calls keep the route this machine's managed settings give it: an organisation
 apiKeyHelper overrides ANTHROPIC_AUTH_TOKEN and cannot be changed per session (observed 2026-10-17), so the

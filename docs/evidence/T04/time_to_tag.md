@@ -9,3 +9,4 @@
 | Checked at | Columns tagged | Notes |
 |---|---|---|
 | 2026-10-15 18:45 SGT | 0 of 8 | scan not yet run on the new table |
+| 2026-10-17 05:10 SGT | 0 of 8 | still untagged after about 34.5 hours; the masks do not apply in prod until tagged (dev is tagged manually); fallback: `apply_governance.py --target prod --manual-tags` |

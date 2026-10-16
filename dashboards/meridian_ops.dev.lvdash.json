@@ -1,0 +1,491 @@
+{
+  "datasets": [
+    {
+      "name": "health",
+      "displayName": "Pipeline health, last 24h",
+      "queryLines": [
+        "SELECT at, source, name, status, detail FROM meridian_dev.dev_zhihan_tan_obs.v_pipeline_health ORDER BY at DESC"
+      ]
+    },
+    {
+      "name": "acquirers",
+      "displayName": "Acquirer status",
+      "queryLines": [
+        "SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM meridian_dev.dev_zhihan_tan_gold.acquirer_status ORDER BY acquirer_id"
+      ]
+    },
+    {
+      "name": "markets",
+      "displayName": "Payments by market (your row filter applies)",
+      "queryLines": [
+        "SELECT country, count(*) AS payments FROM meridian_dev.dev_zhihan_tan_silver.payments GROUP BY country ORDER BY payments DESC"
+      ]
+    },
+    {
+      "name": "kb_status",
+      "displayName": "Knowledge sync",
+      "queryLines": [
+        "SELECT last_run_at, live_docs_general, live_docs_finance, chunks_general, chunks_finance, failures_24h FROM meridian_dev.dev_zhihan_tan_kb.sync_status"
+      ]
+    },
+    {
+      "name": "kb_changes",
+      "displayName": "Knowledge changes",
+      "queryLines": [
+        "SELECT doc_id, source, tier, source_version, last_editor, edited_at, change FROM meridian_dev.dev_zhihan_tan_obs.v_kb_changes WHERE deleted_at IS NULL ORDER BY edited_at DESC"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "d177d55a",
+      "displayName": "Pipeline health",
+      "layout": [
+        {
+          "widget": {
+            "name": "096017ca",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Pipeline health",
+                "Quality, freshness and failures from the observability views. BUILD views over native sources."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "e7b82f83",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "acquirers",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "acquirer_id",
+                      "expression": "`acquirer_id`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "recent_failure_pct",
+                      "expression": "`recent_failure_pct`"
+                    },
+                    {
+                      "name": "baseline_failure_pct",
+                      "expression": "`baseline_failure_pct`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "acquirer_id",
+                    "displayName": "acquirer_id"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "status"
+                  },
+                  {
+                    "fieldName": "recent_failure_pct",
+                    "displayName": "recent_failure_pct"
+                  },
+                  {
+                    "fieldName": "baseline_failure_pct",
+                    "displayName": "baseline_failure_pct"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Acquirer status (recent 6h vs 14-day baseline)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "56864c89",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "markets",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "payments",
+                      "expression": "`payments`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "country"
+                },
+                "y": {
+                  "fieldName": "payments",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "payments"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payments by market (the market row filter applies per viewer)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "72bee952",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "health",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "at",
+                      "expression": "`at`"
+                    },
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    },
+                    {
+                      "name": "name",
+                      "expression": "`name`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "detail",
+                      "expression": "`detail`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "at",
+                    "displayName": "at"
+                  },
+                  {
+                    "fieldName": "source",
+                    "displayName": "source"
+                  },
+                  {
+                    "fieldName": "name",
+                    "displayName": "name"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "status"
+                  },
+                  {
+                    "fieldName": "detail",
+                    "displayName": "detail"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Last 24 hours: jobs, pipeline errors, check breaches, quarantine"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "e9231d0d",
+      "displayName": "Knowledge",
+      "layout": [
+        {
+          "widget": {
+            "name": "2949f62b",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Knowledge",
+                "kb_sync runs, document and chunk counts per tier, failures. BUILD."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "39956117",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "live_docs_general",
+                      "expression": "`live_docs_general`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "live_docs_general",
+                  "displayName": "General documents"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "General documents"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "17bb3dba",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "live_docs_finance",
+                      "expression": "`live_docs_finance`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "live_docs_finance",
+                  "displayName": "Finance documents"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Finance documents"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "2c53ba20",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "failures_24h",
+                      "expression": "`failures_24h`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "failures_24h",
+                  "displayName": "Ingest failures, 24h"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Ingest failures, 24h"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "fad8860b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_changes",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "doc_id",
+                      "expression": "`doc_id`"
+                    },
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    },
+                    {
+                      "name": "tier",
+                      "expression": "`tier`"
+                    },
+                    {
+                      "name": "source_version",
+                      "expression": "`source_version`"
+                    },
+                    {
+                      "name": "last_editor",
+                      "expression": "`last_editor`"
+                    },
+                    {
+                      "name": "edited_at",
+                      "expression": "`edited_at`"
+                    },
+                    {
+                      "name": "change",
+                      "expression": "`change`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "doc_id",
+                    "displayName": "doc_id"
+                  },
+                  {
+                    "fieldName": "source",
+                    "displayName": "source"
+                  },
+                  {
+                    "fieldName": "tier",
+                    "displayName": "tier"
+                  },
+                  {
+                    "fieldName": "source_version",
+                    "displayName": "source_version"
+                  },
+                  {
+                    "fieldName": "last_editor",
+                    "displayName": "last_editor"
+                  },
+                  {
+                    "fieldName": "edited_at",
+                    "displayName": "edited_at"
+                  },
+                  {
+                    "fieldName": "change",
+                    "displayName": "change"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Who changed each document, when and why"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 9
+          }
+        }
+      ]
+    }
+  ]
+}

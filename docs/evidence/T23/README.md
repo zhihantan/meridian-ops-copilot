@@ -1,10 +1,13 @@
 # T23 MCP and identity (2026-10-17), PASS
 
-Claude Code, headless (`claude -p`), with the Databricks managed MCP servers (**Public Preview**) in
-`examples/claude_code/mcp.json`:
-- **AI Search** over `meridian.kb`: both tier indexes appear as tools.
-- **Genie:** the "Meridian payments (gold)" space.
-- **Databricks SQL.**
+Claude Code, headless (`claude -p`), with the Databricks managed MCP servers in `examples/claude_code/mcp.json`:
+- **AI Search** over `meridian.kb` (both tier indexes appear as tools), through the workspace endpoint. The docs
+  now call it legacy: it bypasses Unity Gateway, and there is no Unity Gateway AI Search server.
+- **Genie:** the "Meridian payments (gold)" space, through the workspace endpoint (legacy). Unity Gateway's
+  `system.ai.genie_one_mcp` (GA) was tried. For Ava it "found nothing in the workspace for acq_7", and Ben's and
+  Gus's sessions ended with empty answers after 10 to 11 tool calls.
+- **Databricks SQL:** through Unity Gateway, `system.ai.dbsql` (Beta), so these calls also appear in Unity
+  Gateway's own tables.
 
 Each persona's session sends their own token. Built-in tools are off, so only MCP tools run, and the sessions load
 no user hooks or plugins. Runner: `tests/e2e/mcp_personas.py`; evidence: `mcp_prod.json`.
@@ -44,5 +47,12 @@ observation; there is no published latency, and no live demo step waits on these
   Per-user evidence for this path is therefore the MCP calls in the audit log. Per-user model usage comes from the
   copilot.
 
-Statuses: managed MCP servers **Public Preview**; MCP Services (Unity Catalog) **Beta**; Unity Gateway **GA**. These
-are as stated in the plan and not re-checked against the docs today.
+Statuses, from https://docs.databricks.com/aws/en/generative-ai/mcp/managed-mcp (read 2026-10-17):
+- `system.ai.genie_one_mcp` is generally available.
+- `system.ai.dbsql`, `web_search` and `sandbox` are Unity Gateway Beta.
+- The workspace endpoints (`/api/2.0/mcp/...`) are documented as legacy. They "bypass Unity Gateway. Their calls do
+  not appear in Unity Gateway tracing tables, and they do not support MCP-level Unity Catalog grants, policies, or
+  guardrails."
+
+Unity Catalog still governs the data behind them: the finance index refused Ava and Gus, and SQL refused Ava and
+Ben on bronze.

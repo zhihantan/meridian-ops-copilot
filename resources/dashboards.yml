@@ -1,0 +1,15 @@
+# The Meridian ops dashboard (T27): one definition, generated per target by scripts/gen_dashboard.py (make
+# gen-dashboard) with that target's names, and promoted dev to staging to prod by the bundle. Viewers query with
+# their own permissions, so masks and the market row filter apply per viewer.
+resources:
+  dashboards:
+    ops_dashboard:
+      display_name: "Meridian ops"
+      file_path: ../dashboards/meridian_ops.${bundle.target}.lvdash.json
+      warehouse_id: ${var.warehouse_id}
+      embed_credentials: false
+      permissions:  # with the bundle's own (admins manage, data engineers view): the personas read it as themselves
+        - level: CAN_READ
+          group_name: meridian-support
+        - level: CAN_READ
+          group_name: meridian-finance

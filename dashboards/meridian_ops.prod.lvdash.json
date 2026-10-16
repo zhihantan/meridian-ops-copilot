@@ -1,0 +1,1103 @@
+{
+  "datasets": [
+    {
+      "name": "health",
+      "displayName": "Pipeline health, last 24h",
+      "queryLines": [
+        "SELECT at, source, name, status, detail FROM meridian.obs.v_pipeline_health ORDER BY at DESC"
+      ]
+    },
+    {
+      "name": "acquirers",
+      "displayName": "Acquirer status",
+      "queryLines": [
+        "SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM meridian.gold.acquirer_status ORDER BY acquirer_id"
+      ]
+    },
+    {
+      "name": "markets",
+      "displayName": "Payments by market (your row filter applies)",
+      "queryLines": [
+        "SELECT country, count(*) AS payments FROM meridian.silver.payments GROUP BY country ORDER BY payments DESC"
+      ]
+    },
+    {
+      "name": "kb_status",
+      "displayName": "Knowledge sync",
+      "queryLines": [
+        "SELECT last_run_at, live_docs_general, live_docs_finance, chunks_general, chunks_finance, failures_24h FROM meridian.kb.sync_status"
+      ]
+    },
+    {
+      "name": "kb_changes",
+      "displayName": "Knowledge changes",
+      "queryLines": [
+        "SELECT doc_id, source, tier, source_version, last_editor, edited_at, change FROM meridian.obs.v_kb_changes WHERE deleted_at IS NULL ORDER BY edited_at DESC"
+      ]
+    },
+    {
+      "name": "runs_by_user",
+      "displayName": "Copilot runs by caller",
+      "queryLines": [
+        "SELECT principal, count(*) AS runs, round(avg(duration_ms) / 1000, 1) AS avg_seconds, sum(input_tokens) AS input_tokens, sum(cache_read_tokens) AS cache_read_tokens FROM meridian.agent.v_copilot_runs GROUP BY principal ORDER BY runs DESC"
+      ]
+    },
+    {
+      "name": "latency",
+      "displayName": "Tool latency",
+      "queryLines": [
+        "SELECT tool, calls, errors, p50_ms, p95_ms, max_ms FROM meridian.agent.v_copilot_tool_latency ORDER BY p95_ms DESC"
+      ]
+    },
+    {
+      "name": "denials",
+      "displayName": "Refusals and denials",
+      "queryLines": [
+        "SELECT at, kind, what, detail FROM meridian.agent.v_copilot_denials ORDER BY at DESC"
+      ]
+    },
+    {
+      "name": "cache",
+      "displayName": "Prompt cache",
+      "queryLines": [
+        "SELECT sum(input_tokens) AS uncached_input, sum(cache_read_tokens) AS cache_read, sum(cache_write_tokens) AS cache_write FROM meridian.agent.v_copilot_runs"
+      ]
+    },
+    {
+      "name": "scorecard",
+      "displayName": "POC scorecard",
+      "queryLines": [
+        "SELECT req_id, requirement, tasks, status, headline, evidence FROM meridian.obs.evidence ORDER BY req_id"
+      ]
+    },
+    {
+      "name": "score_counts",
+      "displayName": "Scorecard counts",
+      "queryLines": [
+        "SELECT count_if(status = 'PASS') AS pass, count_if(status = 'PARTIAL') AS partial, count_if(status NOT IN ('PASS', 'PARTIAL')) AS other, count(*) AS requirements FROM meridian.obs.evidence"
+      ]
+    }
+  ],
+  "pages": [
+    {
+      "name": "5862692a",
+      "displayName": "POC scorecard",
+      "layout": [
+        {
+          "widget": {
+            "name": "44123e78",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## POC scorecard",
+                "Each requirement, the tasks that answer it, and the status of their evidence (docs/evidence/INDEX.md)."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "19415669",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "score_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "requirements",
+                      "expression": "`requirements`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "requirements",
+                  "displayName": "Requirements"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Requirements"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "5216a553",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "score_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "pass",
+                      "expression": "`pass`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "pass",
+                  "displayName": "Evidenced (PASS)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Evidenced (PASS)"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "c069b58c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "score_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "partial",
+                      "expression": "`partial`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "partial",
+                  "displayName": "Partly evidenced"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Partly evidenced"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "b145d65f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "scorecard",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "req_id",
+                      "expression": "`req_id`"
+                    },
+                    {
+                      "name": "requirement",
+                      "expression": "`requirement`"
+                    },
+                    {
+                      "name": "tasks",
+                      "expression": "`tasks`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "headline",
+                      "expression": "`headline`"
+                    },
+                    {
+                      "name": "evidence",
+                      "expression": "`evidence`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "req_id",
+                    "displayName": "req_id"
+                  },
+                  {
+                    "fieldName": "requirement",
+                    "displayName": "requirement"
+                  },
+                  {
+                    "fieldName": "tasks",
+                    "displayName": "tasks"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "status"
+                  },
+                  {
+                    "fieldName": "headline",
+                    "displayName": "headline"
+                  },
+                  {
+                    "fieldName": "evidence",
+                    "displayName": "evidence"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Requirement, tasks, status and evidence"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 12
+          }
+        }
+      ]
+    },
+    {
+      "name": "d177d55a",
+      "displayName": "Pipeline health",
+      "layout": [
+        {
+          "widget": {
+            "name": "096017ca",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Pipeline health",
+                "Quality, freshness and failures from the observability views. BUILD views over native sources."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "e7b82f83",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "acquirers",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "acquirer_id",
+                      "expression": "`acquirer_id`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "recent_failure_pct",
+                      "expression": "`recent_failure_pct`"
+                    },
+                    {
+                      "name": "baseline_failure_pct",
+                      "expression": "`baseline_failure_pct`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "acquirer_id",
+                    "displayName": "acquirer_id"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "status"
+                  },
+                  {
+                    "fieldName": "recent_failure_pct",
+                    "displayName": "recent_failure_pct"
+                  },
+                  {
+                    "fieldName": "baseline_failure_pct",
+                    "displayName": "baseline_failure_pct"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Acquirer status (recent 6h vs 14-day baseline)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "56864c89",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "markets",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "country",
+                      "expression": "`country`"
+                    },
+                    {
+                      "name": "payments",
+                      "expression": "`payments`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "country"
+                },
+                "y": {
+                  "fieldName": "payments",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "payments"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payments by market (the market row filter applies per viewer)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 2,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "72bee952",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "health",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "at",
+                      "expression": "`at`"
+                    },
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    },
+                    {
+                      "name": "name",
+                      "expression": "`name`"
+                    },
+                    {
+                      "name": "status",
+                      "expression": "`status`"
+                    },
+                    {
+                      "name": "detail",
+                      "expression": "`detail`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "at",
+                    "displayName": "at"
+                  },
+                  {
+                    "fieldName": "source",
+                    "displayName": "source"
+                  },
+                  {
+                    "fieldName": "name",
+                    "displayName": "name"
+                  },
+                  {
+                    "fieldName": "status",
+                    "displayName": "status"
+                  },
+                  {
+                    "fieldName": "detail",
+                    "displayName": "detail"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Last 24 hours: jobs, pipeline errors, check breaches, quarantine"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 9,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ]
+    },
+    {
+      "name": "e9231d0d",
+      "displayName": "Knowledge",
+      "layout": [
+        {
+          "widget": {
+            "name": "2949f62b",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Knowledge",
+                "kb_sync runs, document and chunk counts per tier, failures. BUILD."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "39956117",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "live_docs_general",
+                      "expression": "`live_docs_general`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "live_docs_general",
+                  "displayName": "General documents"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "General documents"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "17bb3dba",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "live_docs_finance",
+                      "expression": "`live_docs_finance`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "live_docs_finance",
+                  "displayName": "Finance documents"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Finance documents"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "2c53ba20",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_status",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "failures_24h",
+                      "expression": "`failures_24h`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "failures_24h",
+                  "displayName": "Ingest failures, 24h"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Ingest failures, 24h"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "fad8860b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "kb_changes",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "doc_id",
+                      "expression": "`doc_id`"
+                    },
+                    {
+                      "name": "source",
+                      "expression": "`source`"
+                    },
+                    {
+                      "name": "tier",
+                      "expression": "`tier`"
+                    },
+                    {
+                      "name": "source_version",
+                      "expression": "`source_version`"
+                    },
+                    {
+                      "name": "last_editor",
+                      "expression": "`last_editor`"
+                    },
+                    {
+                      "name": "edited_at",
+                      "expression": "`edited_at`"
+                    },
+                    {
+                      "name": "change",
+                      "expression": "`change`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "doc_id",
+                    "displayName": "doc_id"
+                  },
+                  {
+                    "fieldName": "source",
+                    "displayName": "source"
+                  },
+                  {
+                    "fieldName": "tier",
+                    "displayName": "tier"
+                  },
+                  {
+                    "fieldName": "source_version",
+                    "displayName": "source_version"
+                  },
+                  {
+                    "fieldName": "last_editor",
+                    "displayName": "last_editor"
+                  },
+                  {
+                    "fieldName": "edited_at",
+                    "displayName": "edited_at"
+                  },
+                  {
+                    "fieldName": "change",
+                    "displayName": "change"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Who changed each document, when and why"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 6,
+            "height": 9
+          }
+        }
+      ]
+    },
+    {
+      "name": "647de102",
+      "displayName": "Copilot",
+      "layout": [
+        {
+          "widget": {
+            "name": "637dbadc",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Copilot",
+                "From the copilot's traces in Unity Catalog. Every run is the caller's own. BUILD views."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "a5e82ccb",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cache",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "cache_read",
+                      "expression": "`cache_read`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "cache_read",
+                  "displayName": "Tokens read from the prompt cache"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tokens read from the prompt cache"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "fc728cef",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cache",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "uncached_input",
+                      "expression": "`uncached_input`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "uncached_input",
+                  "displayName": "Uncached input tokens"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Uncached input tokens"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "26820837",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cache",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "cache_write",
+                      "expression": "`cache_write`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "cache_write",
+                  "displayName": "Tokens written to the cache"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tokens written to the cache"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "218c2bf5",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "runs_by_user",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "principal",
+                      "expression": "`principal`"
+                    },
+                    {
+                      "name": "runs",
+                      "expression": "`runs`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "principal",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "principal"
+                },
+                "y": {
+                  "fieldName": "runs",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "runs"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Runs by caller"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "6f45fbf3",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "latency",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "tool",
+                      "expression": "`tool`"
+                    },
+                    {
+                      "name": "calls",
+                      "expression": "`calls`"
+                    },
+                    {
+                      "name": "errors",
+                      "expression": "`errors`"
+                    },
+                    {
+                      "name": "p50_ms",
+                      "expression": "`p50_ms`"
+                    },
+                    {
+                      "name": "p95_ms",
+                      "expression": "`p95_ms`"
+                    },
+                    {
+                      "name": "max_ms",
+                      "expression": "`max_ms`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "tool",
+                    "displayName": "tool"
+                  },
+                  {
+                    "fieldName": "calls",
+                    "displayName": "calls"
+                  },
+                  {
+                    "fieldName": "errors",
+                    "displayName": "errors"
+                  },
+                  {
+                    "fieldName": "p50_ms",
+                    "displayName": "p50_ms"
+                  },
+                  {
+                    "fieldName": "p95_ms",
+                    "displayName": "p95_ms"
+                  },
+                  {
+                    "fieldName": "max_ms",
+                    "displayName": "max_ms"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Slowest tools and steps (ms)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 5,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "c3a123ab",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "denials",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "at",
+                      "expression": "`at`"
+                    },
+                    {
+                      "name": "kind",
+                      "expression": "`kind`"
+                    },
+                    {
+                      "name": "what",
+                      "expression": "`what`"
+                    },
+                    {
+                      "name": "detail",
+                      "expression": "`detail`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 1,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "at",
+                    "displayName": "at"
+                  },
+                  {
+                    "fieldName": "kind",
+                    "displayName": "kind"
+                  },
+                  {
+                    "fieldName": "what",
+                    "displayName": "what"
+                  },
+                  {
+                    "fieldName": "detail",
+                    "displayName": "detail"
+                  }
+                ]
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Refused and denied: guard, procedures, indexes, model safeguard"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 8
+          }
+        }
+      ]
+    }
+  ]
+}
