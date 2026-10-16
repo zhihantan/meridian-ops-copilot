@@ -1,0 +1,8 @@
+# Copilot settings shared by the evaluation (T16) and the agent (T17). Model names are serving endpoints.
+answer_model: databricks-claude-sonnet-5-5       # through Unity Gateway's native Anthropic path
+judge_model: databricks-claude-sonnet-4-6        # MLflow judges; pinned, and not the answering model
+retrieval_variant: V2                            # hybrid plus reranker: best recall and MRR in the T16 ablation
+top_k: 5
+# Abstain without calling the model when the best reranker score is below this. Tuned on the dev split
+# (scripts/eval_retrieval.py), measured on test.
+abstain_below_score: 0.5283

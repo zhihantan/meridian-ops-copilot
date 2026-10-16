@@ -65,3 +65,17 @@ kb-sync:
 # Incremental sync drill: rerun, edit, delete, re-add, full refresh (T12)
 kb-drill:
 	uv run --group dbx python scripts/kb_drill.py --target $(TARGET)
+
+.PHONY: eval eval-retrieval eval-answers kb-failure-drill
+# Golden-set evaluation (T16): retrieval ablation and abstention threshold, then judged answers
+eval: eval-retrieval eval-answers
+
+eval-retrieval:
+	uv run --group dbx --group agent python scripts/eval_retrieval.py --target $(TARGET)
+
+eval-answers:
+	uv run --group dbx --group agent python scripts/eval_answers.py --target $(TARGET)
+
+# Failure drill: corrupt file, unreachable source, silent drop (T15)
+kb-failure-drill:
+	uv run --group dbx python scripts/kb_failure_drill.py --target $(TARGET)

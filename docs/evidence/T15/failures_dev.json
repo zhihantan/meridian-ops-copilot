@@ -1,0 +1,77 @@
+{
+  "task": "T15 failures",
+  "target": "dev",
+  "at": "2026-10-16T03:37:46.243719+00:00",
+  "steps": {
+    "corrupt pdf": {
+      "exit_code": 0,
+      "job_run_id": "219604965434645",
+      "lines": [
+        "kb_sync 219604965434645: 34 source docs; new 0, changed 0, unchanged 33, deleted 0, failed 1; chunks written 0, deleted 0",
+        "failed DOC-CORRUPT-001 at parse: ValueError: ai_parse_document: [{'error_message': 'Document conversion failed.', 'page_id': 0}]",
+        "2026-10-16 11:31:02 \"[dev zhihan_tan] meridian-kb-sync\" TERMINATED SUCCESS"
+      ],
+      "ingest_failures": [
+        [
+          "DOC-CORRUPT-001",
+          "parse",
+          "ValueError: ai_parse_document: [{'error_message': 'Document conversion failed.', 'page_id': 0}]"
+        ]
+      ]
+    },
+    "unreachable source": {
+      "exit_code": 1,
+      "job_run_id": "1084759255933409",
+      "lines": [
+        "2026-10-16 11:33:05 \"[dev zhihan_tan] meridian-kb-sync\" INTERNAL_ERROR FAILED Task sync failed with message: Workload failed, see run output for details.",
+        "(com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_missing/files/` does not exist",
+        "UnknownException: (com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_m",
+        "Error: Task sync failed!",
+        "Error:",
+        "(com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_missing/files/` does not exist",
+        "UnknownException: (com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_m",
+        "(com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_missing/files/` does not exist",
+        "UnknownException: (com.databricks.sql.cloudfiles.errors.CloudFilesException) [CF_PATH_DOES_NOT_EXIST_FOR_READ_FILES] Cannot read files when the input path `/Volumes/meridian_dev/dev_zhihan_tan_landing/raw/kb_m"
+      ]
+    },
+    "silent drop": {
+      "exit_code": 0,
+      "job_run_id": "389607582864108",
+      "lines": [
+        "2026-10-16 11:35:31 \"[dev zhihan_tan] meridian-kb-sync\" TERMINATED SUCCESS_WITH_FAILURES The job run succeeded with 1 failed task"
+      ],
+      "reconcile_events": [
+        [
+          "DOC-RB-021",
+          "kb.docs",
+          "in the source but not live in kb.docs"
+        ]
+      ],
+      "doc_after_run": [
+        [
+          "1",
+          "1",
+          "true"
+        ]
+      ]
+    },
+    "clean rerun": {
+      "exit_code": 0,
+      "job_run_id": "494013282459084",
+      "lines": [
+        "reconciled 33 source documents: 0 problem(s)",
+        "kb_sync 494013282459084: 33 source docs; new 0, changed 0, unchanged 33, deleted 0, failed 0; chunks written 0, deleted 0",
+        "2026-10-16 11:37:44 \"[dev zhihan_tan] meridian-kb-sync\" TERMINATED SUCCESS"
+      ]
+    }
+  },
+  "checks": {
+    "corrupt file recorded with a reason": true,
+    "corrupt file does not stop the run": true,
+    "unreachable source fails the run with a reason": true,
+    "silent drop is named by reconcile": true,
+    "silent drop repaired by the same run": true,
+    "clean rerun after the drill": true
+  },
+  "status": "PASS"
+}

@@ -8,7 +8,7 @@ COMMENT 'Tier of each synced Slack channel; kb_sync rewrites it from config/scen
 -- the source manifest when listed. Slack: one document per message from the history pages under
 -- kb/slack/history/ (what a puller writes from conversations.history), tier from channel_tiers.
 CREATE OR REPLACE VIEW ${kb}.v_source_docs
-COMMENT 'BUILD: knowledge source documents as doc_id, source, uri, format, tier, title, source_version, modified_at and content'
+COMMENT 'BUILD: knowledge source documents as doc_id, source, uri, format, tier, title, source_version, modified_at, file_modified_at and content'
 AS WITH files AS (
   SELECT path, modificationTime AS modified_at, content,
          regexp_extract(path, '/kb/files/([^/]+)/[^/]+$', 1) AS folder,
@@ -22,20 +22,20 @@ users AS (
   SELECT u.id, u.name FROM (SELECT explode(from_json(value, 'ARRAY<STRUCT<id: STRING, name: STRING>>')) AS u
                             FROM read_files('${kb_root}/slack/users/', format => 'text', wholeText => true))),
 messages AS (
-  SELECT h.channel.id AS channel_id, h.channel.name AS channel, m.msg.*
+  SELECT h.channel.id AS channel_id, h.channel.name AS channel, h._metadata.file_modification_time AS file_modified_at, m.msg.*
   FROM read_files('${kb_root}/slack/history/', format => 'json', multiLine => true, recursiveFileLookup => true) h
   LATERAL VIEW explode(h.messages) m AS msg)
 SELECT f.doc_id, 'volume' AS source, f.path AS uri, f.format,
        CASE WHEN f.folder IN ('general', 'finance') THEN f.folder END AS tier,
        coalesce(m.title, f.doc_id) AS title, m.version AS source_version,
        coalesce(to_timestamp(m.modified_at), f.modified_at) AS modified_at,   -- the source's date, else the file's
-       f.content AS content_bytes, CAST(NULL AS STRING) AS content_text
+       f.modified_at AS file_modified_at, f.content AS content_bytes, CAST(NULL AS STRING) AS content_text
 FROM files f LEFT JOIN manifest m ON f.doc_id = m.doc_id
 UNION ALL
 SELECT 'SLACK-' || coalesce(msg.msg_key, msg.channel_id || '-' || msg.ts) AS doc_id, 'slack' AS source,
        'slack://' || msg.channel || '/' || msg.ts AS uri, 'slack' AS format, t.tier,
        '#' || msg.channel || ' message from ' || coalesce(u.name, msg.user) AS title, CAST(NULL AS STRING),
-       timestamp_seconds(CAST(msg.ts AS DOUBLE)) AS modified_at, CAST(NULL AS BINARY),
+       timestamp_seconds(CAST(msg.ts AS DOUBLE)) AS modified_at, msg.file_modified_at, CAST(NULL AS BINARY),
        coalesce(u.name, msg.user) || ' in #' || msg.channel
          || CASE WHEN msg.thread_ts IS NOT NULL AND msg.thread_ts <> msg.ts THEN ' (thread reply)' ELSE '' END
          || ': ' || msg.text AS content_text

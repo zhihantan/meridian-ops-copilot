@@ -1,4 +1,6 @@
-# Knowledge base (T12): a file landing under raw/kb/ (documents or Slack history pages) runs kb_sync.
+# Knowledge base (T12): a new file under raw/kb/ (a document or a Slack history page) runs kb_sync.
+# File-arrival triggers fire on new files only, not on overwrites or deletes (docs, checked 2026-10-16),
+# so a 10-minute sweep runs kb_sync as well; both go through one queued job, never in parallel.
 resources:
   jobs:
     kb_sync_job:
@@ -6,6 +8,7 @@ resources:
       description: "Event-driven: sync knowledge sources into kb.docs and the per-tier chunk tables behind the indexes."
       tags: {project: meridian-poc}
       max_concurrent_runs: 1
+      queue: {enabled: true}
       trigger:
         file_arrival:
           url: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb/"
@@ -13,6 +16,7 @@ resources:
           wait_after_last_change_seconds: 60
       parameters:
         - {name: full_refresh, default: "false"}
+        - {name: kb_root, default: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb"}
       environments:
         - environment_key: default
           spec:
@@ -21,14 +25,24 @@ resources:
       email_notifications:
         on_failure: ["${var.notification_email}"]
       tasks:
+        # Reconcile first, before this run repairs anything: a silent drop alerts, then the sync heals it.
+        - task_key: reconcile
+          environment_key: default
+          disable_auto_optimization: true
+          email_notifications: {on_failure: ["${var.notification_email}"]}
+          spark_python_task:
+            python_file: ../src/meridian/jobs/kb_reconcile.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
         - task_key: sync
+          depends_on: [{task_key: reconcile}]
+          run_if: ALL_DONE
           environment_key: default
           spark_python_task:
             python_file: ../src/meridian/jobs/kb_sync.py
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src",
-                         --kb-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb",
-                         --sql-file, "${workspace.file_path}/sql/kb_objects.sql",
+                         --kb-root, "{{job.parameters.kb_root}}", --sql-file, "${workspace.file_path}/sql/kb_objects.sql",
                          --scenario, "${workspace.file_path}/config/scenario.yaml",
                          --full-refresh, "{{job.parameters.full_refresh}}", --run-id, "{{job.run_id}}"]
         - task_key: sync_indexes
@@ -38,3 +52,37 @@ resources:
             python_file: ../src/meridian/jobs/sync_indexes.py
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+
+    kb_sweep_job:
+      name: meridian-kb-sweep
+      description: "Every 10 minutes: run kb_sync to pick up edited and deleted sources, which file arrival does not see."
+      tags: {project: meridian-poc}
+      max_concurrent_runs: 1
+      schedule:
+        quartz_cron_expression: "0 */10 * * * ?"
+        timezone_id: Asia/Singapore
+      tasks:
+        - task_key: sync
+          run_job_task: {job_id: "${resources.jobs.kb_sync_job.id}"}
+
+    freshness_probe_job:
+      name: meridian-kb-freshness-probe
+      description: "T14: time from a source create, edit or delete to the index, for files and Slack (canary documents)."
+      tags: {project: meridian-poc}
+      max_concurrent_runs: 1
+      parameters:
+        - {name: runs, default: "5"}
+        - {name: drive_sync, default: "false"}   # true where triggers are paused (dev)
+      environments:
+        - environment_key: default
+          spec: {environment_version: "${var.serverless_environment_version}"}
+      tasks:
+        - task_key: probe
+          environment_key: default
+          spark_python_task:
+            python_file: ../src/meridian/jobs/freshness_probe.py
+            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                         --src-dir, "${workspace.file_path}/src",
+                         --kb-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb",
+                         --sync-job-id, "${resources.jobs.kb_sync_job.id}", --runs, "{{job.parameters.runs}}",
+                         --drive-sync, "{{job.parameters.drive_sync}}", --run-id, "{{job.run_id}}"]
