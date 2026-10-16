@@ -2,7 +2,8 @@
 
 search_kb searches only the indexes the caller's groups entitle them to (meridian.kb.retrieve), with the
 caller's own token, drops any hit outside those tiers before the model sees it, and returns nothing when the
-best hit scores below the abstention threshold. ask_genie is a stub until the Genie space exists (T22).
+best hit scores below the abstention threshold. ask_genie asks the Genie space as the caller (T22), so Genie's
+SQL runs under the caller's grants and ABAC policies; results come back with a citable Genie label.
 """
 
 from __future__ import annotations
@@ -23,7 +24,8 @@ DEFINITIONS = [
                     "Returns passages labelled like [DOC-RB-014 p.1]; cite those labels.",
      "input_schema": {"type": "object", "properties": {"query": {"type": "string"}}, "required": ["query"]}},
     {"name": "ask_genie",
-     "description": "Ask a question about payments data (failure rates, volumes, acquirers) in plain English.",
+     "description": "Ask the payments data (failure rates, volumes, refundable amounts, acquirer status) in plain "
+                    "English. Returns Genie's SQL and rows labelled like [GENIE-1a2b3c4d]; cite that label.",
      "input_schema": {"type": "object", "properties": {"question": {"type": "string"}}, "required": ["question"]}},
 ]
 
@@ -47,7 +49,7 @@ class Tools:
         if name == "search_kb":
             return self.search_kb(str(args.get("query", "")))
         if name == "ask_genie":
-            return {"status": "not_connected", "note": "Genie is not connected yet; answer from the knowledge base."}
+            return self.ask_genie(str(args.get("question", "")))
         return {"error": f"unknown tool {name}"}
 
     def search_kb(self, query: str) -> dict:
@@ -64,3 +66,38 @@ class Tools:
             return {"results": [], "note": "Nothing in the knowledge base is relevant enough to answer this."}
         return {"results": [{"source": f"[{h.doc_id} p.{h.page}]", "title": h.title, "version": h.source_version,
                              "modified": (h.modified_at or "")[:10], "text": h.text} for h in hits]}
+
+    def genie_space_id(self) -> str | None:
+        if not hasattr(self, "_space_id"):
+            title = os.environ.get("MERIDIAN_GENIE_TITLE", "Meridian payments (gold)")
+            spaces = self.caller.client.genie.list_spaces().spaces or []
+            self._space_id = next((sp.space_id for sp in spaces if sp.title == title), None)
+        return self._space_id
+
+    def ask_genie(self, question: str) -> dict:
+        with mlflow.start_span(name="ask_genie", span_type=SpanType.TOOL) as span:
+            span.set_inputs({"question": question})
+            space_id = self.genie_space_id()
+            if not space_id:
+                return {"error": "the Genie space is not available to this caller"}
+            g = self.caller.client.genie
+            try:
+                msg = g.start_conversation_and_wait(space_id, question)
+            except Exception as exc:  # noqa: BLE001  a failed Genie message is a tool result, not a crash
+                span.set_outputs({"error": str(exc)[:300]})
+                return {"error": f"Genie could not answer: {str(exc)[:200]}. Rephrase or narrow the question."}
+            out: dict = {"text": None, "queries": []}
+            for att in msg.attachments or []:
+                if att.text and att.text.content:
+                    out["text"] = att.text.content
+                if att.query and att.query.query:
+                    res = g.get_message_attachment_query_result(space_id, msg.conversation_id, msg.message_id,
+                                                                att.attachment_id).statement_response
+                    columns = [c.name for c in (res.manifest.schema.columns or [])] if res and res.manifest else []
+                    rows = (res.result.data_array or [])[:20] if res and res.result else []
+                    out["queries"].append({"source": f"[GENIE-{att.attachment_id[-8:]}]",  # IDs share a time prefix
+                                           "genie_query_id": att.attachment_id, "conversation_id": msg.conversation_id,
+                                           "sql": att.query.query, "description": att.query.description,
+                                           "columns": columns, "rows": rows})
+            span.set_outputs(out)
+        return out

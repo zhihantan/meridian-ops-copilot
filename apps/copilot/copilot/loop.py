@@ -20,8 +20,8 @@ from meridian.common.workspace import bearer_token
 MAX_TURNS = 8
 SYSTEM = f"""You are Meridian Commerce's operations copilot for payment incidents.
 - Use search_kb for policies, runbooks, fees and SLAs, and ask_genie for numbers from payments data.
-- Answer only from tool results. Cite every fact from the knowledge base with its label in square brackets,
-  for example [DOC-RB-021 p.1].
+- Answer only from tool results. Cite every fact with its label in square brackets: knowledge base passages like
+  [DOC-RB-021 p.1], data from Genie like [GENIE-1a2b3c4d].
 - If the tools return nothing relevant, reply exactly: {ABSTAIN}
 - If sources disagree, follow the most recently modified one and name the older one.
 - Do not comment on access tiers or restrictions; access is checked before you see any result.
@@ -52,7 +52,8 @@ async def run(tools: Tools, messages: list[dict], emit: Callable[[dict], Awaitab
             await emit({"type": "message", "message": {"role": "assistant", "content": "",
                                                        "tool_calls": [{"name": call.name, "args": call.input}]}})
             output = await asyncio.to_thread(tools.call, call.name, call.input)
-            summary = {"sources": [r["source"] for r in output.get("results", [])], "note": output.get("note")}
+            summary = {"sources": [r["source"] for r in output.get("results", []) + output.get("queries", [])],
+                       "note": output.get("note") or output.get("error")}
             await emit({"type": "message", "message": {"role": "tool", "name": call.name,  # labels, not text
                                                        "content": json.dumps(summary)}})
             results.append({"type": "tool_result", "tool_use_id": call.id, "content": json.dumps(output)})

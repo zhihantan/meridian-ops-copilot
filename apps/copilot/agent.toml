@@ -10,7 +10,7 @@ deployment_name = "meridian-copilot"   # the App is agent-bricks-meridian-copilo
 # Every invocation carries the caller's own token; tools run as the caller (vector search, the gateway, SQL).
 [auth.user]
 required = true
-additional_api_scopes = ["vector-search", "ai-gateway", "model-serving", "sql"]
+additional_api_scopes = ["vector-search", "ai-gateway", "model-serving", "sql", "dashboards.genie"]
 
 [tracing]
 experiment_name = "/Shared/agentbricks_traces/meridian-copilot"

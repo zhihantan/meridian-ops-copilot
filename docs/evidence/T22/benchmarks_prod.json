@@ -1,0 +1,51 @@
+{
+  "task": "T22 Genie benchmarks",
+  "target": "prod",
+  "at": "2026-10-16T07:46:12.865756+00:00",
+  "space": "Meridian payments (gold)",
+  "eval_run_id": "01f1c93559eb1abe876ee96a6aac1ed1",
+  "run_state": "EvaluationStatusType.DONE",
+  "good": "8/8",
+  "results": [
+    {
+      "question": "What is the overall failure rate across all acquirers for the whole period, in percent?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT round(try_divide(100 * sum(`failed_payments`),sum(`payments`)), 1) AS `failure_rate_pct` FROM `meridian`.`gold`.`payment_failure_daily`"
+    },
+    {
+      "question": "Which currencies does acq_7 process?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT DISTINCT `currency`\nFROM `meridian`.`gold`.`acquirer_hourly`\nWHERE `acquirer_id` IS NOT NULL\n  AND `currency` IS NOT NULL\n  AND `acquirer_id` ILIKE '%acq_7%'\nORDER BY `currency`"
+    },
+    {
+      "question": "What is the 14-day baseline failure rate for acq_7?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT 100 * `baseline_failure_rate` AS `baseline_failure_rate_pct`\nFROM `meridian`.`gold`.`acquirer_status`\nWHERE `acquirer_id` = 'acq_7'\nLIMIT 1"
+    },
+    {
+      "question": "Which acquirer had the highest failure rate in the last 24 hours?",
+      "assessment": "GOOD",
+      "genie_sql": "WITH acquirer_rates AS (\n  SELECT\n    acquirer_id,\n    ROUND(TRY_DIVIDE(100 * SUM(failed_payments), SUM(payments)), 1) AS failure_rate_pct\n  FROM meridian.gold.acquirer_hourly\n  WHERE hour_sgt > (SELECT max(hour_sgt) FROM meridian.gold.acquirer_hourly) - INTERVAL 24 HOURS\n    AND acquirer_id IS NOT NULL\n    AND payments IS NOT NULL AND failed_payments IS NOT NULL\n  GROUP BY acquirer_id\n), ranked AS (\n  SELECT\n    acquirer_id,\n    failure_rate_pct,\n    RANK() OVER (ORDER BY failure_rate_pct DESC) AS rnk\n  FROM acquirer_rates\n  WHERE failure_rate_pct IS NOT NULL\n)\nSELECT acquirer_id, failure_rate_pct\nFROM ranked\nWHERE rnk = 1\nORDER BY acquirer_id"
+    },
+    {
+      "question": "How many failed payments did each acquirer have on the latest day?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT `acquirer_id`, `failed_payments`\nFROM `meridian`.`gold`.`payment_failure_daily`\nWHERE `payment_date` IS NOT NULL\n  AND `acquirer_id` IS NOT NULL\n  AND `payment_date` = (\n    SELECT MAX(`payment_date`)\n    FROM `meridian`.`gold`.`payment_failure_daily`\n    WHERE `payment_date` IS NOT NULL\n  )\nORDER BY `acquirer_id` ASC"
+    },
+    {
+      "question": "How many payments did acq_7 process in the last 24 hours?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT sum(payments) AS total_payments FROM meridian.gold.acquirer_hourly WHERE acquirer_id = 'acq_7' AND hour_sgt > (SELECT max(hour_sgt) FROM meridian.gold.acquirer_hourly) - INTERVAL 24 HOURS"
+    },
+    {
+      "question": "Which acquirers are currently degraded?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT `acquirer_id`, `recent_failure_rate`, `baseline_failure_rate`, `updated_at` FROM `meridian`.`gold`.`acquirer_status` WHERE `status` ILIKE '%degraded%'"
+    },
+    {
+      "question": "What is the SGD value of refundable failed payments for acq_7 in the last 24 hours?",
+      "assessment": "GOOD",
+      "genie_sql": "SELECT sum(`refundable_failed_amount`) AS `amount_sgd`\nFROM `meridian`.`gold`.`acquirer_hourly`\nWHERE `acquirer_id` ILIKE '%acq_7%'\n  AND `hour_sgt` > (SELECT max(`hour_sgt`) FROM `meridian`.`gold`.`acquirer_hourly`) - INTERVAL 24 HOURS"
+    }
+  ]
+}

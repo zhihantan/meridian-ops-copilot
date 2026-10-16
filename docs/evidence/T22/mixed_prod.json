@@ -1,0 +1,162 @@
+{
+  "task": "T22 mixed questions",
+  "app": "agent-bricks-meridian-copilot",
+  "persona": "meridian-ben",
+  "at": "2026-10-16T08:01:28.667914+00:00",
+  "both_citation_types": "8/8",
+  "status": "PASS",
+  "rows": [
+    {
+      "id": "M1",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "acq_7's failure rate over the last 24 hours is 14.7% [GENIE-4528fd17]. That almost certainly breaches its SLA.\n\n- **SLA threshold:** acq_7 is in breach when its failure rate is above 5% over a rolling 6-hour window [DOC-FEE-001 p.2].\n- **Why a breach is near-certain:** The SLA is measured on 6-hour windows, and I only have the 24-hour figure. A 24-hour rate of 14.7% is the average of four consecutive 6-hour windows. At least one of those windows must therefore be at or above 14.7%, which is over 5%.\n- **Supporting signal:** A recent #ops-incidents post says acq_7 is \"climbing again\" with many timeouts [SLACK-OPS-023 p.1].\n- **If it's a breach:**\n  - Meridian can claim a service credit of 10% of the month's processing fees paid to acq_7.\n  - Finance must be notified within 24 hours of detection.\n  - Finance files the claim within 21 days.\n  - Escalation contact: acq7-escalations@example.com [DOC-FEE-001 p.2].\n\nI haven't pulled the actual 6-hour rolling figures. I can query those if you need them to confirm the breach.",
+      "kb_citations": [
+        "DOC-FEE-001",
+        "SLACK-OPS-023"
+      ],
+      "genie_citations": [
+        "4528fd17"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 132.3
+    },
+    {
+      "id": "M2",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "acq_7 has caused SGD 2,130.61 in refundable failed payments over the last 24 hours [GENIE-25eee836].\n\n**Yes, a batch that size needs approval.**\n- Any refund batch above SGD 500 needs approval from a member of meridian-admin before it runs [DOC-RB-021 p.1] [DOC-REF-003 p.1].\n- The approver can't be the requester [DOC-RB-021 p.1].\n- The approval ID must be recorded on the batch, or the refund_batch function won't run [DOC-RB-021 p.1].\n- Approvals expire after 48 hours [DOC-RB-021 p.1].\n\nAn older ops note, DOC-NOTE-250 (2025-09-10), sets the threshold at SGD 250. DOC-RB-021 (2026-08-26) and DOC-REF-003 v3 (2026-08-31) are more recent, so I followed the SGD 500 threshold. SGD 2,130.61 is over both thresholds, so the answer is the same either way.",
+      "kb_citations": [
+        "DOC-RB-021",
+        "DOC-REF-003"
+      ],
+      "genie_citations": [
+        "25eee836"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 33.6
+    },
+    {
+      "id": "M3",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "Only one acquirer is degraded right now: **acq_7**. Its recent failure rate is 16.2% on a recent volume of 5,573.51 [GENIE-cbd28df9].\n\n**Runbook: RB-014, Acquirer degradation response (v3, modified 2026-09-25).** [DOC-RB-014 p.1] This matches the triage runbook, which routes a single degraded acquirer to RB-014 [DOC-RB-005 p.1]. A single degraded acquirer is SEV2, so acknowledge within 30 minutes [DOC-RB-005 p.1]. Ops-incidents also shows a drift check flagged acq_7 and that someone is already following RB-014 [SLACK-OPS-024 p.1].\n\nSteps, in order [DOC-RB-014 p.1\u20132]:\n- **Before s1:** Page PayOps on-call. That is the PagerDuty schedule `payops-primary` [SLACK-OPS-004 p.1].\n- **s1:** Use `ask_genie` to get the failure rate against the 14-day baseline. Also list failed payments with refundable failure codes.\n- **s2:** Retrieve the acquirer's SLA clause. The clause is Finance-restricted. If you aren't entitled to it, stop and escalate to Finance.\n- **s3:** Compute customer impact. Sum the failed payments whose code is `issuer_unavailable` or `timeout`.\n- **s4:** Propose a refund batch with the total in SGD.\n- **s5:** Request approval from a `meridian-admin` member other than the requester. This is required if the batch is above SGD 500.\n- **s6:** Execute the refund batch. It is refused unless s1\u2013s4 are logged ok, and, above the threshold, a valid approval exists.\n\nOnly the latest approved version of the runbook may be executed [DOC-RB-014 p.2].",
+      "kb_citations": [
+        "DOC-RB-005",
+        "DOC-RB-014",
+        "SLACK-OPS-004",
+        "SLACK-OPS-024"
+      ],
+      "genie_citations": [
+        "cbd28df9"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 32.1
+    },
+    {
+      "id": "M4",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "- **acq_7 volume:** acq_7 processed 361 payments in the last 24 hours. That window is measured back from the latest data available, not from the current time. [GENIE-5fec3db1]\n- **Who to page:** Page the PayOps on-call, which is the PagerDuty schedule `payops-primary`. [SLACK-OPS-004 p.1] The runbook for a degraded acquirer also says to page PayOps on-call before starting its steps. [DOC-RB-014 p.1]",
+      "kb_citations": [
+        "DOC-RB-014",
+        "SLACK-OPS-004"
+      ],
+      "genie_citations": [
+        "5fec3db1"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 37.9
+    },
+    {
+      "id": "M5",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "acq_7's baseline failure rate is 0.0187, which is about 1.87% [GENIE-be5c91f2].\n\nFor each SLA breach, Meridian may claim a service credit of 10% of the month's processing fees paid to acq_7. A breach means a payment failure rate above 5% over a rolling 6-hour window [DOC-FEE-001 p.2].\n\nTwo deadlines apply:\n- Finance must be notified within 24 hours of a breach being detected.\n- Finance files the credit claim within 21 days of the breach [DOC-FEE-001 p.2].\n\nThe escalation contact is acq7-escalations@example.com [DOC-FEE-001 p.2].",
+      "kb_citations": [
+        "DOC-FEE-001"
+      ],
+      "genie_citations": [
+        "be5c91f2"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 31.7
+    },
+    {
+      "id": "M6",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "- **Failure rate:** acq_7's failure rate is 16.2% over the last 6 hours [GENIE-2d73bd86]. Over the last 24 hours it is 14.7% [GENIE-b3163bed]. The SLA is breached when the rate is above 5% over a rolling 6-hour window [DOC-FEE-001 p.2], so 16.2% is a breach.\n- **Finance notification:** Finance must be notified within 24 hours of the breach being detected [DOC-FEE-001 p.2].",
+      "kb_citations": [
+        "DOC-FEE-001"
+      ],
+      "genie_citations": [
+        "2d73bd86",
+        "b3163bed"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb",
+        "ask_genie"
+      ],
+      "status": "completed",
+      "seconds": 49.3
+    },
+    {
+      "id": "M7",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "acq_7 processes SGD. It is the only currency in the data for acq_7 [GENIE-f79bdf3a].\n\nIts merchant discount rate for card payments is 1.79% + SGD 0.35 per transaction [DOC-FEE-001 p.1].",
+      "kb_citations": [
+        "DOC-FEE-001"
+      ],
+      "genie_citations": [
+        "f79bdf3a"
+      ],
+      "tools": [
+        "search_kb",
+        "ask_genie"
+      ],
+      "status": "completed",
+      "seconds": 33.1
+    },
+    {
+      "id": "M8",
+      "both_citation_types": true,
+      "cites_an_expected_doc": true,
+      "answer": "On the latest day in the data, 2026-10-15, acq_7 had 28 failed payments [GENIE-47dd9ac1].\n\nQuarantined payment rows are retained for 90 days [DOC-RET-001 p.1].",
+      "kb_citations": [
+        "DOC-RET-001"
+      ],
+      "genie_citations": [
+        "47dd9ac1"
+      ],
+      "tools": [
+        "ask_genie",
+        "search_kb"
+      ],
+      "status": "completed",
+      "seconds": 31.5
+    }
+  ]
+}

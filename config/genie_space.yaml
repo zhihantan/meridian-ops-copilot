@@ -1,0 +1,74 @@
+# Genie space over the gold payment tables (T22), defined as code. scripts/setup_genie.py turns this into the
+# space's serialized definition (version 2) and creates or updates the space. {gold} is the target's gold schema.
+title: Meridian payments (gold)
+description: Payment volumes, failures and acquirer health from the governed gold tables. Synthetic data.
+tables:
+  - name: payment_failure_daily
+    description: One row per Singapore day and acquirer, with payments, failed payments and failure rate.
+  - name: acquirer_hourly
+    description: >-
+      One row per Singapore hour, acquirer and currency, with payments, failures, and the count and SGD value of
+      failed payments with refundable failure codes (issuer_unavailable, timeout).
+  - name: acquirer_status
+    description: >-
+      One row per acquirer comparing the last 6 hours of data with the 14-day baseline; status is degraded when the
+      recent failure rate is more than 3 times the baseline.
+instructions: >-
+  The data is synthetic and does not run up to the present: "now", "today" and "the last 24 hours" are relative to
+  the latest hour in acquirer_hourly (max(hour_sgt)). Times are Singapore time. Failure rate is failed payments
+  divided by payments, shown as a percentage with one decimal. Refundable means failure codes issuer_unavailable or
+  timeout, which acquirer_hourly already counts in refundable_failed_payments and refundable_failed_amount (SGD).
+measures:
+  - alias: failure_rate_pct
+    display_name: failure rate (%)
+    sql: round(100 * sum(failed_payments) / sum(payments), 1)
+sample_questions:
+  - Which acquirers are degraded right now?
+  - What is acq_7's failure rate in the last 24 hours compared with its baseline?
+example_sqls:
+  - question: Which acquirers are degraded right now?
+    sql: SELECT acquirer_id, recent_failure_rate, baseline_failure_rate FROM {gold}.acquirer_status WHERE status = 'degraded'
+  - question: What is acq_7's failure rate in the last 24 hours?
+    sql: >-
+      SELECT round(100 * sum(failed_payments) / sum(payments), 1) AS failure_rate_pct FROM {gold}.acquirer_hourly
+      WHERE acquirer_id = 'acq_7' AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+  - question: Daily failure rate for acq_7 over the last 14 days
+    sql: >-
+      SELECT payment_date, round(100 * failed_payments / payments, 1) AS failure_rate_pct FROM {gold}.payment_failure_daily
+      WHERE acquirer_id = 'acq_7' ORDER BY payment_date DESC LIMIT 14
+  - question: What is the refundable failed amount for acq_7 in the last 24 hours?
+    sql: >-
+      SELECT sum(refundable_failed_payments) AS payments, sum(refundable_failed_amount) AS amount_sgd
+      FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'
+      AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+  - question: Hourly payments and failures for acq_7 in the last 24 hours
+    sql: >-
+      SELECT hour_sgt, sum(payments) AS payments, sum(failed_payments) AS failed FROM {gold}.acquirer_hourly
+      WHERE acquirer_id = 'acq_7' AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+      GROUP BY hour_sgt ORDER BY hour_sgt
+benchmarks:
+  - question: Which acquirers are currently degraded?
+    sql: SELECT acquirer_id FROM {gold}.acquirer_status WHERE status = 'degraded'
+  - question: What is the 14-day baseline failure rate for acq_7?
+    sql: SELECT 100 * baseline_failure_rate FROM {gold}.acquirer_status WHERE acquirer_id = 'acq_7'   # percent, per the instructions
+  - question: How many payments did acq_7 process in the last 24 hours?
+    sql: >-
+      SELECT sum(payments) FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'
+      AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+  - question: Which acquirer had the highest failure rate in the last 24 hours?
+    sql: >-
+      SELECT acquirer_id FROM {gold}.acquirer_hourly
+      WHERE hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+      GROUP BY acquirer_id ORDER BY sum(failed_payments) / sum(payments) DESC LIMIT 1
+  - question: What is the SGD value of refundable failed payments for acq_7 in the last 24 hours?
+    sql: >-
+      SELECT sum(refundable_failed_amount) FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'
+      AND hour_sgt > (SELECT max(hour_sgt) FROM {gold}.acquirer_hourly) - INTERVAL 24 HOURS
+  - question: How many failed payments did each acquirer have on the latest day?
+    sql: >-
+      SELECT acquirer_id, failed_payments FROM {gold}.payment_failure_daily
+      WHERE payment_date = (SELECT max(payment_date) FROM {gold}.payment_failure_daily) ORDER BY acquirer_id
+  - question: What is the overall failure rate across all acquirers for the whole period, in percent?
+    sql: SELECT round(100 * sum(failed_payments) / sum(payments), 1) FROM {gold}.payment_failure_daily
+  - question: Which currencies does acq_7 process?
+    sql: SELECT DISTINCT currency FROM {gold}.acquirer_hourly WHERE acquirer_id = 'acq_7'

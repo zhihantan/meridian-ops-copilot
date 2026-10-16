@@ -1,0 +1,11 @@
+# Questions that need both the payments data (Genie) and the knowledge base (T22). Asked as Ben (finance), who is
+# entitled to both tiers. A good answer cites a Genie result and a knowledge-base passage.
+questions:
+  - {id: M1, question: "What is acq_7's failure rate in the last 24 hours, and does that breach its SLA?", kb: [DOC-FEE-001]}
+  - {id: M2, question: "How much in refundable failed payments has acq_7 caused in the last 24 hours, and does a refund batch that size need approval?", kb: [DOC-RB-021, DOC-REF-003]}
+  - {id: M3, question: "Which acquirers are degraded right now, and which runbook should we follow?", kb: [DOC-RB-014, DOC-RB-005]}
+  - {id: M4, question: "How many payments did acq_7 process in the last 24 hours, and who do we page for a degraded acquirer?", kb: [DOC-RB-005, SLACK-OPS-004, DOC-RB-014]}
+  - {id: M5, question: "What is acq_7's baseline failure rate, and what service credit can Meridian claim when it breaches its SLA?", kb: [DOC-FEE-001]}
+  - {id: M6, question: "What is acq_7's current failure rate, and how quickly must Finance be told about an SLA breach?", kb: [DOC-FEE-001]}
+  - {id: M7, question: "Which currencies does acq_7 process, and what is its merchant discount rate for card payments?", kb: [DOC-FEE-001]}
+  - {id: M8, question: "How many failed payments did acq_7 have on the latest day, and how long are quarantined payment rows retained?", kb: [DOC-RET-001]}
