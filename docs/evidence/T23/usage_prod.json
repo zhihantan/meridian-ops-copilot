@@ -1,10 +1,10 @@
 {
   "task": "T23 per-user rows in system tables",
   "target": "prod",
-  "at": "2026-10-16T18:45:53.951074+00:00",
+  "at": "2026-10-16T21:19:48.894158+00:00",
   "window_utc": [
     "2026-10-16 17:30:00",
-    "2026-10-16 19:30:00"
+    "2026-10-16 21:30:00"
   ],
   "identify": {
     "system.access.audit": "user_identity.email (principal), user_agent (client), request_params.server_type and tool_name (MCP server and tool)",
@@ -14,17 +14,44 @@
     {
       "persona": "ben",
       "service": "aibiGenie",
+      "action": "genieCreateConversationMessage",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 2
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
       "action": "genieGetConversationMessage",
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 69
+      "calls": 92
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
+      "action": "genieGetConversationMessage",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 85
     },
     {
       "persona": "ben",
       "service": "aibiGenie",
       "action": "genieGetMessageAttachmentQueryResult",
       "client": "unknown/0.0.0",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 7
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
+      "action": "genieGetMessageAttachmentQueryResult",
+      "client": "claude-code/2.1.290",
       "mcp_server": null,
       "outcome": "ok",
       "calls": 4
@@ -33,6 +60,15 @@
       "persona": "ben",
       "service": "aibiGenie",
       "action": "genieGetSpace",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 16
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
+      "action": "genieGetSpace",
       "client": "Python-urllib/3.12",
       "mcp_server": null,
       "outcome": "ok",
@@ -45,13 +81,31 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 13
+      "calls": 17
     },
     {
       "persona": "ben",
       "service": "aibiGenie",
       "action": "genieStartConversationMessage",
       "client": "unknown/0.0.0",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 17
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
+      "action": "genieStartConversationMessage",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 2
+    },
+    {
+      "persona": "ben",
+      "service": "aibiGenie",
+      "action": "getSpace",
+      "client": "claude-code/2.1.290",
       "mcp_server": null,
       "outcome": "ok",
       "calls": 13
@@ -63,7 +117,7 @@
       "client": "",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 178
+      "calls": 278
     },
     {
       "persona": "ben",
@@ -72,16 +126,7 @@
       "client": "Python-urllib/3.12",
       "mcp_server": "AI_SEARCH",
       "outcome": "ok",
-      "calls": 32
-    },
-    {
-      "persona": "ben",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "Python-urllib/3.12",
-      "mcp_server": "AI_SEARCH",
-      "outcome": "refused or failed",
-      "calls": 6
+      "calls": 40
     },
     {
       "persona": "ben",
@@ -99,23 +144,68 @@
       "client": "Python-urllib/3.12",
       "mcp_server": "AI_SEARCH",
       "outcome": "protocol",
-      "calls": 2
+      "calls": 4
     },
     {
       "persona": "ben",
-      "service": "vectorSearch",
-      "action": "queryVectorIndex",
-      "client": "python-requests/2.34.2",
-      "mcp_server": null,
-      "outcome": "refused or failed",
-      "calls": 23
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "GENIE",
+      "outcome": "ok",
+      "calls": 8
     },
     {
       "persona": "ben",
-      "service": "vectorSearch",
-      "action": "queryVectorIndex",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "DBSQL",
+      "outcome": "ok",
+      "calls": 1
+    },
+    {
+      "persona": "ben",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "ok",
+      "calls": 9
+    },
+    {
+      "persona": "ben",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "GENIE",
+      "outcome": "protocol",
+      "calls": 40
+    },
+    {
+      "persona": "ben",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "protocol",
+      "calls": 60
+    },
+    {
+      "persona": "ben",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "DBSQL",
+      "outcome": "protocol",
+      "calls": 20
+    },
+    {
+      "persona": "ben",
+      "service": "managedMcp",
+      "action": "mcpRequest",
       "client": "Python-urllib/3.12",
-      "mcp_server": null,
+      "mcp_server": "AI_SEARCH",
       "outcome": "refused or failed",
       "calls": 6
     },
@@ -126,7 +216,7 @@
       "client": "Python-urllib/3.12",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 32
+      "calls": 40
     },
     {
       "persona": "ben",
@@ -135,7 +225,34 @@
       "client": "python-requests/2.34.2",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 89
+      "calls": 146
+    },
+    {
+      "persona": "ben",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 9
+    },
+    {
+      "persona": "ben",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "python-requests/2.34.2",
+      "mcp_server": null,
+      "outcome": "refused or failed",
+      "calls": 39
+    },
+    {
+      "persona": "ben",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "Python-urllib/3.12",
+      "mcp_server": null,
+      "outcome": "refused or failed",
+      "calls": 6
     },
     {
       "persona": "ava",
@@ -144,52 +261,43 @@
       "client": "claude-code/2.1.290",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 1
-    },
-    {
-      "persona": "ava",
-      "service": "aibiGenie",
-      "action": "genieGetConversationMessage",
-      "client": "claude-code/2.1.290",
-      "mcp_server": null,
-      "outcome": "ok",
-      "calls": 52
-    },
-    {
-      "persona": "ava",
-      "service": "aibiGenie",
-      "action": "genieGetConversationMessage",
-      "client": "unknown/0.0.0",
-      "mcp_server": null,
-      "outcome": "ok",
-      "calls": 57
-    },
-    {
-      "persona": "ava",
-      "service": "aibiGenie",
-      "action": "genieGetMessageAttachmentQueryResult",
-      "client": "claude-code/2.1.290",
-      "mcp_server": null,
-      "outcome": "ok",
       "calls": 2
     },
     {
       "persona": "ava",
       "service": "aibiGenie",
-      "action": "genieGetMessageAttachmentQueryResult",
+      "action": "genieGetConversationMessage",
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 3
+      "calls": 70
     },
     {
       "persona": "ava",
       "service": "aibiGenie",
-      "action": "genieGetSpace",
+      "action": "genieGetConversationMessage",
       "client": "claude-code/2.1.290",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 24
+      "calls": 112
+    },
+    {
+      "persona": "ava",
+      "service": "aibiGenie",
+      "action": "genieGetMessageAttachmentQueryResult",
+      "client": "unknown/0.0.0",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 5
+    },
+    {
+      "persona": "ava",
+      "service": "aibiGenie",
+      "action": "genieGetMessageAttachmentQueryResult",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 5
     },
     {
       "persona": "ava",
@@ -199,6 +307,15 @@
       "mcp_server": null,
       "outcome": "ok",
       "calls": 1
+    },
+    {
+      "persona": "ava",
+      "service": "aibiGenie",
+      "action": "genieGetSpace",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 40
     },
     {
       "persona": "ava",
@@ -207,16 +324,7 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 11
-    },
-    {
-      "persona": "ava",
-      "service": "aibiGenie",
-      "action": "genieStartConversationMessage",
-      "client": "claude-code/2.1.290",
-      "mcp_server": null,
-      "outcome": "ok",
-      "calls": 1
+      "calls": 13
     },
     {
       "persona": "ava",
@@ -225,7 +333,25 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 11
+      "calls": 13
+    },
+    {
+      "persona": "ava",
+      "service": "aibiGenie",
+      "action": "genieStartConversationMessage",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 3
+    },
+    {
+      "persona": "ava",
+      "service": "aibiGenie",
+      "action": "getSpace",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 6
     },
     {
       "persona": "ava",
@@ -234,7 +360,61 @@
       "client": "",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 53
+      "calls": 116
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "Python-urllib/3.12",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "refused or failed",
+      "calls": 17
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "Python-urllib/3.12",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "ok",
+      "calls": 17
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "Python-urllib/3.12",
+      "mcp_server": "GENIE",
+      "outcome": "protocol",
+      "calls": 1
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "Python-urllib/3.12",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "protocol",
+      "calls": 4
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "ok",
+      "calls": 4
+    },
+    {
+      "persona": "ava",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "GENIE",
+      "outcome": "ok",
+      "calls": 11
     },
     {
       "persona": "ava",
@@ -243,7 +423,7 @@
       "client": "claude-code/2.1.290",
       "mcp_server": "AI_SEARCH",
       "outcome": "protocol",
-      "calls": 60
+      "calls": 120
     },
     {
       "persona": "ava",
@@ -252,7 +432,7 @@
       "client": "claude-code/2.1.290",
       "mcp_server": "DBSQL",
       "outcome": "protocol",
-      "calls": 60
+      "calls": 80
     },
     {
       "persona": "ava",
@@ -261,25 +441,7 @@
       "client": "claude-code/2.1.290",
       "mcp_server": "GENIE",
       "outcome": "protocol",
-      "calls": 60
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "claude-code/2.1.290",
-      "mcp_server": "AI_SEARCH",
-      "outcome": "ok",
-      "calls": 1
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "claude-code/2.1.290",
-      "mcp_server": "GENIE",
-      "outcome": "ok",
-      "calls": 5
+      "calls": 100
     },
     {
       "persona": "ava",
@@ -288,7 +450,7 @@
       "client": "claude-code/2.1.290",
       "mcp_server": "DBSQL",
       "outcome": "ok",
-      "calls": 1
+      "calls": 2
     },
     {
       "persona": "ava",
@@ -297,67 +459,22 @@
       "client": "claude-code/2.1.290",
       "mcp_server": "AI_SEARCH",
       "outcome": "refused or failed",
-      "calls": 2
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "Python-urllib/3.12",
-      "mcp_server": "AI_SEARCH",
-      "outcome": "refused or failed",
-      "calls": 13
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "Python-urllib/3.12",
-      "mcp_server": "AI_SEARCH",
-      "outcome": "ok",
-      "calls": 13
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "Python-urllib/3.12",
-      "mcp_server": "GENIE",
-      "outcome": "protocol",
-      "calls": 1
-    },
-    {
-      "persona": "ava",
-      "service": "managedMcp",
-      "action": "mcpRequest",
-      "client": "Python-urllib/3.12",
-      "mcp_server": "AI_SEARCH",
-      "outcome": "protocol",
-      "calls": 2
+      "calls": 8
     },
     {
       "persona": "ava",
       "service": "vectorSearch",
       "action": "queryVectorIndex",
-      "client": "claude-code/2.1.290",
+      "client": "Python-urllib/3.12",
       "mcp_server": null,
       "outcome": "refused or failed",
-      "calls": 2
+      "calls": 17
     },
     {
       "persona": "ava",
       "service": "vectorSearch",
       "action": "queryVectorIndex",
-      "client": "claude-code/2.1.290",
-      "mcp_server": null,
-      "outcome": "ok",
-      "calls": 1
-    },
-    {
-      "persona": "ava",
-      "service": "vectorSearch",
-      "action": "queryVectorIndex",
-      "client": "Python-urllib/3.12",
+      "client": "python-requests/2.34.2",
       "mcp_server": null,
       "outcome": "refused or failed",
       "calls": 13
@@ -368,17 +485,8 @@
       "action": "queryVectorIndex",
       "client": "python-requests/2.34.2",
       "mcp_server": null,
-      "outcome": "refused or failed",
-      "calls": 12
-    },
-    {
-      "persona": "ava",
-      "service": "vectorSearch",
-      "action": "queryVectorIndex",
-      "client": "python-requests/2.34.2",
-      "mcp_server": null,
       "outcome": "ok",
-      "calls": 34
+      "calls": 117
     },
     {
       "persona": "ava",
@@ -387,7 +495,88 @@
       "client": "Python-urllib/3.12",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 13
+      "calls": 17
+    },
+    {
+      "persona": "ava",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "refused or failed",
+      "calls": 8
+    },
+    {
+      "persona": "ava",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 4
+    },
+    {
+      "persona": "gus",
+      "service": "aibiGenie",
+      "action": "genieGetSpace",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "refused or failed",
+      "calls": 16
+    },
+    {
+      "persona": "gus",
+      "service": "databrickssql",
+      "action": "commandSubmit",
+      "client": "",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 6
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "protocol",
+      "calls": 60
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "DBSQL",
+      "outcome": "protocol",
+      "calls": 20
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "AI_SEARCH",
+      "outcome": "refused or failed",
+      "calls": 9
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "DBSQL",
+      "outcome": "ok",
+      "calls": 2
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "action": "mcpRequest",
+      "client": "claude-code/2.1.290",
+      "mcp_server": "GENIE",
+      "outcome": "protocol",
+      "calls": 40
     },
     {
       "persona": "gus",
@@ -397,6 +586,15 @@
       "mcp_server": "DBSQL",
       "outcome": "protocol",
       "calls": 1
+    },
+    {
+      "persona": "gus",
+      "service": "vectorSearch",
+      "action": "queryVectorIndex",
+      "client": "claude-code/2.1.290",
+      "mcp_server": null,
+      "outcome": "refused or failed",
+      "calls": 9
     },
     {
       "persona": "eli",
@@ -414,7 +612,7 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 7
+      "calls": 13
     },
     {
       "persona": "eli",
@@ -441,7 +639,7 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 1
+      "calls": 2
     },
     {
       "persona": "eli",
@@ -459,7 +657,7 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 15
+      "calls": 21
     },
     {
       "persona": "eli",
@@ -468,7 +666,7 @@
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 1
+      "calls": 2
     },
     {
       "persona": "eli",
@@ -481,12 +679,21 @@
     },
     {
       "persona": "eli",
+      "service": "aibiGenie",
+      "action": "updateDashboardGenie",
+      "client": "unknown/0.0.0",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 1
+    },
+    {
+      "persona": "eli",
       "service": "databrickssql",
       "action": "changeEndpointAcls",
       "client": "unknown/0.0.0",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 8
+      "calls": 17
     },
     {
       "persona": "eli",
@@ -495,7 +702,7 @@
       "client": "",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 1084
+      "calls": 3515
     },
     {
       "persona": "eli",
@@ -504,7 +711,16 @@
       "client": "python-requests/2.34.2",
       "mcp_server": null,
       "outcome": "ok",
-      "calls": 1
+      "calls": 2
+    },
+    {
+      "persona": "eli",
+      "service": "vectorSearch",
+      "action": "scanVectorIndex",
+      "client": "unknown/0.0.0",
+      "mcp_server": null,
+      "outcome": "ok",
+      "calls": 20
     }
   ],
   "refused_or_failed": [
@@ -520,35 +736,135 @@
       "service": "vectorSearch",
       "tool_or_action": "queryVectorIndex",
       "error": "DatabricksServiceException: PERMISSION_DENIED",
-      "calls": 29
+      "calls": 45
     },
     {
       "persona": "ava",
       "service": "managedMcp",
       "tool_or_action": "meridian__kb__idx_finance",
       "error": "MCP request failed",
-      "calls": 15
+      "calls": 25
     },
     {
       "persona": "ava",
       "service": "vectorSearch",
       "tool_or_action": "queryVectorIndex",
       "error": "DatabricksServiceException: PERMISSION_DENIED",
-      "calls": 27
+      "calls": 38
+    },
+    {
+      "persona": "gus",
+      "service": "aibiGenie",
+      "tool_or_action": "genieGetSpace",
+      "error": "DatabricksServiceException: PERMISSION_DENIED",
+      "calls": 16
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "tool_or_action": "meridian__kb__idx_finance",
+      "error": "MCP request failed",
+      "calls": 6
+    },
+    {
+      "persona": "gus",
+      "service": "managedMcp",
+      "tool_or_action": "meridian__kb__idx_general",
+      "error": "MCP request failed",
+      "calls": 3
+    },
+    {
+      "persona": "gus",
+      "service": "vectorSearch",
+      "tool_or_action": "queryVectorIndex",
+      "error": "DatabricksServiceException: PERMISSION_DENIED",
+      "calls": 9
     }
   ],
   "gateway": [
     {
       "persona": "ben",
       "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "200",
+      "calls": 39,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "ben",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "204",
+      "calls": 12,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "ben",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "Python-urllib/3.12",
+      "status": "200",
+      "calls": 2,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "ben",
+      "requester_type": "SERVICE_PRINCIPAL",
       "endpoint": "databricks-claude-sonnet-5-5",
       "client": "AsyncAnthropic/Python",
       "status": "200",
-      "calls": 68,
-      "input_tokens": 172373,
-      "output_tokens": 8454,
-      "cache_read_tokens": 78672,
-      "cache_creation_tokens": 2384
+      "calls": 103,
+      "input_tokens": 265697,
+      "output_tokens": 13508,
+      "cache_read_tokens": 120276,
+      "cache_creation_tokens": 6652
+    },
+    {
+      "persona": "ben",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": "databricks-claude-sonnet-5-5",
+      "client": "ucode/0.1.0+ace578c",
+      "status": "200",
+      "calls": 4,
+      "input_tokens": 16946,
+      "output_tokens": 1272,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "ava",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "200",
+      "calls": 37,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "ava",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "204",
+      "calls": 12,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
     },
     {
       "persona": "ava",
@@ -556,10 +872,10 @@
       "endpoint": "databricks-claude-sonnet-5-5",
       "client": "AsyncAnthropic/Python",
       "status": "200",
-      "calls": 37,
-      "input_tokens": 61420,
-      "output_tokens": 2946,
-      "cache_read_tokens": 41720,
+      "calls": 54,
+      "input_tokens": 93026,
+      "output_tokens": 4554,
+      "cache_read_tokens": 65790,
       "cache_creation_tokens": 2384
     },
     {
@@ -568,9 +884,33 @@
       "endpoint": "databricks-claude-sonnet-5-5",
       "client": "ucode/0.1.0+ace578c",
       "status": "200",
-      "calls": 1,
-      "input_tokens": 10,
-      "output_tokens": 5,
+      "calls": 5,
+      "input_tokens": 12076,
+      "output_tokens": 1383,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "gus",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "204",
+      "calls": 12,
+      "input_tokens": 0,
+      "output_tokens": 0,
+      "cache_read_tokens": 0,
+      "cache_creation_tokens": 0
+    },
+    {
+      "persona": "gus",
+      "requester_type": "SERVICE_PRINCIPAL",
+      "endpoint": null,
+      "client": "claude-code/2.1.290",
+      "status": "200",
+      "calls": 38,
+      "input_tokens": 0,
+      "output_tokens": 0,
       "cache_read_tokens": 0,
       "cache_creation_tokens": 0
     },
@@ -578,12 +918,24 @@
       "persona": "eli",
       "requester_type": "USER",
       "endpoint": "databricks-claude-sonnet-5-5",
+      "client": "ucode/0.1.0+ace578c",
+      "status": "200",
+      "calls": 122,
+      "input_tokens": 186301,
+      "output_tokens": 6202,
+      "cache_read_tokens": 44602,
+      "cache_creation_tokens": 1538
+    },
+    {
+      "persona": "eli",
+      "requester_type": "USER",
+      "endpoint": "databricks-claude-sonnet-5-5",
       "client": "AsyncAnthropic/Python",
       "status": "200",
-      "calls": 7,
-      "input_tokens": 23912,
-      "output_tokens": 1074,
-      "cache_read_tokens": 8344,
+      "calls": 14,
+      "input_tokens": 47085,
+      "output_tokens": 2311,
+      "cache_read_tokens": 16688,
       "cache_creation_tokens": 0
     }
   ],

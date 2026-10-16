@@ -28,8 +28,10 @@ The Genie answers show the synthetic data is a day old. The demo reset regenerat
   A refused MCP tool call is HTTP 200 with a JSON-RPC error, so it shows as an audit row with `error_message`
   "MCP request failed": every one of Ava's finance-index calls, and Ben's after he was removed from finance (T19).
 - **`system.ai_gateway.usage`.** `requester` and `requester_type` give the principal and `user_agent` the client,
-  with tokens and cache reads and writes per call. These are the copilot's calls, made as the caller: Ava, Ben and
-  Eli each have their own rows.
+  with tokens and cache reads and writes per call. The copilot's model calls are here, made as the caller: Ava,
+  Ben and Eli each have their own rows. So are Claude Code's SQL calls through Unity Gateway (`system.ai.dbsql`):
+  per persona, with client `claude-code/2.1.290` and no model endpoint. The workspace MCP endpoints never appear
+  here; their calls are only in the audit log.
 
 In this workspace, MCP audit rows appeared within about 5 minutes and gateway usage within about 15. That is an
 observation; there is no published latency, and no live demo step waits on these tables.
