@@ -11,7 +11,7 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T01 | PASS | `databricks.yml`, `resources/` | Bundle with dev, staging, ci and prod targets | |
 | T02 | PASS | `T02/planted_summary.json` | Synthetic data with planted issues, anchored to a time | 7 acquirers (acq_7 planted) |
 | T03 | PASS | `T03/` | Quarantine and severity routing from contracts; 16/16 planted issues found on dev, staging and prod; reprocess idempotent; a critical rule fails the update | Quarantine is BUILD |
-| T04 | PARTIAL | `T04/` | ABAC masks and the market row filter by persona (dev probe PASS) | Prod is waiting on the classification scan; manual tags are the fallback (time-to-tag still being measured) |
+| T04 | PASS | `T04/` | ABAC masks and the market row filter by persona: probes PASS on dev and prod | The scan had tagged nothing after about 39 hours, so prod's tags come from the contracts (fallback); time-to-tag still measured on staging |
 | T05 | PASS | `T05/` | Drift, freshness and coverage monitors on dev and prod | |
 | T05b | PASS | `T05b/` | AI digest of quality issues; counts match | Alerts go to email and logs; Slack paused |
 | T06 | PASS | `T06/` | FILE_ARRIVAL, TABLE and PERIODIC triggers in prod; bad backfill found through table history and lineage, recovered to 16/16 | Recovery is targeted delete and refresh (no RESTORE on streaming tables) |
@@ -36,6 +36,6 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T24 | PASS | `T24/`, `../integration_surfaces.md` | Standalone external agent over MCP, outside the project; surfaces with documented limits | |
 | T25 | PASS | `T25/` | Two memory stores; 5 probes, 0 leaks; finance facts kept as pointers and re-fetched | PREVIEW memory stores |
 | T26 | PARTIAL | `T26/` | Background runs with polling (T17 onward); workflow state survives in the database between invocations | Crash recovery not shown: request-user runs are never resumed, and every copilot run is one |
-| T27 | PASS | `T27/`, `../../dashboards/` | Caching 80.5% cheaper at list price; POC cost from billing; trace views; the ops dashboard as code, per target | Staging's dashboard is empty until its views exist |
+| T27 | PASS | `T27/`, `../../dashboards/` | Caching 80.5% cheaper at list price; POC cost from billing; trace views; the ops dashboard as code, deployed to dev, staging and prod | Staging has the pipeline page only (no knowledge base there) |
 | T28 | SKIPPED | | Optional extras | |
 | T29 | PARTIAL | this file, `../known_gaps.md`, `scripts/reset_demo.py` | Index, gaps and demo reset | Rehearsals on 21 Oct |

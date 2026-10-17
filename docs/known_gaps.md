@@ -10,7 +10,7 @@ around it, the BUILD part is named, with its evidence.
 | No managed Slack message connector (Slack is paused in this POC) | The knowledge base reads a Slack history export landed in a volume, the shape a puller writes (BUILD) | T10, T11 |
 | No automatic quarantine table | Quarantine and severity routing are compiled from data contracts (BUILD) | T03 |
 | No single graph of cross-job dependencies and triggers | Generated from the bundle YAML (BUILD) | T06 |
-| Data Classification runs on a schedule, not instantly, and does not cover free text | ABAC keys on classification tags; manual tags are the fallback while a scan is pending; free text is redacted in the pipeline | T04 |
+| Data Classification runs on a schedule, not instantly, and does not cover free text. Here it had tagged nothing after about 39 hours | ABAC keys on classification tags, so a tag from any source protects the column; prod's tags come from the contracts; the PII coverage check flags a column until it is tagged; free text is redacted in the pipeline | T04, T05 |
 | Lineage is automatic, but a changelog is not; DML from a job into a streaming table is not a lineage write edge; lineage lags | A nightly lineage changelog (BUILD); table history names the writing job and run at once | T06, T06b |
 | `RESTORE` is not supported on pipeline streaming tables | Recovery is a targeted delete and refresh, or a full refresh; RESTORE only on ordinary Delta tables | T06 |
 | No one-click rollback; rolling back code does not roll back data | Redeploy a known-good tag, then reprocess | T09 |

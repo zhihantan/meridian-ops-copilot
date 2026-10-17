@@ -1,0 +1,149 @@
+{
+  "target": "dev",
+  "ran_at": "2026-10-17T06:49:32.995075+00:00",
+  "space": "Meridian governance probe [dev]",
+  "questions": {
+    "markets": "How many payments are there per country? Show country and count only.",
+    "contact": "Show the email, phone and national_id of customer c_00003."
+  },
+  "results": {
+    "ava": {
+      "markets": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `country`, COUNT(*) AS `count` FROM `meridian_dev`.`dev_zhihan_tan_silver`.`payments` WHERE `country` IS NOT NULL GROUP BY `country` ORDER BY `count` DESC, `country` ASC",
+        "columns": [
+          "country",
+          "count"
+        ],
+        "rows": [
+          [
+            "SG",
+            "24587"
+          ]
+        ]
+      },
+      "contact": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `email`, `phone`, `national_id` FROM `meridian_dev`.`dev_zhihan_tan_silver`.`customers` WHERE `customer_id` = 'c_00003'",
+        "columns": [
+          "email",
+          "phone",
+          "national_id"
+        ],
+        "rows": [
+          [
+            "w***@example.com",
+            "**** 6141",
+            null
+          ]
+        ]
+      }
+    },
+    "ben": {
+      "markets": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `country`, COUNT(*) AS `count` FROM `meridian_dev`.`dev_zhihan_tan_silver`.`payments` WHERE `country` IS NOT NULL GROUP BY `country` ORDER BY `count` DESC, `country` ASC",
+        "columns": [
+          "country",
+          "count"
+        ],
+        "rows": [
+          [
+            "SG",
+            "24587"
+          ],
+          [
+            "MY",
+            "2709"
+          ],
+          [
+            "ID",
+            "2164"
+          ],
+          [
+            "TH",
+            "1681"
+          ],
+          [
+            "PH",
+            "1059"
+          ]
+        ]
+      },
+      "contact": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `email`, `phone`, `national_id` FROM `meridian_dev`.`dev_zhihan_tan_silver`.`customers` WHERE `customer_id` ILIKE 'c_00003'",
+        "columns": [
+          "email",
+          "phone",
+          "national_id"
+        ],
+        "rows": [
+          [
+            "w***@example.com",
+            "**** 6141",
+            null
+          ]
+        ]
+      }
+    },
+    "eli": {
+      "markets": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT country, COUNT(*) AS payment_count FROM meridian_dev.dev_zhihan_tan_silver.payments WHERE country IS NOT NULL GROUP BY country ORDER BY payment_count DESC",
+        "columns": [
+          "country",
+          "payment_count"
+        ],
+        "rows": [
+          [
+            "SG",
+            "24587"
+          ],
+          [
+            "MY",
+            "2709"
+          ],
+          [
+            "ID",
+            "2164"
+          ],
+          [
+            "TH",
+            "1681"
+          ],
+          [
+            "PH",
+            "1059"
+          ]
+        ]
+      },
+      "contact": {
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `email`, `phone`, `national_id` FROM `meridian_dev`.`dev_zhihan_tan_silver`.`customers` WHERE `customer_id` = 'c_00003'",
+        "columns": [
+          "email",
+          "phone",
+          "national_id"
+        ],
+        "rows": [
+          [
+            "<unmasked, 29 chars>",
+            "<unmasked, 13 chars>",
+            "<unmasked, 9 chars>"
+          ]
+        ]
+      }
+    }
+  },
+  "checks": {
+    "ava_home_market_only": true,
+    "ben_all_markets": true,
+    "eli_all_markets": true,
+    "ava_email_masked": true,
+    "ava_nric_hidden": true,
+    "ben_email_masked": true,
+    "eli_sees_raw_email": true
+  },
+  "status": "PASS"
+}

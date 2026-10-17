@@ -48,7 +48,7 @@ resources:
           spark_python_task:
             python_file: ../src/meridian/jobs/obs_views.py
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/obs_views.sql",
+                         --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/kb_views.sql",
                          --target, "${bundle.target}", --workspace-id, "{{workspace.id}}", --run-id, "{{job.run_id}}"]
         - task_key: export
           depends_on: [{task_key: views}]

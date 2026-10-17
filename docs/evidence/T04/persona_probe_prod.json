@@ -1,0 +1,118 @@
+{
+  "target": "prod",
+  "ran_at": "2026-10-17T06:26:00.174471+00:00",
+  "results": {
+    "ava": {
+      "customer_pii": [
+        [
+          "c_00003",
+          "<unmasked, 17 chars>",
+          "w***@example.com",
+          "**** 6141",
+          null,
+          null,
+          null
+        ]
+      ],
+      "payments_by_country": [
+        [
+          "SG",
+          "26290"
+        ]
+      ],
+      "notes_redacted_sample": [
+        [
+          "Verified identity with NRIC [NRIC] over the phone."
+        ]
+      ]
+    },
+    "ben": {
+      "customer_pii": [
+        [
+          "c_00003",
+          "<unmasked, 17 chars>",
+          "w***@example.com",
+          "**** 6141",
+          null,
+          null,
+          null
+        ]
+      ],
+      "payments_by_country": [
+        [
+          "ID",
+          "2314"
+        ],
+        [
+          "MY",
+          "2871"
+        ],
+        [
+          "PH",
+          "1134"
+        ],
+        [
+          "SG",
+          "26290"
+        ],
+        [
+          "TH",
+          "1811"
+        ]
+      ],
+      "notes_redacted_sample": [
+        [
+          "Verified identity with NRIC [NRIC] over the phone."
+        ]
+      ]
+    },
+    "eli": {
+      "customer_pii": [
+        [
+          "c_00003",
+          "<unmasked, 17 chars>",
+          "<unmasked, 29 chars>",
+          "<unmasked, 13 chars>",
+          "<unmasked, 9 chars>",
+          "<unmasked, 16 chars>",
+          "<unmasked, 10 chars>"
+        ]
+      ],
+      "payments_by_country": [
+        [
+          "ID",
+          "2314"
+        ],
+        [
+          "MY",
+          "2871"
+        ],
+        [
+          "PH",
+          "1134"
+        ],
+        [
+          "SG",
+          "26290"
+        ],
+        [
+          "TH",
+          "1811"
+        ]
+      ],
+      "notes_redacted_sample": [
+        [
+          "Verified identity with NRIC [NRIC] over the phone."
+        ]
+      ]
+    }
+  },
+  "checks": {
+    "ava_email_masked": true,
+    "ava_nric_hidden": true,
+    "eli_sees_raw_email": true,
+    "ava_home_market_only": true,
+    "ben_all_markets": true
+  },
+  "status": "PASS"
+}

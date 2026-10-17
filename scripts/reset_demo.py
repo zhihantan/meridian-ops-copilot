@@ -3,13 +3,14 @@
   reset   regenerate the data and the corpus with a fresh anchor; meridian-demo-reset (as the tables' owner) clears
           the landing folders and rewrites demo state; the baseline lands (payments/baseline, customers_changes/initial),
           then a full refresh rebuilds every pipeline table from it; the corpus lands and kb_sync rebuilds the
-          knowledge base; on prod, the personas' memories are cleared (the stores are workspace-wide).
+          knowledge base; governance is re-applied (PII tags from the contracts, policies, grants, membership
+          mirrors); on prod, the personas' memories are cleared (the stores are workspace-wide).
           The incident batch is not landed: it lands live in scene 1. make gen-data also rewrites
           docs/evidence/T02/planted_summary.json for the new anchor.
   stage   what system tables must already hold at demo time (run at least 3 hours before): the bad backfill (T06),
           Claude Code over MCP as each persona (T23) and the caching calls (T27).
-  check   readiness: baseline processed and fresh, no incident yet, RB-014 v3 approved and v4 draft, no workflow
-          runs, empty memories, knowledge synced, copilot running, Genie space present.
+  check   readiness: PII masked for Ava, baseline processed and fresh, no incident yet, RB-014 v3 approved and v4
+          draft, no workflow runs, empty memories, knowledge synced, copilot running, Genie space present.
 Nothing changes without --yes: the plan is printed instead. Tables are never dropped.
 
     uv run --group dbx --group agent python scripts/reset_demo.py reset --target prod --yes
@@ -31,7 +32,7 @@ from databricks_agentkit.client import AgentKitClient
 
 from meridian.common.bundle import target_names
 from meridian.common.personas import principal_names
-from meridian.common.workspace import sql
+from meridian.common.workspace import sql, warehouse_id
 
 REPO = Path(__file__).resolve().parents[1]
 BASELINE = ("payments/baseline", "customers_changes/initial")
@@ -97,6 +98,10 @@ def reset(t, admin: WorkspaceClient, apply: bool, anchor: str) -> None:
         run(refresh, apply)
     # gold.acquirer_status rebuilds on a table-update trigger, which development mode pauses: run it here too.
     run(["databricks", "bundle", "run", "-t", t.target, "gold_refresh_job"], apply)
+    # The masks match tags: re-apply the contracts' PII tags (a no-op where present), policies, grants and the
+    # membership mirrors, so the rebuilt tables are protected before anyone queries them.
+    run(["uv", "run", "--group", "dbx", "python", "scripts/apply_governance.py", "--target", t.target, "--manual-tags"],
+        apply)
     run(["scripts/land.sh", t.target, "kb"], apply)
     run(["databricks", "bundle", "run", "-t", t.target, "kb_sync_job", "--params", "full_refresh=true"], apply)
     if t.target == "prod":  # memory stores are workspace-wide and serve the prod copilot
@@ -116,7 +121,14 @@ def check(t, admin: WorkspaceClient) -> bool:
     def one(query: str) -> str:
         return sql(admin, query)[0][0]
 
+    def ava_masked() -> bool:  # as Ava herself (her CLI profile), on the admin's warehouse
+        rows = sql(WorkspaceClient(profile="meridian-ava"), f"""SELECT email, national_id FROM {c}.{s['silver']}.customers
+                                                               WHERE email IS NOT NULL LIMIT 1""", warehouse=wh)
+        return bool(rows) and "***@" in (rows[0][0] or "") and rows[0][1] is None
+
+    wh = warehouse_id(admin)
     checks = {
+        "PII masked for Ava (masked email, no NRIC)": ava_masked(),
         "baseline processed (silver.payments has rows)": int(one(f"SELECT count(*) FROM {c}.{s['silver']}.payments")) > 0,
         "data is fresh (the baseline ends within 30 hours; the incident fills the last 24)": one(
             f"SELECT max(created_at) >= current_timestamp() - INTERVAL 30 HOURS FROM {c}.{s['silver']}.payments") == "true",

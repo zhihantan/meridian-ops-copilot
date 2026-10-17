@@ -18,7 +18,13 @@ def test_one_statement_per_view():
     views = [s.split()[4] for s in statements(str(SQL), VALUES)]
     assert views == [f"meridian.obs.{v}" for v in ("v_job_runs", "v_task_runs", "v_pipeline_events",
                                                     "v_expectation_metrics", "v_query_history", "v_audit",
-                                                    "v_pipeline_health", "v_kb_changes")]
+                                                    "v_pipeline_health")]
+
+
+def test_kb_views_are_separate():  # staging has no knowledge base, so its views job must not need one
+    parsed = statements(str(SQL.with_name("kb_views.sql")), VALUES)
+    assert [s.split()[4] for s in parsed] == ["meridian.obs.v_kb_changes"]
+    assert not any("meridian.kb." in s for s in statements(str(SQL), VALUES))
 
 
 def test_procedures_stay_whole():

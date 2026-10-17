@@ -50,5 +50,13 @@ staging to prod. A page is included only where its tables exist:
   denials.
 
 Viewers query with their own permissions (`embed_credentials: false`), so the market row filter and the masks
-apply per viewer. Every dataset query of the prod definition was executed before deploying. Staging's
-definition is empty until its observability views and knowledge tables exist.
+apply per viewer. Every dataset query of each target's definition was executed before deploying.
+
+| Target | Pages |
+|---|---|
+| dev | Pipeline health, Knowledge |
+| staging (2026-10-17) | Pipeline health. Staging's data comes from the CI integration run (the incident included), and it has no knowledge base. Its quality checks, gold refresh and views were run once so the page has data |
+| prod | POC scorecard, Pipeline health, Knowledge, Copilot |
+
+The knowledge provenance view (`v_kb_changes`) is in `sql/kb_views.sql`, applied by the audit export job. A target
+without a knowledge base (staging) can then still create its pipeline views.

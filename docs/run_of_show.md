@@ -23,7 +23,7 @@ Every scene has evidence from a run in `docs/evidence/`.
 |---|---|---|---|---|
 | 0 | 5 | Security architecture | Serverless egress, private connectivity, ingress, audit (slides) | `docs/known_gaps.md` |
 | 1 | 6 | Detect | Land the incident live: `scripts/land.sh prod payments/incident`. Show the file-arrival run, quarantine counts, drift and freshness alerts, the AI digest, and the dashboard's Pipeline health page | T03, T05, T05b, T06 |
-| 2 | 4 | Protect | Ava and Eli query the same rows: masked, restricted, redacted. The market row filter applies in the dashboard and in Genie | T04, T22 |
+| 2 | 4 | Protect | Ava and Eli query the same rows: masked, restricted, redacted. The market row filter applies in the dashboard, which each viewer queries as themselves. Genie applies the same policies to whoever asks, shown in `T04/genie_probe_dev.json`. The demo's Genie space holds only gold aggregates, with no customer or market columns, so there is nothing to mask or filter there | T04, T22 |
 | 3 | 5 | Root cause | Table history names the backfill job and run. Lineage and the job graph give the blast radius. Recover with the targeted refresh | T06, `docs/runbooks/bad_backfill.md` |
 | 4 | 8 | Ship a fix | Fay and Gus in parallel; a PR; staging blocks a rule-weakening change; prod needs approval; rollback | T07, T09 (PR flow needs `scripts/setup_github.sh`) |
 | 5 | 8 | The copilot works the incident | As Ben: "acq_7 is degraded. Run RB-014 for acq_7 over the last 24 hours". s1 to s5 run in order, with Genie and the SLA clause cited, and stop for approval. Eli approves in SQL (`CALL meridian.agent.approve_refund(...)`). Ben continues and s6 executes. As Ava: the same request stops at s2 (escalate to Finance) | T17, T18, T22 |
