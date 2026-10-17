@@ -7,7 +7,12 @@
 #   3. Branch protection on main: passing `checks` and `integration` jobs (admins can still push).
 # Needs: gh (authenticated, repo admin), the Databricks CLI profile in .env.local, uv.
 #   scripts/setup_github.sh
+# If the workspace refuses to create the secret here, generate one in the workspace UI (Settings, Identity and
+# access, Service principals, meridian-ci, Secrets), copy it, and pass it on stdin instead:
+#   pbpaste | scripts/setup_github.sh --secret-stdin
 set -euo pipefail
+secret_stdin=false
+[ "${1:-}" = "--secret-stdin" ] && secret_stdin=true
 cd "$(git rev-parse --show-toplevel)"
 [ -f .env.local ] && { set -a; . ./.env.local; set +a; }
 repo="$(gh repo view --json nameWithOwner -q .nameWithOwner)"
@@ -27,14 +32,26 @@ gh api -X PUT "repos/$repo/environments/prod" --silent --input - <<JSON
 {"reviewers": [{"type": "User", "id": $reviewer_id}], "prevent_self_review": false}
 JSON
 
-secret="$(uv run --group dbx python - "$sp_id" <<'PY'
+if $secret_stdin; then
+  secret=""
+  IFS= read -r secret || true   # the clipboard has no trailing newline
+  [ -n "$secret" ] || { echo "no secret on stdin" >&2; exit 1; }
+else
+  secret="$(uv run --group dbx python - "$sp_id" <<'PY'
 import sys
 from databricks.sdk import WorkspaceClient
-s = WorkspaceClient().service_principal_secrets_proxy.create(service_principal_id=int(sys.argv[1]),
-                                                             lifetime=f"{90 * 24 * 3600}s")
+from databricks.sdk.errors import PermissionDenied
+try:
+    s = WorkspaceClient().service_principal_secrets_proxy.create(service_principal_id=int(sys.argv[1]),
+                                                                 lifetime=f"{90 * 24 * 3600}s")
+except PermissionDenied as exc:
+    sys.exit(f"The workspace refused to create a secret for meridian-ci: {str(exc).splitlines()[0][:120]}\n"
+             "Generate one in the workspace UI (Settings, Identity and access, Service principals, meridian-ci,\n"
+             "Secrets), copy it, then run: pbpaste | scripts/setup_github.sh --secret-stdin")
 sys.stdout.write(s.secret)
 PY
 )"
+fi
 for env in ci staging prod; do
   gh secret set DATABRICKS_HOST --env "$env" --repo "$repo" --body "$host"
   gh secret set DATABRICKS_CLIENT_ID --env "$env" --repo "$repo" --body "$sp_app_id"
