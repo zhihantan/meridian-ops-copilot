@@ -43,6 +43,7 @@ targets:
             - task_key: score
               depends_on: [{task_key: update}]
               environment_key: default
+              disable_auto_optimization: true   # a failed score is the verdict; never retry it
               spark_python_task:
                 python_file: ../src/meridian/jobs/integration.py
                 parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",

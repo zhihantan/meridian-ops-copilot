@@ -7,7 +7,7 @@ was refused before it could sign in, so the GitHub workflows were removed on 202
 | Done when | Status | Evidence |
 |---|---|---|
 | The integration test runs inside the workspace | PASS | `integration_pass.json`: `meridian-integration-test` on staging, 16 of 16 planted defects handled as the contracts say, 6.5 minutes |
-| Staging blocks a rule-weakening change | see `integration_weakened.json` | The same job on a branch that lets negative amounts into silver |
+| Staging blocks a rule-weakening change | PASS | `integration_weakened.json`: the same job on the branch `demo/weaken-amount-rule` (`amount_positive` from quarantine to warn) failed at the score step, 12 of 16. Nine planted negative amounts reached silver, so the quarantine and silver checks failed |
 | Only admins deploy staging and prod | PASS | `T07/prod_root_acl.json`: only admins and the release principal can write the deployment folders; developers can read |
 | A prod release from a Git folder, logged | OPEN | Rehearsal step: Eli deploys `main` to prod from the bundle UI, then runs `meridian-release-log` |
 | A rollback in under 10 minutes | OPEN | Rehearsal step: deploy the previous tag from the Git folder, timed |

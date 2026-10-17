@@ -5,7 +5,7 @@ About 25 minutes on the data lifecycle (scenes 0 to 4), 20 on the copilot and tr
 - **Ben:** finance.
 - **Eli:** admin and approver, played by the presenter.
 - **Fay:** developer, played by the presenter.
-- **Gus:** developer, a service principal.
+- **Gus:** a data engineer's service principal, used for Claude Code over MCP (scene 6).
 
 Every scene has evidence from a run in `docs/evidence/`.
 

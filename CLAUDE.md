@@ -16,6 +16,7 @@ Build spec: `Meridian_Ops_Copilot_2Day_Build_Spec.md`; execution plan: `private/
 - System tables (lineage, audit, query history, billing, gateway usage) are not real-time and have no published latency. Never script a live demo step that waits on them; create the events hours ahead.
 - The workspace sits on a shared regional metastore: no metastore or account admin. Account-level steps (federation policies, OAuth app registration, account previews) need a fallback.
 - Reset demo state by rewriting data (pipeline full refresh, MERGE, INSERT OVERWRITE), never by dropping tables. Dropping loses tags, grants, masks, monitors and index sync.
+- Develop and deploy only inside the workspace (Git folders, the bundle UI; the CLI is the same deployment). GitHub holds the code only: its hosted runners are blocked by the workspace's IP access list (2026-10-17), and there is no local development or GitHub Actions.
 
 ## Layout
 - `config/scenario.yaml`: shared constants. Data, corpus, workflows and golden set must agree with it exactly.

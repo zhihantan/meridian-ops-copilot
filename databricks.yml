@@ -48,7 +48,7 @@ variables:
     lookup:
       service_principal: meridian-ben
   ci_service_principal:
-    description: CI service principal (application ID) that deploys and runs staging and prod
+    description: Release principal (application ID) that staging and prod run as
     lookup:
       service_principal: meridian-ci
 

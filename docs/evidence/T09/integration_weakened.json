@@ -1,0 +1,195 @@
+{
+  "job": "meridian-integration-test",
+  "run_id": 949539290745936,
+  "deployed": "demo/weaken-amount-rule@4b78c81 (amount_positive: quarantine -> warn)",
+  "result": "FAILED",
+  "minutes": 6.2,
+  "tasks": [
+    {
+      "task": "prepare",
+      "result": "SUCCESS",
+      "minutes": 0.6
+    },
+    {
+      "task": "full_refresh",
+      "result": "SUCCESS",
+      "minutes": 1.9
+    },
+    {
+      "task": "land_incident",
+      "result": "SUCCESS",
+      "minutes": 0.5
+    },
+    {
+      "task": "update",
+      "result": "SUCCESS",
+      "minutes": 1.9
+    },
+    {
+      "task": "score",
+      "result": "FAILED",
+      "minutes": 1.0,
+      "message": "Workload failed, see run output for details"
+    },
+    {
+      "task": "score",
+      "result": "FAILED",
+      "minutes": 0.3,
+      "message": "Workload failed, see run output for details"
+    }
+  ],
+  "score": {
+    "status": "FAIL",
+    "passed": 12,
+    "checks": 16,
+    "failed": [
+      "planted bad rows quarantined with the right rules",
+      "no unexpected quarantine rows",
+      "no planted bad row in silver",
+      "silver.payments rows"
+    ]
+  },
+  "anchor": "2026-10-17T11:00:00.000Z",
+  "results": [
+    {
+      "task": "T03",
+      "check": "bronze.payments rows",
+      "expected": 34511,
+      "actual": 34511,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "planted bad rows quarantined with the right rules",
+      "expected": 35,
+      "actual": 24,
+      "status": "FAIL"
+    },
+    {
+      "task": "T05",
+      "check": "drift rows quarantined by amount_present",
+      "expected": 50,
+      "actual": 50,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "no unexpected quarantine rows",
+      "expected": 85,
+      "actual": 76,
+      "status": "FAIL"
+    },
+    {
+      "task": "T03",
+      "check": "no planted bad row in silver",
+      "expected": 0,
+      "actual": 9,
+      "status": "FAIL"
+    },
+    {
+      "task": "T03",
+      "check": "duplicates registered",
+      "expected": [
+        "pay_1938f34caf670320",
+        "pay_5c9a3f0809ecd5a1",
+        "pay_963ad89a63cac8f2",
+        "pay_de7e9855e3327261",
+        "pay_e38e96a65b285681",
+        "pay_efa2341e259f8bbb"
+      ],
+      "actual": [
+        "pay_1938f34caf670320",
+        "pay_5c9a3f0809ecd5a1",
+        "pay_963ad89a63cac8f2",
+        "pay_de7e9855e3327261",
+        "pay_e38e96a65b285681",
+        "pay_efa2341e259f8bbb"
+      ],
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver keeps one row per payment_id",
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver.payments rows",
+      "expected": 34420,
+      "actual": 34429,
+      "status": "FAIL"
+    },
+    {
+      "task": "T05",
+      "check": "rescued data only on drift rows",
+      "expected": 50,
+      "actual": 50,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "silver.customers rows (deletes and quarantine applied)",
+      "expected": 1993,
+      "actual": 1993,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "deleted customer is gone",
+      "expected": 0,
+      "actual": 0,
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "out-of-order event resolved by seq",
+      "expected": "sha256:b37b2c53e114717a",
+      "actual": "sha256:b37b2c53e114717a",
+      "status": "PASS"
+    },
+    {
+      "task": "T03",
+      "check": "SCD2 history keeps sequence order",
+      "expected": "sha256:74238b59e8034532",
+      "actual": "sha256:74238b59e8034532",
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "card numbers in notes quarantined",
+      "expected": [
+        "c_00729",
+        "c_00887",
+        "c_00971",
+        "c_01653",
+        "c_01834",
+        "c_01999"
+      ],
+      "actual": [
+        "c_00729",
+        "c_00887",
+        "c_00971",
+        "c_01653",
+        "c_01834",
+        "c_01999"
+      ],
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "free-text PII redacted (recall >= 95%)",
+      "expected": true,
+      "actual": true,
+      "status": "PASS"
+    },
+    {
+      "task": "T04",
+      "check": "new column secondary_email arrived",
+      "expected": 25,
+      "actual": 25,
+      "status": "PASS"
+    }
+  ]
+}
