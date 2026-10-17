@@ -1,0 +1,64 @@
+{
+  "target": "dev",
+  "ran_at": "2026-10-17T06:56:18.835135+00:00",
+  "space": "Meridian payments (gold) [dev]",
+  "results": [
+    {
+      "english": {
+        "question": "Which acquirers are degraded right now?",
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT `acquirer_id`, ROUND(100 * `recent_failure_rate`, 1) AS `recent_failure_rate`, ROUND(100 * `baseline_failure_rate`, 1) AS `baseline_failure_rate` FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_status` WHERE `updated_at` = (SELECT MAX(`updated_at`) FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_status`) AND `status` = 'degraded'",
+        "rows": [],
+        "text": "Would you prefer to see the refundable failed amount as one combined total across all degraded acquirers, or broken down by hour instead of a single total per acquirer?",
+        "description": "You want to see which acquirers are currently flagged as degraded, along with their recent and baseline failure rates (shown as percentages).",
+        "reply_language": "English"
+      },
+      "mandarin": {
+        "question": "现在哪些收单机构处于降级状态？",
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT acquirer_id, round(100 * recent_failure_rate, 1) AS recent_failure_rate_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_rate_pct FROM meridian_dev.dev_zhihan_tan_gold.acquirer_status WHERE lower(trim(status)) LIKE '%degrad%'",
+        "rows": [],
+        "text": "目前**没有**任何收单机构处于降级（degraded）状态。",
+        "description": "你想查看当前处于降级状态的所有收单机构的ID，以及它们最近的失败率和基线失败率的百分比。",
+        "reply_language": "Mandarin"
+      },
+      "same_rows": true
+    },
+    {
+      "english": {
+        "question": "What is acq_7's failure rate in the last 24 hours?",
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT round(try_divide(100 * sum(`failed_payments`),sum(`payments`)), 1) AS `failure_rate_pct` FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_hourly` WHERE `acquirer_id` = 'acq_7' AND `hour_sgt` > (SELECT max(`hour_sgt`) FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_hourly`) - INTERVAL 24 HOURS",
+        "rows": [
+          [
+            "1.2"
+          ]
+        ],
+        "text": "Acquirer **acq_7** had a **1.2%** failure rate in the last 24 hours, based on the latest available hour in the data (Singapore time).",
+        "description": "You want to see the failure rate percentage for acquirer 'acq_7' over the last 24 hours based on the most recent data available.",
+        "reply_language": "English"
+      },
+      "mandarin": {
+        "question": "acq_7 过去24小时的失败率是多少？",
+        "status": "MessageStatus.COMPLETED",
+        "sql": "SELECT round(try_divide(100 * sum(`failed_payments`),sum(`payments`)), 1) AS `failure_rate_pct` FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_hourly` WHERE `acquirer_id` = 'acq_7' AND `hour_sgt` > ( SELECT max(`hour_sgt`) FROM `meridian_dev`.`dev_zhihan_tan_gold`.`acquirer_hourly` ) - INTERVAL 24 HOURS",
+        "rows": [
+          [
+            "1.2"
+          ]
+        ],
+        "text": "**acq_7** 在过去24小时的失败率是 **1.2%**。这次结果只有 **1** 行，表示在所查询的过去24小时汇总范围内，**acq_7** 的整体失败率为 **1.2%**。",
+        "description": "你想知道acq_7在过去24小时内的失败率百分比。",
+        "reply_language": "Mandarin"
+      },
+      "same_rows": true
+    }
+  ],
+  "checks": {
+    "same_rows_in_both_languages": true
+  },
+  "mandarin_reply_languages": [
+    "Mandarin"
+  ],
+  "status": "PASS"
+}
