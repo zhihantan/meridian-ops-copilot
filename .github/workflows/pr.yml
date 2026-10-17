@@ -36,8 +36,7 @@ jobs:
     concurrency: {group: ci-deployment, cancel-in-progress: false}   # one ephemeral deployment at a time
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}   # on behalf of meridian-ci (scripts/setup_github.sh)
       BUNDLE_VAR_ci_service_principal: ${{ secrets.DATABRICKS_CLIENT_ID }}   # the deploying principal is itself
       BUNDLE_VAR_notification_email: ${{ vars.NOTIFICATION_EMAIL }}          # not the principal's own user name
     steps:

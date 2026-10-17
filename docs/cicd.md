@@ -14,13 +14,19 @@ with the user, so parallel branches never touch each other's schemas or jobs).
 
 ## Setup (once)
 
-`scripts/setup_github.sh`, run by a repo admin: GitHub environments `ci`, `staging`, `prod` with the CI
-principal's host, client ID and a 90-day OAuth secret; a required reviewer on `prod`; branch protection on
-`main` requiring the `checks` and `integration` jobs.
+`scripts/setup_github.sh`, run by a repo admin (2026-10-17), sets up:
+- GitHub environments `ci`, `staging` and `prod`, each holding the host, the CI principal's application ID and a
+  90-day token issued on behalf of the CI principal;
+- a required reviewer on `prod`;
+- branch protection on `main` requiring the `checks` and `integration` jobs.
 
-Why OAuth M2M and not GitHub OIDC: a Databricks federation policy for GitHub OIDC is an account-level
-setting, and this workspace has no account admin. With one, set `DATABRICKS_AUTH_TYPE=github-oidc` and drop
-the secret.
+Why a token rather than OAuth M2M or GitHub OIDC:
+- An OAuth secret for the CI principal needs that principal's Service Principal Manager role, which this
+  workspace's admins do not hold.
+- A Databricks federation policy for GitHub OIDC is an account-level setting, and this workspace has no account
+  admin.
+
+With an account admin, prefer `DATABRICKS_AUTH_TYPE=github-oidc` and no stored credential.
 
 ## Gates that matter
 

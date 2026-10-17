@@ -17,8 +17,7 @@ jobs:
     concurrency: {group: staging, cancel-in-progress: false}
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}   # on behalf of meridian-ci (scripts/setup_github.sh)
       BUNDLE_VAR_ci_service_principal: ${{ secrets.DATABRICKS_CLIENT_ID }}   # the deploying principal is itself
       BUNDLE_VAR_notification_email: ${{ vars.NOTIFICATION_EMAIL }}          # not the principal's own user name
     steps:
@@ -36,12 +35,11 @@ jobs:
   prod:
     if: startsWith(github.ref, 'refs/tags/v') && vars.CI_READY == 'true'
     runs-on: ubuntu-latest
-    environment: prod   # required reviewer; OAuth M2M secret (a GitHub OIDC federation policy needs account admin)
+    environment: prod   # required reviewer; a token on behalf of meridian-ci (see scripts/setup_github.sh)
     concurrency: {group: prod, cancel-in-progress: false}
     env:
       DATABRICKS_HOST: ${{ secrets.DATABRICKS_HOST }}
-      DATABRICKS_CLIENT_ID: ${{ secrets.DATABRICKS_CLIENT_ID }}
-      DATABRICKS_CLIENT_SECRET: ${{ secrets.DATABRICKS_CLIENT_SECRET }}
+      DATABRICKS_TOKEN: ${{ secrets.DATABRICKS_TOKEN }}   # on behalf of meridian-ci (scripts/setup_github.sh)
       BUNDLE_VAR_ci_service_principal: ${{ secrets.DATABRICKS_CLIENT_ID }}   # the deploying principal is itself
       BUNDLE_VAR_notification_email: ${{ vars.NOTIFICATION_EMAIL }}          # not the principal's own user name
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
