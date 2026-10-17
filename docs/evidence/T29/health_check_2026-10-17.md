@@ -43,3 +43,20 @@ staging 1. Evidence written before this names the jobs as they were then; this i
 
 Merged jobs keep the original job's definition, so their run history continues (the ingest, export-logs, workflow
 setup and restore jobs). The container image Dockerfile (`app_layer/`) was removed with its build workflow.
+
+Verified after the consolidation (each changed job run once):
+
+| Target | Job | Result |
+|---|---|---|
+| dev | `meridian-ingest` | SUCCESS_WITH_FAILURES as designed: the pipeline, three checks, escalate and digest ran; the freshness check flagged dev's old data |
+| dev | `meridian-daily`, `meridian-ingest-sources`, `meridian-post-deploy` | SUCCESS |
+| dev | `meridian-recover` | SUCCESS both ways: `reprocess` (restore branch excluded), then `restore` of `gold.acquirer_status` to its current version (no data change) |
+| staging | `meridian-integration-test` | SUCCESS, all 10 tasks (16/16 scored; gold, checks and views refreshed) |
+| prod | `meridian-post-deploy` | SUCCESS; `obs.releases` has `deploy main 4298b30` by Eli |
+| prod | `meridian-daily` (6 tasks), `meridian-ingest-sources` (5 tasks) | SUCCESS |
+| prod | `meridian-ingest` | SUCCESS_WITH_FAILURES as designed: drift, freshness and PII coverage flagged the planted incident, the stale data and the untagged `secondary_email`; escalate and digest ran |
+
+Jobs in the workspace afterwards: dev 10, prod 10, staging 1 (21).
+
+Two of the CLI waits failed with "blocked by Databricks IP ACL" when the laptop's VPN dropped. The runs themselves
+completed in the workspace; their results above come from the Jobs API.
