@@ -1,14 +1,14 @@
 {
   "job": "meridian-integration-test",
-  "run_id": 316577986986982,
-  "deployed": "main (working tree before commit, 2026-10-17)",
+  "run_id": 896604315791882,
+  "deployed": "main@41b8819",
   "result": "SUCCESS",
-  "minutes": 6.5,
+  "minutes": 6.1,
   "tasks": [
     {
       "task": "prepare",
       "result": "SUCCESS",
-      "minutes": 0.6
+      "minutes": 0.7
     },
     {
       "task": "full_refresh",
@@ -18,17 +18,17 @@
     {
       "task": "land_incident",
       "result": "SUCCESS",
-      "minutes": 0.6
+      "minutes": 0.5
     },
     {
       "task": "update",
       "result": "SUCCESS",
-      "minutes": 2.2
+      "minutes": 2.0
     },
     {
       "task": "score",
       "result": "SUCCESS",
-      "minutes": 1.1
+      "minutes": 1.0
     }
   ],
   "score": {
@@ -37,7 +37,7 @@
     "checks": 16,
     "failed": []
   },
-  "anchor": "2026-10-17T10:00:00.000Z",
+  "anchor": "2026-10-17T11:00:00.000Z",
   "results": [
     {
       "task": "T03",

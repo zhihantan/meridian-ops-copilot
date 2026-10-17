@@ -18,7 +18,7 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T06b | PASS | `T06b/` | Lineage changelog, centralized log views, dated log export | |
 | T07 | PARTIAL | `T07/` | Development in the workspace: a Git folder, an isolated dev target per developer, deployed from the bundle UI; developers cannot write staging or prod | The timed first deployment from a Git folder is a rehearsal step. Local development and the Codespace were removed |
 | T08 | PASS | `T08/` | Unity Catalog secrets: per-secret READ, rotation without redeploy, audit | |
-| T09 | PARTIAL | `T09/` | Promotion inside the workspace: the staging integration job passes (16/16, 6.5 min) and fails on a rule-weakening branch; only admins deploy staging and prod | GitHub holds the code only, because its runners cannot reach the workspace. The prod release and the rollback from a Git folder are rehearsal steps |
+| T09 | PARTIAL | `T09/` | Promotion inside the workspace: the staging integration job passes (16/16, about 6 min) and fails on a rule-weakening branch; only admins deploy staging and prod | GitHub holds the code only, because its runners cannot reach the workspace. The prod release and the rollback from a Git folder are rehearsal steps |
 | T10 | PASS | `T10/` | Knowledge corpus by tier: files and a Slack history export | Slack is a synthetic export |
 | T11 | PASS | `T11/` | Sources and connector status | No managed Slack connector |
 | T12 | PASS | `T12/` | Incremental kb_sync: an edit touches one document, a delete removes its chunks, a full refresh rebuilds | |
