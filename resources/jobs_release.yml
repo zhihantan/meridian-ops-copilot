@@ -1,9 +1,9 @@
-# Release log (T09): CI runs this after each deploy or rollback.
+# Release log (T09): run after each deploy or rollback, from the bundle UI, by the admin who deployed.
 resources:
   jobs:
     release_log_job:
       name: meridian-release-log
-      description: "Writes one obs.releases row per deployment or rollback (run by CI)."
+      description: "Writes one obs.releases row per deployment or rollback (run after deploying from the bundle UI)."
       tags: {project: meridian-poc}
       parameters:
         - {name: kind, default: deploy}

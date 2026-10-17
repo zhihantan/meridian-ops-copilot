@@ -1,48 +1,50 @@
-# CI/CD, GitOps and rollback (T09)
+# Promotion from dev to prod, inside the workspace (T09)
 
-| Event | Workflow | What runs | Identity |
+GitHub holds the code, assets and bundle. Every deployment happens inside the workspace, from a Git folder, with
+the bundle UI. The workspace's IP access list blocks GitHub's hosted runners (observed 2026-10-17), so no
+deployment runs from GitHub.
+
+| Step | Who | Where | What |
 |---|---|---|---|
-| Pull request to `main` | `pr.yml` `checks` | lockfiles current (`uv lock --check`), hash-checked install, ruff, pytest, gitleaks secret scan | GitHub runner |
-| Pull request to `main` | `pr.yml` `integration` | deploy an ephemeral `ci` target (staging catalog, `ci` schemas), land fresh synthetic data in the demo order, run the pipeline, `score_pipeline.py` against `planted.json`, destroy | `meridian-ci` (OAuth M2M) |
-| Merge to `main` | `deploy.yml` `staging` | deploy `staging`, the same integration test, log to `obs.releases` | `meridian-ci` |
-| Tag `v*` | `deploy.yml` `prod` | waits for the `prod` environment reviewer, deploys `prod`, release notes from commits, log to `obs.releases` | `meridian-ci` |
-| Manual, input a tag | `rollback.yml` | checkout the tag, deploy `prod`, reprocess quarantined rows with the restored rules, log the rollback | `meridian-ci` |
-| Tag `v*` or manual | `image.yml` | build `app_layer/Dockerfile`, push to GHCR tagged with the git SHA and semver | `GITHUB_TOKEN` |
+| Develop | Fay | her Git folder, `dev` target | deploy her own prefixed copy, run it, commit, push, open a pull request |
+| Review | Eli | GitHub | read the pull request |
+| Integration test | Eli | a Git folder on the branch, `staging` target | deploy to staging, then run `meridian-integration-test` (below). Any miss fails the run |
+| Merge | Eli | GitHub | merge only if the integration run passed |
+| Release | Eli | a Git folder on `main`, `prod` target | deploy prod, tag the commit, then run `meridian-release-log` (kind `deploy`) |
+| Roll back | Eli | the same Git folder, checked out at the previous tag | deploy prod again, run `meridian-release-log` (kind `rollback`), then reprocess |
 
-Developers deploy their own `dev` target from their machines (development mode prefixes every resource
-with the user, so parallel branches never touch each other's schemas or jobs).
-
-## Setup (once)
-
-`scripts/setup_github.sh`, run by a repo admin (2026-10-17), sets up:
-- GitHub environments `ci`, `staging` and `prod`, each holding the host, the CI principal's application ID and a
-  90-day token issued on behalf of the CI principal;
-- a required reviewer on `prod`;
-- branch protection on `main` requiring the `checks` and `integration` jobs.
-
-Why a token rather than OAuth M2M or GitHub OIDC:
-- An OAuth secret for the CI principal needs that principal's Service Principal Manager role, which this
-  workspace's admins do not hold.
-- A Databricks federation policy for GitHub OIDC is an account-level setting, and this workspace has no account
-  admin.
-
-With an account admin, prefer `DATABRICKS_AUTH_TYPE=github-oidc` and no stored credential.
+`meridian-integration-test` (BUILD, `resources/jobs_integration.yml`) works in five steps:
+1. It generates fresh synthetic data and lands the baseline.
+2. It runs a full refresh of the pipeline.
+3. It lands the incident batches.
+4. It runs a pipeline update.
+5. It scores every planted defect against `planted.json`.
 
 ## Gates that matter
 
-- The integration test is the contract: a change that lets a planted bad row into silver, or quarantines a
-  good one, fails `score_pipeline.py`, so the pull request cannot merge.
-- A rule change that is meant to change outcomes updates `config/scenario.yaml` and the generator in the same
-  pull request, so `planted.json` describes the new expected behavior.
+- **The integration test is the contract.** A change that lets a planted bad row into silver, or quarantines a
+  good one, fails `meridian-integration-test`, so it is not promoted. The checks are in
+  `src/meridian/common/score.py`, the same ones `scripts/score_pipeline.py` runs.
+- **Rule changes travel with their test data.** A rule change that is meant to change outcomes updates
+  `config/scenario.yaml` and the generator in the same pull request, so `planted.json` describes the new expected
+  behavior.
+- **Prod is admin-only.** Only meridian-admin deploys staging and prod. Both run as the release principal
+  `meridian-ci`, so developers never hold write access to prod data.
+- **The integration job exists only in staging.** It rewrites the landing folders and the pipeline's tables, and
+  it refuses to run on any other target.
 
 ## Limits to state plainly
 
-- Rollback is redeploying a known-good tag; it is not a button.
-- Code rollback does not roll back data. Rows quarantined by a bad rule stay quarantined until the
-  reprocess step runs them through the restored rules; tables written wrongly need a refresh from bronze
-  (pipeline tables) or `RESTORE` (ordinary tables), as in `docs/runbooks/bad_backfill.md`.
-- Removing a resource from the bundle destroys it on the next deploy. A deleted pipeline keeps its tables by
+- **No automatic merge-to-deploy.** Promotion is a deliberate act by an admin, recorded in `obs.releases`. A CI
+  service could run the same steps only from a runner that can reach the workspace: inside its network, or from an
+  allowed address.
+- **Rollback is redeploying a known-good tag.** It is not a button.
+- **Code rollback does not roll back data.**
+  - Rows quarantined by a bad rule stay quarantined until the reprocess job runs them through the restored rules.
+  - Tables written wrongly need a refresh from bronze (pipeline tables) or `RESTORE` (ordinary tables), as in
+    `docs/runbooks/bad_backfill.md`.
+- **Removing a resource from the bundle destroys it on the next deploy.** A deleted pipeline keeps its tables by
   default since 2026-09-25, but they stay frozen (no updates) until a pipeline adopts them; the API's
   `cascade=true` deletes them.
-- One GitHub account in this POC: CODEOWNERS is listed, not enforced, and the `prod` reviewer can approve their
-  own deployment. With a team, require code-owner review and prevent self-review.
+- **One person plays both roles in this POC.** Fay and Eli are the same presenter, so the separation of duties is
+  shown through group permissions (meridian-de versus meridian-admin), not by two people.

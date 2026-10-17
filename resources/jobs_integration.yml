@@ -1,0 +1,51 @@
+# The integration test inside the workspace (T09, BUILD), staging only: fresh synthetic data in the demo's landing
+# order, the pipeline from a full refresh, then every planted defect scored against planted.json. A failed run
+# blocks the promotion: Eli deploys a branch to staging from a Git folder (bundle UI), runs this job, and deploys
+# prod only after it passes. It rewrites staging's landing folders and pipeline tables, so no other target has it.
+targets:
+  staging:
+    resources:
+      jobs:
+        integration_test_job:
+          name: meridian-integration-test
+          description: "T09. Fresh synthetic data, full refresh, incident batches, update, then every planted defect scored. Fails on any miss. Staging only."
+          tags: {project: meridian-poc}
+          max_concurrent_runs: 1
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          email_notifications:
+            on_failure: ["${var.notification_email}"]
+          tasks:
+            - task_key: prepare
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/integration.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --target, "${bundle.target}",
+                             --landing-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}",
+                             --run-id, "{{job.run_id}}", --step, prepare]
+            - task_key: full_refresh
+              depends_on: [{task_key: prepare}]
+              pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}", full_refresh: true}
+            - task_key: land_incident
+              depends_on: [{task_key: full_refresh}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/integration.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --target, "${bundle.target}",
+                             --landing-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}",
+                             --run-id, "{{job.run_id}}", --step, land_incident]
+            - task_key: update
+              depends_on: [{task_key: land_incident}]
+              pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}"}
+            - task_key: score
+              depends_on: [{task_key: update}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/integration.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --target, "${bundle.target}",
+                             --landing-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}",
+                             --run-id, "{{job.run_id}}", --step, score]

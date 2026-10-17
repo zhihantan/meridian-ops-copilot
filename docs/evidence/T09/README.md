@@ -1,28 +1,37 @@
-# T09 multi-developer CI/CD, GitOps and rollback (2026-10-15)
+# T09 promotion from dev to prod, inside the workspace (2026-10-15, reworked 2026-10-17), PARTIAL
+
+GitHub holds the code, assets and bundle. Every deployment happens inside the workspace, from a Git folder with the
+bundle UI (`docs/cicd.md`). The workspace's IP access list blocks GitHub's hosted runners. The first GitHub deploy
+was refused before it could sign in, so the GitHub workflows were removed on 2026-10-17.
 
 | Done when | Status | Evidence |
 |---|---|---|
-| Workflows exist: PR checks and integration, staging on merge, prod on tag with approval, rollback, image | PASS | `.github/workflows/{pr,deploy,rollback,image}.yml`, `docs/cicd.md` |
-| Staging deploys and runs the integration test | PASS | `scripts/ci_integration.sh staging` against the deployed staging target: fresh data, baseline first, full refresh, then incident, bad rows and drift; 16/16 (`T03/score_staging.json`), 7.5 min end to end. Run from a laptop until GitHub has the CI credential |
-| Both developers' branches deploy without interference | OPEN | development mode prefixes per user; PR flow runs once GitHub is set up |
-| Staging blocks a rule-weakening PR | OPEN | the `integration` job fails `score_pipeline.py`; PR flow runs once GitHub is set up |
-| Prod needs approval | OPEN | `prod` environment reviewer, set by `scripts/setup_github.sh` |
-| Rollback under 10 minutes, workflow run URLs saved | OPEN | `rollback.yml`; drill once GitHub is set up |
+| The integration test runs inside the workspace | PASS | `integration_pass.json`: `meridian-integration-test` on staging, 16 of 16 planted defects handled as the contracts say, 6.5 minutes |
+| Staging blocks a rule-weakening change | see `integration_weakened.json` | The same job on a branch that lets negative amounts into silver |
+| Only admins deploy staging and prod | PASS | `T07/prod_root_acl.json`: only admins and the release principal can write the deployment folders; developers can read |
+| A prod release from a Git folder, logged | OPEN | Rehearsal step: Eli deploys `main` to prod from the bundle UI, then runs `meridian-release-log` |
+| A rollback in under 10 minutes | OPEN | Rehearsal step: deploy the previous tag from the Git folder, timed |
 
-GitHub setup (2026-10-17, `scripts/setup_github.sh`):
-- Environments ci, staging and prod, with the presenter as prod's required reviewer.
-- Branch protection on main requires the `checks` and `integration` jobs.
-- `CI_READY` is on.
+The job (BUILD, `resources/jobs_integration.yml`, `src/meridian/jobs/integration.py`) runs these tasks:
+1. It generates fresh synthetic data with the repo's generator, into the run's folder on the exports volume.
+2. It clears the landing folders and lands the baseline.
+3. It runs a full refresh.
+4. It lands the incident, bad-row and drift batches.
+5. It runs an update.
+6. It scores with `src/meridian/common/score.py`, the same checks as `scripts/score_pipeline.py`.
 
-**Deviation: a token, not OAuth M2M.** CI authenticates with a 90-day token issued on behalf of `meridian-ci`, stored
-only in the GitHub environments (`DATABRICKS_TOKEN`). OAuth M2M was the plan, but a workspace admin here cannot
-create an OAuth secret for `meridian-ci`: the workspace refused even to list its secrets, because creating one needs
-the principal's Service Principal Manager role, which only an account admin or an existing manager can grant. GitHub
-OIDC federation needs an account admin too. The persona principals, which the presenter created, do have OAuth
-secrets. The token expires after 90 days, the workspace maximum; rerun the script to replace it.
+It exists only in staging, and it refuses to run on any other target.
+
+Removed on 2026-10-17:
+- **GitHub workflows:** pull request checks, ephemeral `ci` deployments, staging and prod deploys, rollback and the
+  image build.
+- **The GitHub CI setup script.**
+- **The per-PR `ci` target.**
+
+The CI token those workflows would have used is listed for revocation in the session report.
 
 Design notes:
-- Pull requests deploy an ephemeral `ci` target (staging catalog, `[ci]` names, `ci_` schemas) and destroy it afterwards.
-- Staging and prod share one workspace; pipeline names must be unique, so staging's pipeline is `[staging] meridian-dlc`.
-- Staging and ci pause triggers and swap the table-update trigger for a paused schedule: a fresh deployment has no
-  `silver.payments` to watch, and CI drives every run there.
+- **Shared workspace.** Staging and prod share one workspace, and pipeline names must be unique, so staging's
+  pipeline is `[staging] meridian-dlc`.
+- **Paused triggers in staging.** Staging pauses triggers and swaps the table-update trigger for a paused schedule:
+  a fresh deployment has no `silver.payments` to watch, and the integration job drives every run there.

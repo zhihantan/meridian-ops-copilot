@@ -10,7 +10,7 @@ around it, the BUILD part is named, with its evidence.
 | No managed Slack message connector (Slack is paused in this POC) | The knowledge base reads a Slack history export landed in a volume, the shape a puller writes (BUILD) | T10, T11 |
 | No automatic quarantine table | Quarantine and severity routing are compiled from data contracts (BUILD) | T03 |
 | No single graph of cross-job dependencies and triggers | Generated from the bundle YAML (BUILD) | T06 |
-| CI cannot use OAuth M2M here: a workspace admin cannot create OAuth secrets for a service principal they do not manage, and GitHub OIDC federation needs an account admin | GitHub Actions authenticate with a 90-day token issued on behalf of the CI principal, kept only in the GitHub environments | T09 |
+| No CI runner reaches this workspace: its IP access list blocks GitHub's hosted runners | GitHub holds the code; promotion happens inside the workspace. An admin deploys from a Git folder in the bundle UI, and a staging job runs the integration test and fails on any planted defect (BUILD) | T09 |
 | Data Classification runs on a schedule, not instantly, and does not cover free text. Here it had tagged nothing after about 39 hours | ABAC keys on classification tags, so a tag from any source protects the column; prod's tags come from the contracts; the PII coverage check flags a column until it is tagged; free text is redacted in the pipeline | T04, T05 |
 | Lineage is automatic, but a changelog is not; DML from a job into a streaming table is not a lineage write edge; lineage lags | A nightly lineage changelog (BUILD); table history names the writing job and run at once | T06, T06b |
 | `RESTORE` is not supported on pipeline streaming tables | Recovery is a targeted delete and refresh, or a full refresh; RESTORE only on ordinary Delta tables | T06 |
@@ -44,4 +44,5 @@ around it, the BUILD part is named, with its evidence.
   - streaming and continuous ingestion at volume;
   - cross-account networking;
   - multi-instance agent scaling;
-  - a full-depth retrieval benchmark (the golden set is small, with dev and test splits).
+  - a full-depth retrieval benchmark (the golden set is small, with dev and test splits);
+  - development from a local IDE over Databricks Connect: this POC develops only in the workspace.

@@ -1,4 +1,4 @@
-"""Release log (T09): one obs.releases row per deployment, written by CI after it deploys.
+"""Release log (T09): one obs.releases row per deployment or rollback, run after deploying from the bundle UI.
 
     release_log.py --catalog C --bronze-schema S --kind deploy|rollback --ref v1.2.0 --sha <git sha> --actor <user> --run-url <url>
 """
@@ -27,7 +27,7 @@ def main() -> None:
     table = n.table("obs", "releases")
     spark.sql(f"""CREATE TABLE IF NOT EXISTS {table}
                   (released_at TIMESTAMP, kind STRING, ref STRING, sha STRING, actor STRING, ci_run_url STRING,
-                   job_run_id STRING) COMMENT 'Deployments and rollbacks, written by CI (T09)'""")
+                   job_run_id STRING) COMMENT 'Deployments and rollbacks, one row per release (T09)'""")
     row = [(args.kind, args.ref, args.sha, args.actor, args.run_url, args.run_id)]
     (spark.createDataFrame(row, "kind STRING, ref STRING, sha STRING, actor STRING, ci_run_url STRING, job_run_id STRING")
      .selectExpr("current_timestamp() AS released_at", "*").write.mode("append").saveAsTable(table))

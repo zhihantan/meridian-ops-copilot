@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 
 MATRIX = Path(__file__).resolve().parents[1] / "config" / "access_matrix.csv"
-TARGETS = {"dev", "staging", "ci", "prod"}
+TARGETS = {"dev", "staging", "prod"}
 TYPES = {"CATALOG", "SCHEMA", "TABLE", "SECRET", "VOLUME", "FUNCTION"}
 
 

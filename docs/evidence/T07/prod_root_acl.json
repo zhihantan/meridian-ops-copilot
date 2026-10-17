@@ -1,0 +1,72 @@
+{
+  "checked_at": "2026-10-17T11:04:22.900711+00:00",
+  "folders": {
+    "prod deployment folder": [
+      {
+        "principal": "meridian-ci (release principal)",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group meridian-admin",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group meridian-de",
+        "levels": [
+          "CAN_READ"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group admins",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": true
+      }
+    ],
+    "staging deployment folder": [
+      {
+        "principal": "meridian-ci (release principal)",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group meridian-admin",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group meridian-de",
+        "levels": [
+          "CAN_READ"
+        ],
+        "inherited": false
+      },
+      {
+        "principal": "group admins",
+        "levels": [
+          "CAN_MANAGE"
+        ],
+        "inherited": true
+      }
+    ]
+  },
+  "writers": [
+    "group admins",
+    "group meridian-admin",
+    "meridian-ci (release principal)"
+  ],
+  "meridian_de_can_write": false,
+  "status": "PASS"
+}

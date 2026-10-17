@@ -16,9 +16,9 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T05b | PASS | `T05b/` | AI digest of quality issues; counts match | Alerts go to email and logs; Slack paused |
 | T06 | PASS | `T06/` | FILE_ARRIVAL, TABLE and PERIODIC triggers in prod; bad backfill found through table history and lineage, recovered to 16/16 | Recovery is targeted delete and refresh (no RESTORE on streaming tables) |
 | T06b | PASS | `T06b/` | Lineage changelog, centralized log views, dated log export | |
-| T07 | PASS | `T07/` | Local development with Databricks Connect on serverless; parity table; Codespace devcontainer | Gus's Codespace secrets are pending (presenter) |
+| T07 | PARTIAL | `T07/` | Development in the workspace: a Git folder, an isolated dev target per developer, deployed from the bundle UI; developers cannot write staging or prod | The timed first deployment from a Git folder is a rehearsal step. Local development and the Codespace were removed |
 | T08 | PASS | `T08/` | Unity Catalog secrets: per-secret READ, rotation without redeploy, audit | |
-| T09 | PARTIAL | `T09/` | Workflows exist; the staging integration test passes (16/16) | PR, approval and rollback runs wait for `scripts/setup_github.sh` (presenter) |
+| T09 | PARTIAL | `T09/` | Promotion inside the workspace: the staging integration job passes (16/16, 6.5 min) and fails on a rule-weakening branch; only admins deploy staging and prod | GitHub holds the code only, because its runners cannot reach the workspace. The prod release and the rollback from a Git folder are rehearsal steps |
 | T10 | PASS | `T10/` | Knowledge corpus by tier: files and a Slack history export | Slack is a synthetic export |
 | T11 | PASS | `T11/` | Sources and connector status | No managed Slack connector |
 | T12 | PASS | `T12/` | Incremental kb_sync: an edit touches one document, a delete removes its chunks, a full refresh rebuilds | |

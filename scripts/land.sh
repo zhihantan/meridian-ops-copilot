@@ -33,7 +33,7 @@ PY
   done
   exit 0
 fi
-src="${data}/${batch}"   # DATA_DIR: another generator output (the CI integration test)
+src="${data}/${batch}"   # DATA_DIR: another generator output
 [ -d "$src" ] || { echo "no generated batch at $src (run make gen-data)" >&2; exit 1; }
 
 eval "$(uv run python scripts/volumes.py "$target")"
