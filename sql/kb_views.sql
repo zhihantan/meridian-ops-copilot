@@ -1,4 +1,4 @@
--- Knowledge provenance views (T21), applied by meridian-export-audit before each export. Separate from
+-- Knowledge provenance views (T21), applied by meridian-daily (its kb_views task) before the audit export. Separate from
 -- obs_views.sql because they read the kb schema, which only targets with a knowledge base have (dev and prod).
 
 -- Provenance of every knowledge document (T21): its version and last sync from kb.docs, who last changed the

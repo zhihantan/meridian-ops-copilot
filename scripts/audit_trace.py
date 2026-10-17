@@ -2,7 +2,7 @@
 
 Asks a few questions as a persona, through the retriever and answer step the copilot uses: one answered from a
 file, one from Slack, and one from an approved correction (T20) when there is one. Each cited document is looked up
-in obs.v_kb_changes. Then today's audit export must exist on the exports volume (run meridian-export-audit first).
+in obs.v_kb_changes. Then today's audit export must exist on the exports volume (run meridian-daily first).
 Writes docs/evidence/T21/trace_<target>.json.
 
     uv run --group dbx --group agent python scripts/audit_trace.py --target dev

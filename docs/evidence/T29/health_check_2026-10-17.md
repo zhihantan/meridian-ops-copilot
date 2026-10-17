@@ -24,3 +24,22 @@ Every Meridian asset was listed in dev, staging and prod and checked. Assets wit
 | `_parity` and `_parse_test` folders in the dev exports volume | Scratch files from the removed parity check and a one-off parsing test |
 
 Jobs per target after clean-up: dev 23, prod 22, staging 5 (was 23, 23 and 24).
+
+## Consolidation (later the same evening): 50 jobs to 21
+
+The jobs were merged so that each job is one thing an operator would run or watch. Dev and prod have 10 each,
+staging 1. Evidence written before this names the jobs as they were then; this is the mapping.
+
+| Now | Was |
+|---|---|
+| `meridian-ingest` (file arrival): pipeline, quality checks, escalation, AI digest | `meridian-ingest`, `meridian-quality-checks`, `meridian-dq-digest` |
+| `meridian-daily` (00:30 SGT): views, log and audit exports, lineage changelog, finance export | `meridian-export-logs`, `meridian-export-audit`, `meridian-lineage-changelog`, `meridian-merchant-export` |
+| `meridian-ingest-sources` (hourly, generated): one task per source in `config/sources.yaml` | five generated `meridian-ingest-<source>` jobs |
+| `meridian-post-deploy` (after each deploy): governed procedures, `kb.workflows` seed, release record | `meridian-workflow-setup`, `meridian-release-log` |
+| `meridian-recover` (manual, action `restore` or `reprocess`) | `meridian-restore-table`, `meridian-reprocess-quarantine` |
+| `meridian-integration-test` (staging only): also refreshes gold, checks and views for staging's dashboard | `meridian-integration-test`, and staging's copies of the gold refresh, quality checks, views and release log |
+| unchanged | `meridian-acquirer-status`, `meridian-kb-sync`, `meridian-kb-sweep`, `meridian-backfill-fx-correction`, `meridian-demo-reset` |
+| removed after their measurements | `meridian-kb-freshness-probe` (T14), `meridian-secret-probe` (T08) |
+
+Merged jobs keep the original job's definition, so their run history continues (the ingest, export-logs, workflow
+setup and restore jobs). The container image Dockerfile (`app_layer/`) was removed with its build workflow.

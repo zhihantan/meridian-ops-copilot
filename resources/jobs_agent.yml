@@ -1,16 +1,22 @@
-# Governed procedures: the workflow (T18) and feedback and corrections (T20), SQL SECURITY DEFINER, applied through the
-# SQL warehouse as this job's identity, and kb.workflows seeded from config/workflows. Run once per target after
-# deploy, after kb_sync has run once (it creates the knowledge tables, kb.corrections among them).
-# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
-# refresh, observability views, release log).
+# Post-deploy (T09, T18, T20): run once after each deploy of a target, from the bundle UI. It applies the governed
+# procedures (the workflow, feedback and corrections; SQL SECURITY DEFINER, through the SQL warehouse as this job's
+# identity), seeds kb.workflows from config/workflows, then records the release in obs.releases. On a fresh target,
+# run it after kb_sync has run once (that creates the knowledge tables, kb.corrections among them).
+# Dev and prod only: staging runs the integration test alone (resources/jobs_integration.yml).
 targets:
   dev:
     resources:
       jobs: &agent_jobs
         workflow_setup_job:
-          name: meridian-workflow-setup
-          description: "T18, T20: create the governed workflow and correction procedures; seed kb.workflows from config/workflows."
+          name: meridian-post-deploy
+          description: "After each deploy: create the governed workflow and correction procedures, seed kb.workflows, record the release."
           tags: {project: meridian-poc}
+          parameters:
+            - {name: kind, default: deploy}
+            - {name: ref, default: ""}
+            - {name: sha, default: ""}
+            - {name: actor, default: ""}
+            - {name: run_url, default: ""}
           environments:
             - environment_key: default
               spec:
@@ -29,6 +35,16 @@ targets:
                              --scenario, "${workspace.file_path}/config/scenario.yaml",
                              --warehouse-id, "${var.warehouse_id}",
                              --principal, "ava=${var.ava_principal}", --principal, "ben=${var.ben_principal}",
+                             --run-id, "{{job.run_id}}"]
+            - task_key: release
+              depends_on: [{task_key: setup}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/release_log.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --kind, "{{job.parameters.kind}}",
+                             --ref, "{{job.parameters.ref}}", --sha, "{{job.parameters.sha}}",
+                             --actor, "{{job.parameters.actor}}", --run-url, "{{job.parameters.run_url}}",
                              --run-id, "{{job.run_id}}"]
   prod:
     resources:

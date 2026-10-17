@@ -1,87 +1,13 @@
-# Orchestration for the governed pipeline (T03, T05, T06): file-arrival, table-update and cron
-# triggers, task and cross-job dependencies, and an AT_LEAST_ONE_FAILED escalation path.
-# Development mode pauses every trigger; staging and prod run them.
-resources:
-  jobs:
-    quality_checks_job:
-      name: meridian-quality-checks
-      description: "Drift, freshness and PII coverage checks; escalates to Slack when any check fails."
-      tags: {project: meridian-poc}
-      environments:
-        - environment_key: default
-          spec:
-            environment_version: "${var.serverless_environment_version}"
-            dependencies: ["pyyaml>=6.0"]
-      # Checks fail on purpose, so serverless auto-optimization (which retries failed tasks) is off.
-      # Each failing check emails, and the escalate task posts the run's breaches to Slack. The run
-      # ends SUCCESS_WITH_FAILURES, which job-level on_failure does not cover, so the emails are per task.
-      email_notifications:
-        on_failure: ["${var.notification_email}"]
-      tasks:
-        - task_key: drift_check
-          environment_key: default
-          disable_auto_optimization: true
-          email_notifications: {on_failure: ["${var.notification_email}"]}
-          spark_python_task:
-            python_file: ../src/meridian/jobs/quality_checks.py
-            parameters: [--check, drift, --fail-on-breach, --catalog, "${var.catalog}",
-                         --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
-        - task_key: freshness_check
-          environment_key: default
-          disable_auto_optimization: true
-          email_notifications: {on_failure: ["${var.notification_email}"]}
-          spark_python_task:
-            python_file: ../src/meridian/jobs/quality_checks.py
-            parameters: [--check, freshness, --fail-on-breach, --catalog, "${var.catalog}",
-                         --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
-        - task_key: pii_coverage
-          environment_key: default
-          disable_auto_optimization: true
-          email_notifications: {on_failure: ["${var.notification_email}"]}
-          spark_python_task:
-            python_file: ../src/meridian/jobs/quality_checks.py
-            parameters: [--check, pii_coverage, --fail-on-breach, --catalog, "${var.catalog}",
-                         --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
-        - task_key: escalate
-          depends_on: [{task_key: drift_check}, {task_key: freshness_check}, {task_key: pii_coverage}]
-          run_if: AT_LEAST_ONE_FAILED
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/escalate.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src",
-                         --run-id, "{{job.run_id}}", --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
-
-    gold_refresh_job:
-      name: meridian-acquirer-status
-      description: "Table-update trigger: rebuild gold.acquirer_status whenever silver.payments changes."
-      tags: {project: meridian-poc}
-      max_concurrent_runs: 1
-      trigger: ${var.acquirer_status_trigger}  # table update on silver.payments; see databricks.yml
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: acquirer_status
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/acquirer_status.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src",
-                         --run-id, "{{job.run_id}}"]
-
-# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
-# refresh, observability views, release log).
+# Orchestration for the governed pipeline (T03, T05, T06): file-arrival and table-update triggers, task
+# dependencies, an AT_LEAST_ONE_FAILED escalation path, and the AI digest. Development mode pauses every trigger;
+# prod runs them. Dev and prod only: staging runs the integration test alone (resources/jobs_integration.yml).
 targets:
   dev:
     resources:
       jobs: &dlc_jobs
         ingest_job:
           name: meridian-ingest
-          description: "Event-driven: a new payments file runs the pipeline, then the quality checks."
+          description: "Event-driven: a new payments file runs the pipeline, the quality checks, the escalation and the AI digest."
           tags: {project: meridian-poc}
           max_concurrent_runs: 1
           trigger:
@@ -95,33 +21,83 @@ targets:
           email_notifications:
             on_failure: ["${var.notification_email}"]
             on_duration_warning_threshold_exceeded: ["${var.notification_email}"]
-          tasks:
-            - task_key: refresh_pipeline
-              pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}"}
-            - task_key: quality_checks
-              depends_on: [{task_key: refresh_pipeline}]
-              run_job_task: {job_id: "${resources.jobs.quality_checks_job.id}"}
-
-        reprocess_quarantine_job:
-          name: meridian-reprocess-quarantine
-          description: "Manual: re-run quarantined rows through the current contract rules (idempotent)."
-          tags: {project: meridian-poc}
-          parameters:
-            - {name: rule, default: ""}
-            - {name: since_hours, default: "0"}
           environments:
             - environment_key: default
               spec:
                 environment_version: "${var.serverless_environment_version}"
                 dependencies: ["pyyaml>=6.0"]
+          # Checks fail on purpose, so serverless auto-optimization (which retries failed tasks) is off for them.
+          # Each failing check emails, the escalate task posts the run's breaches to Slack, and the digest
+          # summarizes quarantine with a pinned model. A run with a breach ends SUCCESS_WITH_FAILURES, which
+          # job-level on_failure does not cover, so the check emails are per task.
           tasks:
-            - task_key: reprocess
+            - task_key: refresh_pipeline
+              pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}"}
+            - task_key: drift_check
+              depends_on: [{task_key: refresh_pipeline}]
+              environment_key: default
+              disable_auto_optimization: true
+              email_notifications: {on_failure: ["${var.notification_email}"]}
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, drift, --fail-on-breach, --catalog, "${var.catalog}",
+                             --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: freshness_check
+              depends_on: [{task_key: refresh_pipeline}]
+              environment_key: default
+              disable_auto_optimization: true
+              email_notifications: {on_failure: ["${var.notification_email}"]}
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, freshness, --fail-on-breach, --catalog, "${var.catalog}",
+                             --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: pii_coverage
+              depends_on: [{task_key: refresh_pipeline}]
+              environment_key: default
+              disable_auto_optimization: true
+              email_notifications: {on_failure: ["${var.notification_email}"]}
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, pii_coverage, --fail-on-breach, --catalog, "${var.catalog}",
+                             --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: escalate
+              depends_on: [{task_key: drift_check}, {task_key: freshness_check}, {task_key: pii_coverage}]
+              run_if: AT_LEAST_ONE_FAILED
               environment_key: default
               spark_python_task:
-                python_file: ../src/meridian/jobs/reprocess_quarantine.py
+                python_file: ../src/meridian/jobs/escalate.py
                 parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                              --src-dir, "${workspace.file_path}/src",
-                             --rule, "{{job.parameters.rule}}", --since-hours, "{{job.parameters.since_hours}}",
+                             --run-id, "{{job.run_id}}", --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
+            - task_key: digest
+              depends_on: [{task_key: drift_check}, {task_key: freshness_check}, {task_key: pii_coverage}]
+              run_if: ALL_DONE
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/dq_digest.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}",
+                             --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
+
+        gold_refresh_job:
+          name: meridian-acquirer-status
+          description: "Table-update trigger: rebuild gold.acquirer_status whenever silver.payments changes."
+          tags: {project: meridian-poc}
+          max_concurrent_runs: 1
+          trigger: ${var.acquirer_status_trigger}  # table update on silver.payments; see databricks.yml
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: acquirer_status
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/acquirer_status.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src",
                              --run-id, "{{job.run_id}}"]
 
         bad_backfill_job:
@@ -142,43 +118,46 @@ targets:
                              --src-dir, "${workspace.file_path}/src",
                              --days-ago, "{{job.parameters.days_ago}}", --run-id, "{{job.run_id}}"]
 
+        # One recovery job, run as the deploying principal so no person needs standing MODIFY on prod.
+        # action=restore: RESTORE an ordinary Delta table to a version (refuses pipeline tables).
+        # action=reprocess: re-run quarantined rows through the current contract rules (idempotent).
         restore_table_job:
-          name: meridian-restore-table
-          description: "Runbook: RESTORE an ordinary Delta table to a version, as the deploying principal (refuses pipeline tables)."
+          name: meridian-recover
+          description: "Runbook: restore an ordinary Delta table to a version (action restore), or re-run quarantined rows through the current rules (action reprocess)."
           tags: {project: meridian-poc}
           parameters:
+            - {name: action, default: restore}
             - {name: table, default: gold.acquirer_status}
             - {name: version, default: ""}
+            - {name: rule, default: ""}
+            - {name: since_hours, default: "0"}
           environments:
             - environment_key: default
-              spec: {environment_version: "${var.serverless_environment_version}"}
+              spec:
+                environment_version: "${var.serverless_environment_version}"
+                dependencies: ["pyyaml>=6.0"]
           tasks:
+            - task_key: is_restore
+              condition_task: {op: EQUAL_TO, left: "{{job.parameters.action}}", right: restore}
             - task_key: restore
+              depends_on: [{task_key: is_restore, outcome: "true"}]
               environment_key: default
               spark_python_task:
                 python_file: ../src/meridian/jobs/restore_table.py
                 parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                              --src-dir, "${workspace.file_path}/src", --table, "{{job.parameters.table}}",
                              --version, "{{job.parameters.version}}", --run-id, "{{job.run_id}}"]
-
-        daily_digest_job:
-          name: meridian-dq-digest
-          description: "Cron 08:00 SGT: AI digest of quarantined rows to Slack (flagged for human review)."
-          tags: {project: meridian-poc}
-          schedule:
-            quartz_cron_expression: "0 0 8 * * ?"
-            timezone_id: Asia/Singapore
-          environments:
-            - environment_key: default
-              spec: {environment_version: "${var.serverless_environment_version}"}
-          tasks:
-            - task_key: digest
+            - task_key: is_reprocess
+              condition_task: {op: EQUAL_TO, left: "{{job.parameters.action}}", right: reprocess}
+            - task_key: reprocess
+              depends_on: [{task_key: is_reprocess, outcome: "true"}]
               environment_key: default
               spark_python_task:
-                python_file: ../src/meridian/jobs/dq_digest.py
+                python_file: ../src/meridian/jobs/reprocess_quarantine.py
                 parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}",
-                             --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
+                             --src-dir, "${workspace.file_path}/src",
+                             --rule, "{{job.parameters.rule}}", --since-hours, "{{job.parameters.since_hours}}",
+                             --run-id, "{{job.run_id}}"]
   prod:
     resources:
       jobs: *dlc_jobs

@@ -37,7 +37,7 @@ around it, the BUILD part is named, with its evidence.
   not made as the persona. Only the MCP calls carry the persona's token.
 - **Cost.** The workspace is shared with other projects. The POC's cost counts only Meridian's own resources, and
   the shared SQL warehouse is an estimate.
-- **Platform items not built.** No Databricks-hosted container registry (GHCR is used), no native Vault, no native
+- **Platform items not built.** No container image in this POC (no Databricks-hosted registry), no native Vault, no native
   video processing.
 - **Not demonstrated:**
   - production data volumes and job counts (a small, config-driven pattern with generated jobs stands in);

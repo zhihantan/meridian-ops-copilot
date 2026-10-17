@@ -10,8 +10,8 @@ deployment runs from GitHub.
 | Review | Eli | GitHub | read the pull request |
 | Integration test | Eli | a Git folder on the branch, `staging` target | deploy to staging, then run `meridian-integration-test` (below). Any miss fails the run |
 | Merge | Eli | GitHub | merge only if the integration run passed |
-| Release | Eli | a Git folder on `main`, `prod` target | deploy prod, tag the commit, then run `meridian-release-log` (kind `deploy`) |
-| Roll back | Eli | the same Git folder, checked out at the previous tag | deploy prod again, run `meridian-release-log` (kind `rollback`), then reprocess |
+| Release | Eli | a Git folder on `main`, `prod` target | deploy prod, tag the commit, then run `meridian-post-deploy` (kind `deploy`): it applies the governed procedures and records the release |
+| Roll back | Eli | the same Git folder, checked out at the previous tag | deploy prod again, run `meridian-post-deploy` (kind `rollback`), then `meridian-recover` (action `reprocess`) |
 
 `meridian-integration-test` (BUILD, `resources/jobs_integration.yml`) works in five steps:
 1. It generates fresh synthetic data and lands the baseline.
@@ -35,12 +35,13 @@ deployment runs from GitHub.
 
 ## Limits to state plainly
 
-- **No automatic merge-to-deploy.** Promotion is a deliberate act by an admin, recorded in `obs.releases`. A CI
-  service could run the same steps only from a runner that can reach the workspace: inside its network, or from an
-  allowed address.
+- **No automatic merge-to-deploy.** Promotion is a deliberate act by an admin, recorded in `obs.releases` by
+  `meridian-post-deploy`. A CI service could run the same steps only from a runner that can reach the workspace:
+  inside its network, or from an allowed address.
 - **Rollback is redeploying a known-good tag.** It is not a button.
 - **Code rollback does not roll back data.**
-  - Rows quarantined by a bad rule stay quarantined until the reprocess job runs them through the restored rules.
+  - Rows quarantined by a bad rule stay quarantined until `meridian-recover` (action `reprocess`) runs them
+    through the restored rules.
   - Tables written wrongly need a refresh from bronze (pipeline tables) or `RESTORE` (ordinary tables), as in
     `docs/runbooks/bad_backfill.md`.
 - **Removing a resource from the bundle destroys it on the next deploy.** A deleted pipeline keeps its tables by

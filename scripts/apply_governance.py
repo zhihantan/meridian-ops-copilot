@@ -167,7 +167,7 @@ def main() -> None:
         approvers, entitled = membership.sync(w, agent, tiers)
         print(f"membership mirrors: {approvers} approver(s), {entitled} tier entitlement(s) in {agent}")
     else:
-        print(f"skipped membership mirrors: {agent}.tier_members does not exist yet (run meridian-workflow-setup)")
+        print(f"skipped membership mirrors: {agent}.tier_members does not exist yet (run meridian-post-deploy)")
 
 
 if __name__ == "__main__":

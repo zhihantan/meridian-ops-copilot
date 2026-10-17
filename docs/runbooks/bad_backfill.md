@@ -65,7 +65,7 @@ ORDER BY 1;
 ## 3. Mitigate: restore the serving table (seconds)
 
 `gold.acquirer_status` is an ordinary Delta table, so `RESTORE` works. In prod it runs as the reviewed
-`meridian-restore-table` job, as the deploying service principal, so no person holds standing MODIFY on
+`meridian-recover` job (action `restore`), as the deploying service principal, so no person holds standing MODIFY on
 prod tables; the job refuses pipeline tables and writes `obs.recovery_audit`:
 
 ```sql
@@ -73,7 +73,7 @@ DESCRIBE HISTORY meridian.gold.acquirer_status;      -- last version built befor
 ```
 
 ```bash
-databricks bundle run -t prod restore_table_job --params table=gold.acquirer_status,version=<good version>
+databricks bundle run -t prod restore_table_job --params action=restore,table=gold.acquirer_status,version=<good version>
 ```
 
 In dev the same `RESTORE TABLE ... TO VERSION AS OF` runs directly in the SQL editor (11 s).

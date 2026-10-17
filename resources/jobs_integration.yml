@@ -2,6 +2,8 @@
 # order, the pipeline from a full refresh, then every planted defect scored against planted.json. A failed run
 # blocks the promotion: Eli deploys a branch to staging from a Git folder (bundle UI), runs this job, and deploys
 # prod only after it passes. It rewrites staging's landing folders and pipeline tables, so no other target has it.
+# It also refreshes what staging's dashboard reads: gold.acquirer_status, the quality checks (recorded, never failing
+# the run: the planted incident breaches them) and the observability views. It is staging's only job.
 targets:
   staging:
     resources:
@@ -50,3 +52,39 @@ targets:
                              --src-dir, "${workspace.file_path}/src", --target, "${bundle.target}",
                              --landing-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}",
                              --run-id, "{{job.run_id}}", --step, score]
+            - task_key: gold_refresh
+              depends_on: [{task_key: update}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/acquirer_status.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: drift_check
+              depends_on: [{task_key: update}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, drift, --catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: freshness_check
+              depends_on: [{task_key: update}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, freshness, --catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: pii_coverage_check
+              depends_on: [{task_key: update}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/quality_checks.py
+                parameters: [--check, pii_coverage, --catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+            - task_key: views
+              depends_on: [{task_key: drift_check}, {task_key: freshness_check}, {task_key: pii_coverage_check}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/obs_views.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/obs_views.sql",
+                             --target, "${bundle.target}", --workspace-id, "{{workspace.id}}", --run-id, "{{job.run_id}}"]

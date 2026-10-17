@@ -1,8 +1,7 @@
 # Knowledge base (T12): a new file under raw/kb/ (a document or a Slack history page) runs kb_sync.
 # File-arrival triggers fire on new files only, not on overwrites or deletes (docs, checked 2026-10-16),
 # so a 10-minute sweep runs kb_sync as well; both go through one queued job, never in parallel.
-# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
-# refresh, observability views, release log).
+# Dev and prod only: staging runs the integration test alone (resources/jobs_integration.yml).
 targets:
   dev:
     resources:
@@ -68,28 +67,6 @@ targets:
           tasks:
             - task_key: sync
               run_job_task: {job_id: "${resources.jobs.kb_sync_job.id}"}
-
-        freshness_probe_job:
-          name: meridian-kb-freshness-probe
-          description: "T14: time from a source create, edit or delete to the index, for files and Slack (canary documents)."
-          tags: {project: meridian-poc}
-          max_concurrent_runs: 1
-          parameters:
-            - {name: runs, default: "5"}
-            - {name: drive_sync, default: "false"}   # true where triggers are paused (dev)
-          environments:
-            - environment_key: default
-              spec: {environment_version: "${var.serverless_environment_version}"}
-          tasks:
-            - task_key: probe
-              environment_key: default
-              spark_python_task:
-                python_file: ../src/meridian/jobs/freshness_probe.py
-                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                             --src-dir, "${workspace.file_path}/src",
-                             --kb-root, "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/kb",
-                             --sync-job-id, "${resources.jobs.kb_sync_job.id}", --runs, "{{job.parameters.runs}}",
-                             --drive-sync, "{{job.parameters.drive_sync}}", --run-id, "{{job.run_id}}"]
   prod:
     resources:
       jobs: *kb_jobs

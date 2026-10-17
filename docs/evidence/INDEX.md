@@ -1,7 +1,8 @@
 # Evidence index (T29)
 
 One row per task: its status, where the proof is, the headline result, and how it departs from the plan.
-Statuses: PASS, PARTIAL (some checks open), OPEN (blocked or not run), SKIPPED (optional, not done). Every folder
+Statuses: PASS, PARTIAL (some checks open), OPEN (blocked or not run), SKIPPED (optional, not done). The jobs were consolidated on 2026-10-17
+(50 to 21); evidence names jobs as they were when it ran, mapped in `T29/health_check_2026-10-17.md`. Every folder
 under `docs/evidence/<task>/` has the run outputs; platform findings are in `spikes.md`, UI-only steps in
 `manual_steps.md`, and the gaps to state in `../known_gaps.md`.
 
@@ -38,4 +39,4 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T26 | PARTIAL | `T26/` | Background runs with polling (T17 onward); workflow state survives in the database between invocations | Crash recovery not shown: request-user runs are never resumed, and every copilot run is one |
 | T27 | PASS | `T27/`, `../../dashboards/` | Caching 80.5% cheaper at list price; POC cost from billing; trace views; the ops dashboard as code, deployed to dev, staging and prod | Staging has the pipeline page only (no knowledge base there) |
 | T28 | SKIPPED | | Optional extras | |
-| T29 | PARTIAL | this file, `../known_gaps.md`, `scripts/reset_demo.py`, `T29/health_check_2026-10-17.md` | Index, gaps, demo reset, and an asset health check with clean-up (dev 23, prod 22, staging 5 jobs; all latest runs pass) | Rehearsals on 21 Oct |
+| T29 | PARTIAL | this file, `../known_gaps.md`, `scripts/reset_demo.py`, `T29/health_check_2026-10-17.md` | Index, gaps, demo reset, and an asset health check, clean-up and consolidation (dev 10, prod 10, staging 1 job) | Rehearsals on 21 Oct |

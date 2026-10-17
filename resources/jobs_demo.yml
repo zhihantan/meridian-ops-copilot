@@ -1,6 +1,5 @@
 # Demo reset (T29): the part that needs the tables' owner. Run by scripts/reset_demo.py, never on a schedule.
-# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
-# refresh, observability views, release log).
+# Dev and prod only: staging runs the integration test alone (resources/jobs_integration.yml).
 targets:
   dev:
     resources:
