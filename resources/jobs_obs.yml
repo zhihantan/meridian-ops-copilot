@@ -30,66 +30,75 @@ resources:
             parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
                          --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
 
-    export_audit_job:
-      name: meridian-export-audit
-      description: "T21. Daily 00:45 SGT: refresh the provenance views, then export knowledge and workflow audit files to the exports volume."
-      tags: {project: meridian-poc}
-      schedule:
-        quartz_cron_expression: "0 45 0 * * ?"
-        timezone_id: Asia/Singapore
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      email_notifications:
-        on_failure: ["${var.notification_email}"]
-      tasks:
-        - task_key: views
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/obs_views.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/kb_views.sql",
-                         --target, "${bundle.target}", --workspace-id, "{{workspace.id}}", --run-id, "{{job.run_id}}"]
-        - task_key: export
-          depends_on: [{task_key: views}]
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/export_audit.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
+# refresh, observability views, release log).
+targets:
+  dev:
+    resources:
+      jobs: &obs_jobs
+        export_audit_job:
+          name: meridian-export-audit
+          description: "T21. Daily 00:45 SGT: refresh the provenance views, then export knowledge and workflow audit files to the exports volume."
+          tags: {project: meridian-poc}
+          schedule:
+            quartz_cron_expression: "0 45 0 * * ?"
+            timezone_id: Asia/Singapore
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          email_notifications:
+            on_failure: ["${var.notification_email}"]
+          tasks:
+            - task_key: views
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/obs_views.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --sql-file, "${workspace.file_path}/sql/kb_views.sql",
+                             --target, "${bundle.target}", --workspace-id, "{{workspace.id}}", --run-id, "{{job.run_id}}"]
+            - task_key: export
+              depends_on: [{task_key: views}]
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/export_audit.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
 
-    lineage_changelog_job:
-      name: meridian-lineage-changelog
-      description: "Nightly 02:00 SGT: snapshot this target's lineage edges and record added and no-longer-seen edges."
-      tags: {project: meridian-poc}
-      schedule:
-        quartz_cron_expression: "0 0 2 * * ?"
-        timezone_id: Asia/Singapore
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: changelog
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/lineage_changelog.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+        lineage_changelog_job:
+          name: meridian-lineage-changelog
+          description: "Nightly 02:00 SGT: snapshot this target's lineage edges and record added and no-longer-seen edges."
+          tags: {project: meridian-poc}
+          schedule:
+            quartz_cron_expression: "0 0 2 * * ?"
+            timezone_id: Asia/Singapore
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: changelog
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/lineage_changelog.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
 
-    merchant_export_job:
-      name: meridian-merchant-export
-      description: "Daily 07:00 SGT: yesterday's merchant totals from gold.merchant_daily as a CSV for finance."
-      tags: {project: meridian-poc}
-      schedule:
-        quartz_cron_expression: "0 0 7 * * ?"
-        timezone_id: Asia/Singapore
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: export
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/merchant_export.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+        merchant_export_job:
+          name: meridian-merchant-export
+          description: "Daily 07:00 SGT: yesterday's merchant totals from gold.merchant_daily as a CSV for finance."
+          tags: {project: meridian-poc}
+          schedule:
+            quartz_cron_expression: "0 0 7 * * ?"
+            timezone_id: Asia/Singapore
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: export
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/merchant_export.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}"]
+  prod:
+    resources:
+      jobs: *obs_jobs

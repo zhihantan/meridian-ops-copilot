@@ -41,6 +41,16 @@ def job(source: dict, defaults: dict) -> dict:
     }
 
 
+TARGETS = ("dev", "prod")  # staging runs only the integration test and what its dashboard reads
+
+
+class NoAliases(yaml.SafeDumper):
+    """Write each target's copy in full rather than as a YAML alias, so the file reads plainly."""
+
+    def ignore_aliases(self, data):
+        return True
+
+
 def main() -> None:
     config = yaml.safe_load((REPO / "config" / "sources.yaml").read_text())
     OUT.mkdir(parents=True, exist_ok=True)
@@ -48,8 +58,9 @@ def main() -> None:
     for source in config["sources"]:
         path = OUT / f"ingest_{source['name']}.yml"
         wanted.add(path)
-        body = {"resources": {"jobs": {f"ingest_{source['name']}": job(source, config["defaults"])}}}
-        path.write_text(HEADER + yaml.safe_dump(body, sort_keys=False, width=120))
+        jobs = {f"ingest_{source['name']}": job(source, config["defaults"])}
+        body = {"targets": {t: {"resources": {"jobs": jobs}} for t in TARGETS}}
+        path.write_text(HEADER + yaml.dump(body, Dumper=NoAliases, sort_keys=False, width=120))
     for stale in set(OUT.glob("ingest_*.yml")) - wanted:
         stale.unlink()
         print(f"removed {stale.name}")

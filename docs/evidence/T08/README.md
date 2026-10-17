@@ -10,6 +10,8 @@ Unity Catalog secrets are GA (since 2026-08-03), not preview; labels corrected.
 | Audit row | PASS | `access_dev.json` `audit`: `getSecret` 200 for Gus's principal and the owner, `getSecret` with an error status for Ava's denied reads, `updateSecret` for the rotation, `createSecret`; `service_name = 'unityCatalog'`, `request_params.full_name` names the secret |
 | Per-environment names through bundle variables | PASS | jobs take `${var.catalog}.secrets.<name>`: `meridian_dev`, `meridian_staging`, `meridian` |
 
+The probe job is dev only since 2026-10-17: the probe secret exists only in `meridian_dev.secrets`.
+
 How jobs read secrets: `dbutils.secrets.get(catalog=, schema=, key=)` (serverless environment 4+), REST as a
 fallback; values are never printed, only a short sha256 fingerprint in drills.
 

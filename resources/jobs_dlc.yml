@@ -3,29 +3,6 @@
 # Development mode pauses every trigger; staging and prod run them.
 resources:
   jobs:
-    ingest_job:
-      name: meridian-ingest
-      description: "Event-driven: a new payments file runs the pipeline, then the quality checks."
-      tags: {project: meridian-poc}
-      max_concurrent_runs: 1
-      trigger:
-        file_arrival:
-          url: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/payments/"
-          min_time_between_triggers_seconds: 60
-          wait_after_last_change_seconds: 60
-      health:
-        rules:
-          - {metric: RUN_DURATION_SECONDS, op: GREATER_THAN, value: "${var.duration_warning_seconds}"}
-      email_notifications:
-        on_failure: ["${var.notification_email}"]
-        on_duration_warning_threshold_exceeded: ["${var.notification_email}"]
-      tasks:
-        - task_key: refresh_pipeline
-          pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}"}
-        - task_key: quality_checks
-          depends_on: [{task_key: refresh_pipeline}]
-          run_job_task: {job_id: "${resources.jobs.quality_checks_job.id}"}
-
     quality_checks_job:
       name: meridian-quality-checks
       description: "Drift, freshness and PII coverage checks; escalates to Slack when any check fails."
@@ -96,80 +73,112 @@ resources:
                          --src-dir, "${workspace.file_path}/src",
                          --run-id, "{{job.run_id}}"]
 
-    reprocess_quarantine_job:
-      name: meridian-reprocess-quarantine
-      description: "Manual: re-run quarantined rows through the current contract rules (idempotent)."
-      tags: {project: meridian-poc}
-      parameters:
-        - {name: rule, default: ""}
-        - {name: since_hours, default: "0"}
-      environments:
-        - environment_key: default
-          spec:
-            environment_version: "${var.serverless_environment_version}"
-            dependencies: ["pyyaml>=6.0"]
-      tasks:
-        - task_key: reprocess
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/reprocess_quarantine.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src",
-                         --rule, "{{job.parameters.rule}}", --since-hours, "{{job.parameters.since_hours}}",
-                         --run-id, "{{job.run_id}}"]
+# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
+# refresh, observability views, release log).
+targets:
+  dev:
+    resources:
+      jobs: &dlc_jobs
+        ingest_job:
+          name: meridian-ingest
+          description: "Event-driven: a new payments file runs the pipeline, then the quality checks."
+          tags: {project: meridian-poc}
+          max_concurrent_runs: 1
+          trigger:
+            file_arrival:
+              url: "/Volumes/${var.catalog}/${resources.schemas.landing.name}/${resources.volumes.raw.name}/payments/"
+              min_time_between_triggers_seconds: 60
+              wait_after_last_change_seconds: 60
+          health:
+            rules:
+              - {metric: RUN_DURATION_SECONDS, op: GREATER_THAN, value: "${var.duration_warning_seconds}"}
+          email_notifications:
+            on_failure: ["${var.notification_email}"]
+            on_duration_warning_threshold_exceeded: ["${var.notification_email}"]
+          tasks:
+            - task_key: refresh_pipeline
+              pipeline_task: {pipeline_id: "${resources.pipelines.dlc.id}"}
+            - task_key: quality_checks
+              depends_on: [{task_key: refresh_pipeline}]
+              run_job_task: {job_id: "${resources.jobs.quality_checks_job.id}"}
 
-    bad_backfill_job:
-      name: meridian-backfill-fx-correction
-      description: "Demo fault for T06: a backfill that wrongly rewrites one day of silver.payments."
-      tags: {project: meridian-poc}
-      parameters:
-        - {name: days_ago, default: "3"}
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: backfill
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/bad_backfill.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src",
-                         --days-ago, "{{job.parameters.days_ago}}", --run-id, "{{job.run_id}}"]
+        reprocess_quarantine_job:
+          name: meridian-reprocess-quarantine
+          description: "Manual: re-run quarantined rows through the current contract rules (idempotent)."
+          tags: {project: meridian-poc}
+          parameters:
+            - {name: rule, default: ""}
+            - {name: since_hours, default: "0"}
+          environments:
+            - environment_key: default
+              spec:
+                environment_version: "${var.serverless_environment_version}"
+                dependencies: ["pyyaml>=6.0"]
+          tasks:
+            - task_key: reprocess
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/reprocess_quarantine.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src",
+                             --rule, "{{job.parameters.rule}}", --since-hours, "{{job.parameters.since_hours}}",
+                             --run-id, "{{job.run_id}}"]
 
-    restore_table_job:
-      name: meridian-restore-table
-      description: "Runbook: RESTORE an ordinary Delta table to a version, as the deploying principal (refuses pipeline tables)."
-      tags: {project: meridian-poc}
-      parameters:
-        - {name: table, default: gold.acquirer_status}
-        - {name: version, default: ""}
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: restore
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/restore_table.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --table, "{{job.parameters.table}}",
-                         --version, "{{job.parameters.version}}", --run-id, "{{job.run_id}}"]
+        bad_backfill_job:
+          name: meridian-backfill-fx-correction
+          description: "Demo fault for T06: a backfill that wrongly rewrites one day of silver.payments."
+          tags: {project: meridian-poc}
+          parameters:
+            - {name: days_ago, default: "3"}
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: backfill
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/bad_backfill.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src",
+                             --days-ago, "{{job.parameters.days_ago}}", --run-id, "{{job.run_id}}"]
 
-    daily_digest_job:
-      name: meridian-dq-digest
-      description: "Cron 08:00 SGT: AI digest of quarantined rows to Slack (flagged for human review)."
-      tags: {project: meridian-poc}
-      schedule:
-        quartz_cron_expression: "0 0 8 * * ?"
-        timezone_id: Asia/Singapore
-      environments:
-        - environment_key: default
-          spec: {environment_version: "${var.serverless_environment_version}"}
-      tasks:
-        - task_key: digest
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/dq_digest.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}",
-                         --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
+        restore_table_job:
+          name: meridian-restore-table
+          description: "Runbook: RESTORE an ordinary Delta table to a version, as the deploying principal (refuses pipeline tables)."
+          tags: {project: meridian-poc}
+          parameters:
+            - {name: table, default: gold.acquirer_status}
+            - {name: version, default: ""}
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: restore
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/restore_table.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --table, "{{job.parameters.table}}",
+                             --version, "{{job.parameters.version}}", --run-id, "{{job.run_id}}"]
+
+        daily_digest_job:
+          name: meridian-dq-digest
+          description: "Cron 08:00 SGT: AI digest of quarantined rows to Slack (flagged for human review)."
+          tags: {project: meridian-poc}
+          schedule:
+            quartz_cron_expression: "0 0 8 * * ?"
+            timezone_id: Asia/Singapore
+          environments:
+            - environment_key: default
+              spec: {environment_version: "${var.serverless_environment_version}"}
+          tasks:
+            - task_key: digest
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/dq_digest.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src", --run-id, "{{job.run_id}}",
+                             --slack-secret, "${var.catalog}.secrets.slack_bot_token"]
+  prod:
+    resources:
+      jobs: *dlc_jobs

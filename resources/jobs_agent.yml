@@ -1,28 +1,35 @@
 # Governed procedures: the workflow (T18) and feedback and corrections (T20), SQL SECURITY DEFINER, applied through the
 # SQL warehouse as this job's identity, and kb.workflows seeded from config/workflows. Run once per target after
 # deploy, after kb_sync has run once (it creates the knowledge tables, kb.corrections among them).
-resources:
-  jobs:
-    workflow_setup_job:
-      name: meridian-workflow-setup
-      description: "T18, T20: create the governed workflow and correction procedures; seed kb.workflows from config/workflows."
-      tags: {project: meridian-poc}
-      environments:
-        - environment_key: default
-          spec:
-            environment_version: "${var.serverless_environment_version}"
-            dependencies: ["pyyaml>=6.0"]
-      tasks:
-        - task_key: setup
-          environment_key: default
-          spark_python_task:
-            python_file: ../src/meridian/jobs/workflow_setup.py
-            parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
-                         --src-dir, "${workspace.file_path}/src",
-                         --sql-file, "${workspace.file_path}/sql/workflow_objects.sql",
-                         --sql-file, "${workspace.file_path}/sql/kb_feedback.sql",
-                         --workflows-dir, "${workspace.file_path}/config/workflows",
-                         --scenario, "${workspace.file_path}/config/scenario.yaml",
-                         --warehouse-id, "${var.warehouse_id}",
-                         --principal, "ava=${var.ava_principal}", --principal, "ben=${var.ben_principal}",
-                         --run-id, "{{job.run_id}}"]
+# Dev and prod only: staging runs just the integration test and what its dashboard reads (quality checks, gold
+# refresh, observability views, release log).
+targets:
+  dev:
+    resources:
+      jobs: &agent_jobs
+        workflow_setup_job:
+          name: meridian-workflow-setup
+          description: "T18, T20: create the governed workflow and correction procedures; seed kb.workflows from config/workflows."
+          tags: {project: meridian-poc}
+          environments:
+            - environment_key: default
+              spec:
+                environment_version: "${var.serverless_environment_version}"
+                dependencies: ["pyyaml>=6.0"]
+          tasks:
+            - task_key: setup
+              environment_key: default
+              spark_python_task:
+                python_file: ../src/meridian/jobs/workflow_setup.py
+                parameters: [--catalog, "${var.catalog}", --bronze-schema, "${resources.schemas.bronze.name}",
+                             --src-dir, "${workspace.file_path}/src",
+                             --sql-file, "${workspace.file_path}/sql/workflow_objects.sql",
+                             --sql-file, "${workspace.file_path}/sql/kb_feedback.sql",
+                             --workflows-dir, "${workspace.file_path}/config/workflows",
+                             --scenario, "${workspace.file_path}/config/scenario.yaml",
+                             --warehouse-id, "${var.warehouse_id}",
+                             --principal, "ava=${var.ava_principal}", --principal, "ben=${var.ben_principal}",
+                             --run-id, "{{job.run_id}}"]
+  prod:
+    resources:
+      jobs: *agent_jobs

@@ -20,7 +20,8 @@ The job (BUILD, `resources/jobs_integration.yml`, `src/meridian/jobs/integration
 5. It runs an update.
 6. It scores with `src/meridian/common/score.py`, the same checks as `scripts/score_pipeline.py`.
 
-It exists only in staging, and it refuses to run on any other target.
+It exists only in staging, and it refuses to run on any other target. Staging deploys five jobs: the integration test and what its dashboard reads (quality
+checks, gold refresh, observability views) plus the release log. All other jobs are dev and prod only.
 
 Removed on 2026-10-17:
 - **GitHub workflows:** pull request checks, ephemeral `ci` deployments, staging and prod deploys, rollback and the
