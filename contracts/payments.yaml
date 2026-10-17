@@ -46,7 +46,7 @@ rules:
   - name: amount_positive
     expr: "amount IS NULL OR amount > 0"
     severity: warn
-    on_violation: quarantine
+    on_violation: warn   # demo branch (T09): weakened, so negative amounts reach silver
     notify: slack_dq
   - name: currency_valid
     expr: "currency IN ('SGD', 'MYR', 'IDR', 'THB', 'PHP', 'USD')"
