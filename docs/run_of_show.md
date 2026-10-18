@@ -9,6 +9,11 @@ About 25 minutes on the data lifecycle (scenes 0 to 4), 20 on the copilot and tr
 
 Every scene has evidence from a run in `docs/evidence/`.
 
+Where a scene acts as a persona:
+- **Eli:** the presenter, signed in to the workspace UI.
+- **Ava, Ben and Gus:** service principals, which cannot sign in to the UI. Ask the copilot as them from a terminal: `uv run --group dbx --group agent python scripts/ask.py --as ben "..."`. Follow-ups continue the conversation; `--new` starts over.
+- **Ava versus Eli on the same rows (scene 2):** `uv run --group dbx python scripts/probe_personas.py --target prod`.
+
 ## Before the day
 
 | When | Do | Check |
