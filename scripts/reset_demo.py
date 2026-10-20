@@ -10,7 +10,8 @@
   stage   what system tables must already hold at demo time (run at least 3 hours before): the bad backfill (T06),
           Claude Code over MCP as each persona (T23) and the caching calls (T27).
   check   readiness: PII masked for Ava, baseline processed and fresh, no incident yet, RB-014 v3 approved and v4
-          draft, no workflow runs, empty memories, knowledge synced, copilot running, Genie space present.
+          draft, no workflow runs, empty memories, knowledge synced, copilot running, Genie space present; on prod,
+          the live triggers fired after the reset (the baseline landing ran ingest, its write rebuilt gold).
 Nothing changes without --yes: the plan is printed instead. Tables are never dropped.
 
     uv run --group dbx --group agent python scripts/reset_demo.py reset --target prod --yes
@@ -46,10 +47,14 @@ def run(cmd: list[str], apply: bool) -> None:
         subprocess.run(cmd, check=True, cwd=REPO)
 
 
-def pipeline_id(target: str) -> str:
+def resources(target: str) -> dict:
     out = subprocess.run(["databricks", "bundle", "summary", "-t", target, "-o", "json"], check=True, cwd=REPO,
                          capture_output=True, text=True).stdout
-    return json.loads(out)["resources"]["pipelines"]["dlc"]["id"]
+    return json.loads(out)["resources"]
+
+
+def pipeline_id(target: str) -> str:
+    return resources(target)["pipelines"]["dlc"]["id"]
 
 
 def wait_for_pipeline(w: WorkspaceClient, pid: str, after: datetime, start_grace_s: int = 180,
@@ -126,6 +131,20 @@ def check(t, admin: WorkspaceClient) -> bool:
                                                                WHERE email IS NOT NULL LIMIT 1""", warehouse=wh)
         return bool(rows) and "***@" in (rows[0][0] or "") and rows[0][1] is None
 
+    def triggers_fired() -> bool:  # scene 1's chain: the baseline landing ran ingest, and its write rebuilt gold
+        jobs = resources(t.target)["jobs"]
+
+        def runs(key: str, **kw):
+            return admin.jobs.list_runs(job_id=int(jobs[key]["id"]), **kw)
+
+        reset_run = next(iter(runs("demo_reset_job", limit=1)), None)
+
+        def fired(key: str, trigger: str) -> bool:
+            return any(r.trigger and r.trigger.value == trigger and r.state.result_state
+                       and r.state.result_state.value in ("SUCCESS", "SUCCESS_WITH_FAILURES")
+                       for r in runs(key, start_time_from=reset_run.start_time))
+        return reset_run is not None and fired("ingest_job", "FILE_ARRIVAL") and fired("gold_refresh_job", "TABLE")
+
     wh = warehouse_id(admin)
     checks = {
         "PII masked for Ava (masked email, no NRIC)": ava_masked(),
@@ -142,6 +161,8 @@ def check(t, admin: WorkspaceClient) -> bool:
         "knowledge synced (live documents, no failures in the last run)": one(f"""SELECT live_docs_general
             + live_docs_finance > 0 AND failed = 0 FROM {c}.{s['kb']}.sync_status""") == "true",
         "memories empty": t.target != "prod" or clear_memories(admin, apply=False) == 0,
+        "live triggers fired after the reset (file arrival ran ingest, the table update rebuilt gold)":
+            t.target != "prod" or triggers_fired(),
         "copilot app running": str(admin.apps.get(APP).compute_status.state).endswith("ACTIVE"),
         "Genie space present": any(sp.title == GENIE for sp in admin.genie.list_spaces().spaces or []),
     }

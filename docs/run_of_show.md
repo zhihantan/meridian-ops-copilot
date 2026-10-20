@@ -18,6 +18,7 @@ Where a scene acts as a persona:
 
 | When | Do | Check |
 |---|---|---|
+| The day before | Rehearse every scene once, starting from a prod reset (the command below). It is the first prod run of `meridian-demo-reset`; dev passed the same reset on 20 Oct (`docs/evidence/T29/health_check_2026-10-20.md`) | `reset_demo.py check --target prod` passes, including the live triggers |
 | Demo morning, first | `uv run --group dbx --group agent python scripts/reset_demo.py reset --target prod --yes`: fresh data anchored to now, baseline landed, pipeline and knowledge rebuilt, workflow and memory state cleared | `reset_demo.py check --target prod` passes |
 | At least 3 hours before | `reset_demo.py stage --target prod --yes`: the bad backfill (scene 3), Claude Code over MCP as each persona (scene 6), the caching calls (scene 7), so system tables hold them | `scripts/collect_usage.py` shows the MCP rows; the lineage query in `docs/runbooks/bad_backfill.md` shows the backfill |
 | At least 1 hour before | On staging, run `meridian-integration-test` on a rule-weakening branch, then on `main` (scene 4). Each run takes about the time measured in `docs/evidence/T09/` | One failed run and one passing run in the job's history |

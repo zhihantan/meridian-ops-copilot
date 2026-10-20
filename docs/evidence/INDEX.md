@@ -9,7 +9,7 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | Task | Status | Evidence | Headline | Deviations |
 |---|---|---|---|---|
 | SM1, SM3 | PASS | `SM1/`, `SM3/` | Smoke tests on the workspace | |
-| T01 | PASS | `databricks.yml`, `resources/` | Bundle with dev, staging, ci and prod targets | |
+| T01 | PASS | `databricks.yml`, `resources/` | Bundle with dev, staging and prod targets | The per-PR `ci` target was removed on 17 Oct with GitHub CI |
 | T02 | PASS | `T02/planted_summary.json` | Synthetic data with planted issues, anchored to a time | 7 acquirers (acq_7 planted) |
 | T03 | PASS | `T03/` | Quarantine and severity routing from contracts; 16/16 planted issues found on dev, staging and prod; reprocess idempotent; a critical rule fails the update | Quarantine is BUILD |
 | T04 | PASS | `T04/` | ABAC masks and the market row filter by persona: probes PASS on dev and prod | The scan had tagged nothing after about 39 hours, so prod's tags come from the contracts (fallback); time-to-tag still measured on staging |
@@ -19,7 +19,7 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T06b | PASS | `T06b/` | Lineage changelog, centralized log views, dated log export | |
 | T07 | PARTIAL | `T07/` | Development in the workspace: a Git folder, an isolated dev target per developer, deployed from the bundle UI; developers cannot write staging or prod | The timed first deployment from a Git folder is a rehearsal step. Local development and the Codespace were removed |
 | T08 | PASS | `T08/` | Unity Catalog secrets: per-secret READ, rotation without redeploy, audit | |
-| T09 | PARTIAL | `T09/` | Promotion inside the workspace: the staging integration job passes (16/16, about 6 min) and fails on a rule-weakening branch; only admins deploy staging and prod | GitHub holds the code only, because its runners cannot reach the workspace. The prod release and the rollback from a Git folder are rehearsal steps |
+| T09 | PARTIAL | `T09/` | Promotion inside the workspace: the staging integration job passes (16/16, 6 to 7 minutes; re-run on 20 Oct) and fails on a rule-weakening branch; only admins deploy staging and prod | GitHub holds the code only, because its runners cannot reach the workspace. The prod release and the rollback from a Git folder are rehearsal steps |
 | T10 | PASS | `T10/` | Knowledge corpus by tier: files and a Slack history export | Slack is a synthetic export |
 | T11 | PASS | `T11/` | Sources and connector status | No managed Slack connector |
 | T12 | PASS | `T12/` | Incremental kb_sync: an edit touches one document, a delete removes its chunks, a full refresh rebuilds | |
@@ -39,4 +39,4 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T26 | PARTIAL | `T26/` | Background runs with polling (T17 onward); workflow state survives in the database between invocations | Crash recovery not shown: request-user runs are never resumed, and every copilot run is one |
 | T27 | PASS | `T27/`, `../../dashboards/` | Caching 80.5% cheaper at list price; POC cost from billing; trace views; the ops dashboard as code, deployed to dev, staging and prod | Staging has the pipeline page only (no knowledge base there) |
 | T28 | SKIPPED | | Optional extras | |
-| T29 | PARTIAL | this file, `../known_gaps.md`, `scripts/reset_demo.py`, `T29/health_check_2026-10-17.md` | Index, gaps, demo reset, and an asset health check, clean-up and consolidation (dev 10, prod 10, staging 1 job) | Rehearsals on 21 Oct |
+| T29 | PARTIAL | this file, `../known_gaps.md`, `scripts/reset_demo.py`, `T29/health_check_2026-10-17.md`, `T29/health_check_2026-10-20.md` | Index, gaps, demo reset, and an asset health check, clean-up and consolidation (dev 10, prod 10, staging 1 job). Re-checked on 20 Oct: no failed run, no drift; dev reset and the scene 3 drill pass | The prod reset (its first run of `meridian-demo-reset`) and the rehearsals on 21 Oct |

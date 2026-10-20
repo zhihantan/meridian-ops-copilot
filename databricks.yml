@@ -75,6 +75,10 @@ targets:
     variables:
       catalog: meridian_dev
       duration_warning_seconds: 120
+    # The developer already manages their own folder; naming them keeps validation clean in the bundle UI.
+    permissions:
+      - level: CAN_MANAGE
+        user_name: ${workspace.current_user.userName}
 
   # Staging and prod run as the release principal, from its own folder. An admin deploys them from a Git folder in
   # the workspace (bundle UI). Staging is driven by its integration test job, so its triggers are paused; prod
