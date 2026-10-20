@@ -46,7 +46,8 @@ test runs; prod was checked read-only, because its reset is a production change 
 ## Open: the prod reset
 
 `meridian-demo-reset` has never run in prod. It was not run here, because the reset is a production change; the
-presenter runs it. Prod's readiness check passes 6 of 10. The 4 failures are what the reset clears:
+presenter runs it. Only the live run of show needs it: `docs/run_of_show_replay.md` replays the incident already in
+prod and runs nothing. Prod's readiness check passes 6 of 10. The 4 failures are what the reset clears:
 - the data is anchored to 15 Oct;
 - the incident from testing is still landed;
 - there are workflow runs from testing;

@@ -1,5 +1,8 @@
 # Run of show (45 minutes)
 
+This is the live version: it resets and stages prod, then triggers each scene. To demo with nothing to run, replay
+the incident already in prod with `run_of_show_replay.md` instead.
+
 About 25 minutes on the data lifecycle (scenes 0 to 4), 20 on the copilot and trust (scenes 5 to 7). Personas:
 - **Ava:** support, general tier.
 - **Ben:** finance.
