@@ -75,27 +75,26 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "acquirer_id",
-                    "displayName": "acquirer_id"
+                    "fieldName": "acquirer_id"
                   },
                   {
-                    "fieldName": "status",
-                    "displayName": "status"
+                    "fieldName": "status"
                   },
                   {
-                    "fieldName": "recent_failure_pct",
-                    "displayName": "recent_failure_pct"
+                    "fieldName": "recent_failure_pct"
                   },
                   {
-                    "fieldName": "baseline_failure_pct",
-                    "displayName": "baseline_failure_pct"
+                    "fieldName": "baseline_failure_pct"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -199,31 +198,29 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "at_sgt",
-                    "displayName": "at_sgt"
+                    "fieldName": "at_sgt"
                   },
                   {
-                    "fieldName": "source",
-                    "displayName": "source"
+                    "fieldName": "source"
                   },
                   {
-                    "fieldName": "name",
-                    "displayName": "name"
+                    "fieldName": "name"
                   },
                   {
-                    "fieldName": "status",
-                    "displayName": "status"
+                    "fieldName": "status"
                   },
                   {
-                    "fieldName": "detail",
-                    "displayName": "detail"
+                    "fieldName": "detail"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,

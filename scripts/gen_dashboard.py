@@ -28,11 +28,14 @@ def wid(*parts: str) -> str:
 
 
 def table(ds: str, title: str, fields: list[str], x: int, y: int, w: int = 6, h: int = 7) -> dict:
+    # Table spec version 2, the shape the dashboard UI writes. Version 1 needs about 20 settings per column, and
+    # without them each table renders as "Invalid widget definition is imported".
     return {"widget": {"name": wid("table", ds, title),
                        "queries": [{"name": "main_query", "query": {"datasetName": ds, "disaggregated": True,
                                     "fields": [{"name": f, "expression": f"`{f}`"} for f in fields]}}],
-                       "spec": {"version": 1, "widgetType": "table",
-                                "encodings": {"columns": [{"fieldName": f, "displayName": f} for f in fields]},
+                       "spec": {"version": 2, "widgetType": "table",
+                                "encodings": {"columns": [{"fieldName": f} for f in fields]},
+                                "data": {"queryName": "main_query"},
                                 "frame": {"showTitle": True, "title": title}}},
             "position": {"x": x, "y": y, "width": w, "height": h}}
 

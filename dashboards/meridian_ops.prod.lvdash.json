@@ -259,35 +259,32 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "req_id",
-                    "displayName": "req_id"
+                    "fieldName": "req_id"
                   },
                   {
-                    "fieldName": "requirement",
-                    "displayName": "requirement"
+                    "fieldName": "requirement"
                   },
                   {
-                    "fieldName": "tasks",
-                    "displayName": "tasks"
+                    "fieldName": "tasks"
                   },
                   {
-                    "fieldName": "status",
-                    "displayName": "status"
+                    "fieldName": "status"
                   },
                   {
-                    "fieldName": "headline",
-                    "displayName": "headline"
+                    "fieldName": "headline"
                   },
                   {
-                    "fieldName": "evidence",
-                    "displayName": "evidence"
+                    "fieldName": "evidence"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -356,27 +353,26 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "acquirer_id",
-                    "displayName": "acquirer_id"
+                    "fieldName": "acquirer_id"
                   },
                   {
-                    "fieldName": "status",
-                    "displayName": "status"
+                    "fieldName": "status"
                   },
                   {
-                    "fieldName": "recent_failure_pct",
-                    "displayName": "recent_failure_pct"
+                    "fieldName": "recent_failure_pct"
                   },
                   {
-                    "fieldName": "baseline_failure_pct",
-                    "displayName": "baseline_failure_pct"
+                    "fieldName": "baseline_failure_pct"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -480,31 +476,29 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "at_sgt",
-                    "displayName": "at_sgt"
+                    "fieldName": "at_sgt"
                   },
                   {
-                    "fieldName": "source",
-                    "displayName": "source"
+                    "fieldName": "source"
                   },
                   {
-                    "fieldName": "name",
-                    "displayName": "name"
+                    "fieldName": "name"
                   },
                   {
-                    "fieldName": "status",
-                    "displayName": "status"
+                    "fieldName": "status"
                   },
                   {
-                    "fieldName": "detail",
-                    "displayName": "detail"
+                    "fieldName": "detail"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -705,39 +699,35 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "doc_id",
-                    "displayName": "doc_id"
+                    "fieldName": "doc_id"
                   },
                   {
-                    "fieldName": "source",
-                    "displayName": "source"
+                    "fieldName": "source"
                   },
                   {
-                    "fieldName": "tier",
-                    "displayName": "tier"
+                    "fieldName": "tier"
                   },
                   {
-                    "fieldName": "source_version",
-                    "displayName": "source_version"
+                    "fieldName": "source_version"
                   },
                   {
-                    "fieldName": "last_editor",
-                    "displayName": "last_editor"
+                    "fieldName": "last_editor"
                   },
                   {
-                    "fieldName": "edited_sgt",
-                    "displayName": "edited_sgt"
+                    "fieldName": "edited_sgt"
                   },
                   {
-                    "fieldName": "change",
-                    "displayName": "change"
+                    "fieldName": "change"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -988,35 +978,32 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "tool",
-                    "displayName": "tool"
+                    "fieldName": "tool"
                   },
                   {
-                    "fieldName": "calls",
-                    "displayName": "calls"
+                    "fieldName": "calls"
                   },
                   {
-                    "fieldName": "errors",
-                    "displayName": "errors"
+                    "fieldName": "errors"
                   },
                   {
-                    "fieldName": "p50_ms",
-                    "displayName": "p50_ms"
+                    "fieldName": "p50_ms"
                   },
                   {
-                    "fieldName": "p95_ms",
-                    "displayName": "p95_ms"
+                    "fieldName": "p95_ms"
                   },
                   {
-                    "fieldName": "max_ms",
-                    "displayName": "max_ms"
+                    "fieldName": "max_ms"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,
@@ -1066,31 +1053,29 @@
               }
             ],
             "spec": {
-              "version": 1,
+              "version": 2,
               "widgetType": "table",
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "at_sgt",
-                    "displayName": "at_sgt"
+                    "fieldName": "at_sgt"
                   },
                   {
-                    "fieldName": "caller",
-                    "displayName": "caller"
+                    "fieldName": "caller"
                   },
                   {
-                    "fieldName": "kind",
-                    "displayName": "kind"
+                    "fieldName": "kind"
                   },
                   {
-                    "fieldName": "what",
-                    "displayName": "what"
+                    "fieldName": "what"
                   },
                   {
-                    "fieldName": "detail",
-                    "displayName": "detail"
+                    "fieldName": "detail"
                   }
                 ]
+              },
+              "data": {
+                "queryName": "main_query"
               },
               "frame": {
                 "showTitle": true,

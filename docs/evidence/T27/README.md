@@ -56,6 +56,9 @@ Fixed on 2026-10-21:
 - Callers showed principal IDs.
 - The health table covered only 24 hours, which the 10-minute knowledge sweep filled, so a replayed incident
   dropped off it.
+- Every table rendered as "Invalid widget definition is imported". The generator wrote table spec version 1
+  without the 20 or so settings that version needs per column. Tables now use version 2, the shape the dashboard UI
+  writes, which needs only each column's field.
 
 Viewers query with their own permissions (`embed_credentials: false`), so the market row filter and the masks
 apply per viewer. Every dataset query of each target's definition was executed before deploying.
