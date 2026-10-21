@@ -44,6 +44,17 @@ That is 80.5% less on this prefix, at list price.
 **Dashboard as code.** "Meridian ops" (`resources/dashboards.yml`) has one definition. `scripts/gen_dashboard.py`
 (`make gen-dashboard`) generates it per target with that target's names, and the bundle promotes it dev to
 staging to prod. A page is included only where its tables exist:
+- **Data products:** what the pipeline built, bronze to gold.
+  - Counts: payments, quarantined rows, PII columns protected by tags, tables and degraded acquirers.
+  - Charts: the daily failure rate by acquirer (the acq_7 spike), payments per day by market, and quarantined
+    rows by rule.
+  - Tables: every table with its rows, protected columns and last change; where each gold table comes from
+    (lineage); and who reads the data.
+- **Jobs and pipeline:** how the data is produced.
+  - Jobs: current jobs, runs and success rate over 14 days, runs per day by result, and each job's triggers
+    and median duration.
+  - Pipeline: updates, rows written per table, and expectation failure rates.
+  - Cost: serverless cost per day by job, at list price, for usage tagged `project=meridian-poc`.
 - **Pipeline health:** acquirer status (degraded first), payments by market, and the issues of the last 14 days:
   failed runs and tasks, pipeline errors, check breaches and quarantine. Successful runs are left out.
 - **Knowledge:** documents per tier, ingest failures, and who changed each document.
@@ -59,15 +70,17 @@ Fixed on 2026-10-21:
 - Every table rendered as "Invalid widget definition is imported". The generator wrote table spec version 1
   without the 20 or so settings that version needs per column. Tables now use version 2, the shape the dashboard UI
   writes, which needs only each column's field.
+- The POC scorecard page was replaced by the Data products and Jobs and pipeline pages, and its publisher
+  (`scripts/publish_scorecard.py`) was removed.
 
 Viewers query with their own permissions (`embed_credentials: false`), so the market row filter and the masks
 apply per viewer. Every dataset query of each target's definition was executed before deploying.
 
 | Target | Pages |
 |---|---|
-| dev | Pipeline health, Knowledge |
-| staging (2026-10-17) | Pipeline health. Staging's data comes from the CI integration run (the incident included), and it has no knowledge base. Its quality checks, gold refresh and views were run once so the page has data |
-| prod | POC scorecard, Pipeline health, Knowledge, Copilot |
+| dev | Data products, Jobs and pipeline, Pipeline health, Knowledge |
+| staging | Data products, Jobs and pipeline, Pipeline health. Staging's data comes from its integration test runs (the incident included), and it has no knowledge base |
+| prod | Data products, Jobs and pipeline, Pipeline health, Knowledge, Copilot |
 
 The knowledge provenance view (`v_kb_changes`) is in `sql/kb_views.sql`, applied by the audit export job. A target
 without a knowledge base (staging) can then still create its pipeline views.

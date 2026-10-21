@@ -1,6 +1,104 @@
 {
   "datasets": [
     {
+      "name": "product_counts",
+      "displayName": "Data product counts",
+      "queryLines": [
+        "SELECT (SELECT count(*) FROM meridian.silver.payments) AS payments, (SELECT count(*) FROM meridian.quarantine.payments) AS quarantined, (SELECT count(DISTINCT concat_ws('.', schema_name, table_name, column_name)) FROM meridian.information_schema.column_tags WHERE tag_name LIKE 'class.%') AS protected_columns, (SELECT count(*) FROM meridian.information_schema.tables WHERE table_schema IN ('bronze', 'silver', 'gold', 'quarantine') AND table_name NOT LIKE '\\\\_\\\\_%') AS tables, (SELECT count(*) FROM meridian.information_schema.tables WHERE table_schema = 'gold' AND table_name NOT LIKE '\\\\_\\\\_%') AS gold_tables, (SELECT count_if(status = 'degraded') FROM meridian.gold.acquirer_status) AS degraded"
+      ]
+    },
+    {
+      "name": "failure_trend",
+      "displayName": "Daily failure rate by acquirer",
+      "queryLines": [
+        "SELECT payment_date, acquirer_id, round(100 * failure_rate, 2) AS failure_pct FROM meridian.gold.payment_failure_daily"
+      ]
+    },
+    {
+      "name": "daily_payments",
+      "displayName": "Payments per day by market",
+      "queryLines": [
+        "SELECT to_date(from_utc_timestamp(created_at, 'Asia/Singapore')) AS day, country, count(*) AS payments FROM meridian.silver.payments GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "quarantine_rules",
+      "displayName": "Quarantine by rule",
+      "queryLines": [
+        "SELECT rule, count(*) AS quarantined_rows FROM meridian.quarantine.payments LATERAL VIEW explode(_failed_rules) r AS rule GROUP BY rule ORDER BY quarantined_rows DESC"
+      ]
+    },
+    {
+      "name": "assets",
+      "displayName": "Data assets",
+      "queryLines": [
+        "WITH counts AS (SELECT 'bronze' AS layer, 'bronze' AS schema_name, 'customers_changes' AS table_name, count(*) AS row_count FROM meridian.bronze.customers_changes UNION ALL SELECT 'bronze' AS layer, 'bronze' AS schema_name, 'fx_corrections' AS table_name, count(*) AS row_count FROM meridian.bronze.fx_corrections UNION ALL SELECT 'bronze' AS layer, 'bronze' AS schema_name, 'payments' AS table_name, count(*) AS row_count FROM meridian.bronze.payments UNION ALL SELECT 'gold' AS layer, 'gold' AS schema_name, 'acquirer_hourly' AS table_name, count(*) AS row_count FROM meridian.gold.acquirer_hourly UNION ALL SELECT 'gold' AS layer, 'gold' AS schema_name, 'acquirer_status' AS table_name, count(*) AS row_count FROM meridian.gold.acquirer_status UNION ALL SELECT 'gold' AS layer, 'gold' AS schema_name, 'merchant_daily' AS table_name, count(*) AS row_count FROM meridian.gold.merchant_daily UNION ALL SELECT 'gold' AS layer, 'gold' AS schema_name, 'payment_failure_daily' AS table_name, count(*) AS row_count FROM meridian.gold.payment_failure_daily UNION ALL SELECT 'quarantine' AS layer, 'quarantine' AS schema_name, 'customers' AS table_name, count(*) AS row_count FROM meridian.quarantine.customers UNION ALL SELECT 'quarantine' AS layer, 'quarantine' AS schema_name, 'payment_duplicates' AS table_name, count(*) AS row_count FROM meridian.quarantine.payment_duplicates UNION ALL SELECT 'quarantine' AS layer, 'quarantine' AS schema_name, 'payments' AS table_name, count(*) AS row_count FROM meridian.quarantine.payments UNION ALL SELECT 'silver' AS layer, 'silver' AS schema_name, 'customers' AS table_name, count(*) AS row_count FROM meridian.silver.customers UNION ALL SELECT 'silver' AS layer, 'silver' AS schema_name, 'customers_history' AS table_name, count(*) AS row_count FROM meridian.silver.customers_history UNION ALL SELECT 'silver' AS layer, 'silver' AS schema_name, 'payments' AS table_name, count(*) AS row_count FROM meridian.silver.payments), tagged AS (SELECT schema_name, table_name, count(DISTINCT column_name) AS protected_columns FROM meridian.information_schema.column_tags WHERE tag_name LIKE 'class.%' GROUP BY ALL) SELECT n.layer, n.table_name, lower(replace(t.table_type, '_', ' ')) AS kind, n.row_count, coalesce(g.protected_columns, 0) AS protected_columns, date_format(from_utc_timestamp(t.last_altered, 'Asia/Singapore'), 'dd MMM HH:mm') AS last_changed_sgt, t.comment AS description FROM counts n JOIN meridian.information_schema.tables t ON t.table_schema = n.schema_name AND t.table_name = n.table_name LEFT JOIN tagged g ON g.schema_name = n.schema_name AND g.table_name = n.table_name ORDER BY CASE n.layer WHEN 'bronze' THEN 1 WHEN 'silver' THEN 2 WHEN 'gold' THEN 3 ELSE 4 END, n.table_name"
+      ]
+    },
+    {
+      "name": "gold_lineage",
+      "displayName": "Where gold comes from",
+      "queryLines": [
+        "WITH jobs AS (SELECT job_id, name, tags, delete_time FROM system.lakeflow.jobs QUALIFY row_number() OVER (PARTITION BY workspace_id, job_id ORDER BY change_time DESC) = 1), pipes AS (SELECT pipeline_id, name FROM system.lakeflow.pipelines QUALIFY row_number() OVER (PARTITION BY workspace_id, pipeline_id ORDER BY change_time DESC) = 1) SELECT l.target_table_name AS gold_table, l.source_table_full_name AS built_from, coalesce(j.name, p.name, lower(l.entity_type)) AS built_by FROM system.access.table_lineage l LEFT JOIN jobs j ON l.entity_type = 'JOB' AND l.entity_id = j.job_id LEFT JOIN pipes p ON l.entity_type = 'PIPELINE' AND l.entity_id = p.pipeline_id WHERE l.target_table_catalog = 'meridian' AND l.target_table_schema = 'gold' AND l.source_table_full_name IS NOT NULL AND l.event_date >= current_date() - INTERVAL 30 DAYS GROUP BY ALL ORDER BY gold_table, built_from"
+      ]
+    },
+    {
+      "name": "consumers",
+      "displayName": "Who reads the data",
+      "queryLines": [
+        "SELECT CASE coalesce(entity_type, 'SQL') WHEN 'JOB' THEN 'jobs' WHEN 'PIPELINE' THEN 'pipelines' WHEN 'DASHBOARD_V3' THEN 'dashboards' WHEN 'SQL' THEN 'SQL and notebooks' ELSE lower(entity_type) END AS consumer, count(DISTINCT coalesce(entity_id, created_by)) AS consumers, count(*) AS read_events FROM system.access.table_lineage WHERE source_table_catalog = 'meridian' AND event_date >= current_date() - INTERVAL 14 DAYS GROUP BY 1 ORDER BY read_events DESC"
+      ]
+    },
+    {
+      "name": "job_counts",
+      "displayName": "Job counts",
+      "queryLines": [
+        "WITH current AS (SELECT job_id FROM (SELECT job_id, name, tags, delete_time FROM system.lakeflow.jobs QUALIFY row_number() OVER (PARTITION BY workspace_id, job_id ORDER BY change_time DESC) = 1) WHERE tags['project'] = 'meridian-poc' AND tags['target'] = 'prod' AND delete_time IS NULL) SELECT (SELECT count(*) FROM current) AS jobs, count(*) AS runs, round(100 * count_if(result_state = 'SUCCEEDED') / count(*), 1) AS succeeded_pct FROM meridian.obs.v_job_runs WHERE started_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state IS NOT NULL"
+      ]
+    },
+    {
+      "name": "runs_per_day",
+      "displayName": "Job runs per day",
+      "queryLines": [
+        "SELECT to_date(from_utc_timestamp(started_at, 'Asia/Singapore')) AS day, lower(result_state) AS result, count(*) AS runs FROM meridian.obs.v_job_runs WHERE started_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state IS NOT NULL GROUP BY ALL"
+      ]
+    },
+    {
+      "name": "jobs",
+      "displayName": "Jobs",
+      "queryLines": [
+        "WITH current AS (SELECT job_id FROM (SELECT job_id, name, tags, delete_time FROM system.lakeflow.jobs QUALIFY row_number() OVER (PARTITION BY workspace_id, job_id ORDER BY change_time DESC) = 1) WHERE tags['project'] = 'meridian-poc' AND tags['target'] = 'prod' AND delete_time IS NULL) SELECT r.job_name, concat_ws(', ', sort_array(collect_set(CASE r.trigger_type WHEN 'CRON' THEN 'schedule' WHEN 'PERIODIC' THEN 'schedule' WHEN 'FILE_ARRIVAL' THEN 'file arrival' WHEN 'TABLE' THEN 'table update' WHEN 'ONETIME' THEN 'manual or another job' ELSE lower(r.trigger_type) END))) AS triggers, count(*) AS runs, round(100 * count_if(r.result_state = 'SUCCEEDED') / count(*), 1) AS succeeded_pct, round(percentile(r.duration_s, 0.5)) AS median_seconds, date_format(from_utc_timestamp(max(r.started_at), 'Asia/Singapore'), 'dd MMM HH:mm') AS last_run_sgt, lower(max_by(r.result_state, r.started_at)) AS last_result FROM meridian.obs.v_job_runs r JOIN current USING (job_id) WHERE r.started_at >= current_timestamp() - INTERVAL 14 DAYS GROUP BY r.job_name ORDER BY runs DESC"
+      ]
+    },
+    {
+      "name": "pipeline_counts",
+      "displayName": "Pipeline counts",
+      "queryLines": [
+        "SELECT (SELECT count(DISTINCT origin.update_id) FROM meridian.obs.pipeline_event_log WHERE timestamp >= current_timestamp() - INTERVAL 14 DAYS) AS updates, (SELECT sum(CAST(details:flow_progress.metrics.num_output_rows AS BIGINT)) FROM meridian.obs.pipeline_event_log WHERE event_type = 'flow_progress' AND details:flow_progress.metrics.num_output_rows IS NOT NULL) AS rows_written, (SELECT round(sum(u.usage_quantity * p.pricing.default), 2) FROM system.billing.usage u LEFT JOIN system.billing.list_prices p ON p.sku_name = u.sku_name AND p.cloud = u.cloud AND p.currency_code = 'USD' AND u.usage_start_time >= p.price_start_time AND (p.price_end_time IS NULL OR u.usage_start_time < p.price_end_time) WHERE u.custom_tags['project'] = 'meridian-poc' AND u.custom_tags['target'] = 'prod' AND u.usage_date >= current_date() - INTERVAL 14 DAYS) AS cost_usd"
+      ]
+    },
+    {
+      "name": "rows_written",
+      "displayName": "Rows written per table",
+      "queryLines": [
+        "SELECT origin.flow_name AS table_name, sum(CAST(details:flow_progress.metrics.num_output_rows AS BIGINT)) AS rows_written, count(DISTINCT origin.update_id) AS updates, date_format(from_utc_timestamp(max(timestamp), 'Asia/Singapore'), 'dd MMM HH:mm') AS last_written_sgt FROM meridian.obs.pipeline_event_log WHERE event_type = 'flow_progress' AND details:flow_progress.metrics.num_output_rows IS NOT NULL GROUP BY 1 ORDER BY rows_written DESC"
+      ]
+    },
+    {
+      "name": "expectations",
+      "displayName": "Expectations",
+      "queryLines": [
+        "SELECT expectation, sum(passed_records) + sum(failed_records) AS rows_checked, sum(failed_records) AS rows_failed, round(100 * sum(failed_records) / (sum(passed_records) + sum(failed_records)), 2) AS failed_pct FROM meridian.obs.v_expectation_metrics GROUP BY expectation ORDER BY rows_failed DESC"
+      ]
+    },
+    {
+      "name": "cost_by_job",
+      "displayName": "Cost per day by job",
+      "queryLines": [
+        "WITH names AS (SELECT job_id, name, tags, delete_time FROM system.lakeflow.jobs QUALIFY row_number() OVER (PARTITION BY workspace_id, job_id ORDER BY change_time DESC) = 1) SELECT u.usage_date AS day, coalesce(n.name, lower(u.billing_origin_product)) AS job, round(sum(u.usage_quantity * p.pricing.default), 2) AS usd FROM system.billing.usage u LEFT JOIN system.billing.list_prices p ON p.sku_name = u.sku_name AND p.cloud = u.cloud AND p.currency_code = 'USD' AND u.usage_start_time >= p.price_start_time AND (p.price_end_time IS NULL OR u.usage_start_time < p.price_end_time) LEFT JOIN names n ON n.job_id = u.usage_metadata.job_id WHERE u.custom_tags['project'] = 'meridian-poc' AND u.custom_tags['target'] = 'prod' AND u.usage_date >= current_date() - INTERVAL 14 DAYS GROUP BY ALL"
+      ]
+    },
+    {
       "name": "health",
       "displayName": "Issues, last 14 days",
       "queryLines": [
@@ -62,34 +160,20 @@
       "queryLines": [
         "SELECT sum(input_tokens) AS uncached_input, sum(cache_read_tokens) AS cache_read, sum(cache_write_tokens) AS cache_write FROM meridian.agent.v_copilot_runs"
       ]
-    },
-    {
-      "name": "scorecard",
-      "displayName": "POC scorecard",
-      "queryLines": [
-        "SELECT req_id, requirement, tasks, status, headline, evidence FROM meridian.obs.evidence ORDER BY req_id"
-      ]
-    },
-    {
-      "name": "score_counts",
-      "displayName": "Scorecard counts",
-      "queryLines": [
-        "SELECT count_if(status = 'PASS') AS pass, count_if(status = 'PARTIAL') AS partial, count_if(status NOT IN ('PASS', 'PARTIAL')) AS other, count(*) AS requirements FROM meridian.obs.evidence"
-      ]
     }
   ],
   "pages": [
     {
-      "name": "5862692a",
-      "displayName": "POC scorecard",
+      "name": "ebd3945d",
+      "displayName": "Data products",
       "layout": [
         {
           "widget": {
-            "name": "44123e78",
+            "name": "a668a265",
             "multilineTextboxSpec": {
               "lines": [
-                "## POC scorecard\n",
-                "Each requirement, the tasks that answer it, and the status of their evidence (docs/evidence/INDEX.md)."
+                "## Data products\n",
+                "What the pipeline built, bronze to gold: its scale and quality, the personal data it protects, where each gold table comes from, and who reads it. Native Unity Catalog and Lakeflow; lineage from system tables."
               ]
             }
           },
@@ -102,17 +186,17 @@
         },
         {
           "widget": {
-            "name": "19415669",
+            "name": "1948323b",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "score_counts",
+                  "datasetName": "product_counts",
                   "disaggregated": true,
                   "fields": [
                     {
-                      "name": "requirements",
-                      "expression": "`requirements`"
+                      "name": "payments",
+                      "expression": "`payments`"
                     }
                   ]
                 }
@@ -123,13 +207,13 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "requirements",
-                  "displayName": "Requirements"
+                  "fieldName": "payments",
+                  "displayName": "Payments in silver"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Requirements"
+                "title": "Payments in silver"
               }
             }
           },
@@ -142,17 +226,17 @@
         },
         {
           "widget": {
-            "name": "5216a553",
+            "name": "b3a28a36",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "score_counts",
+                  "datasetName": "product_counts",
                   "disaggregated": true,
                   "fields": [
                     {
-                      "name": "pass",
-                      "expression": "`pass`"
+                      "name": "quarantined",
+                      "expression": "`quarantined`"
                     }
                   ]
                 }
@@ -163,13 +247,13 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "pass",
-                  "displayName": "Evidenced (PASS)"
+                  "fieldName": "quarantined",
+                  "displayName": "Bad rows quarantined before silver"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Evidenced (PASS)"
+                "title": "Bad rows quarantined before silver"
               }
             }
           },
@@ -182,17 +266,17 @@
         },
         {
           "widget": {
-            "name": "c069b58c",
+            "name": "1c266470",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "score_counts",
+                  "datasetName": "product_counts",
                   "disaggregated": true,
                   "fields": [
                     {
-                      "name": "partial",
-                      "expression": "`partial`"
+                      "name": "protected_columns",
+                      "expression": "`protected_columns`"
                     }
                   ]
                 }
@@ -203,13 +287,13 @@
               "widgetType": "counter",
               "encodings": {
                 "value": {
-                  "fieldName": "partial",
-                  "displayName": "Partly evidenced"
+                  "fieldName": "protected_columns",
+                  "displayName": "PII columns protected by tags"
                 }
               },
               "frame": {
                 "showTitle": true,
-                "title": "Partly evidenced"
+                "title": "PII columns protected by tags"
               }
             }
           },
@@ -222,37 +306,345 @@
         },
         {
           "widget": {
-            "name": "b145d65f",
+            "name": "705902f9",
             "queries": [
               {
                 "name": "main_query",
                 "query": {
-                  "datasetName": "scorecard",
+                  "datasetName": "product_counts",
                   "disaggregated": true,
                   "fields": [
                     {
-                      "name": "req_id",
-                      "expression": "`req_id`"
+                      "name": "tables",
+                      "expression": "`tables`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "tables",
+                  "displayName": "Tables, bronze to gold"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Tables, bronze to gold"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 5,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "ed7ac645",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "product_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "gold_tables",
+                      "expression": "`gold_tables`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "gold_tables",
+                  "displayName": "Gold data products"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Gold data products"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 5,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "cdc01472",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "product_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "degraded",
+                      "expression": "`degraded`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "degraded",
+                  "displayName": "Acquirers degraded now"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Acquirers degraded now"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 5,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "146072c3",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "failure_trend",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "daily(payment_date)",
+                      "expression": "DATE_TRUNC(\"DAY\", `payment_date`)"
                     },
                     {
-                      "name": "requirement",
-                      "expression": "`requirement`"
+                      "name": "acquirer_id",
+                      "expression": "`acquirer_id`"
                     },
                     {
-                      "name": "tasks",
-                      "expression": "`tasks`"
+                      "name": "avg(failure_pct)",
+                      "expression": "AVG(`failure_pct`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "line",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(payment_date)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "payment_date"
+                },
+                "y": {
+                  "fieldName": "avg(failure_pct)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "failure_pct"
+                },
+                "color": {
+                  "fieldName": "acquirer_id",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "acquirer_id"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Daily failure rate by acquirer, % (gold): the acq_7 spike is the incident"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 8,
+            "width": 6,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "3e2e72d7",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "daily_payments",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "daily(day)",
+                      "expression": "DATE_TRUNC(\"DAY\", `day`)"
                     },
                     {
-                      "name": "status",
-                      "expression": "`status`"
+                      "name": "country",
+                      "expression": "`country`"
                     },
                     {
-                      "name": "headline",
-                      "expression": "`headline`"
+                      "name": "sum(payments)",
+                      "expression": "SUM(`payments`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(day)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "day"
+                },
+                "y": {
+                  "fieldName": "sum(payments)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "payments"
+                },
+                "color": {
+                  "fieldName": "country",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "country"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Payments per day by market (silver; your row filter applies)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 14,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "14535937",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "quarantine_rules",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "rule",
+                      "expression": "`rule`"
                     },
                     {
-                      "name": "evidence",
-                      "expression": "`evidence`"
+                      "name": "quarantined_rows",
+                      "expression": "`quarantined_rows`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "rule",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "rule"
+                },
+                "y": {
+                  "fieldName": "quarantined_rows",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "quarantined_rows"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Rows stopped by quarantine, by rule"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 14,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "1ed5cc83",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "assets",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "layer",
+                      "expression": "`layer`"
+                    },
+                    {
+                      "name": "table_name",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "kind",
+                      "expression": "`kind`"
+                    },
+                    {
+                      "name": "row_count",
+                      "expression": "`row_count`"
+                    },
+                    {
+                      "name": "protected_columns",
+                      "expression": "`protected_columns`"
+                    },
+                    {
+                      "name": "last_changed_sgt",
+                      "expression": "`last_changed_sgt`"
+                    },
+                    {
+                      "name": "description",
+                      "expression": "`description`"
                     }
                   ]
                 }
@@ -264,22 +656,25 @@
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "req_id"
+                    "fieldName": "layer"
                   },
                   {
-                    "fieldName": "requirement"
+                    "fieldName": "table_name"
                   },
                   {
-                    "fieldName": "tasks"
+                    "fieldName": "kind"
                   },
                   {
-                    "fieldName": "status"
+                    "fieldName": "row_count"
                   },
                   {
-                    "fieldName": "headline"
+                    "fieldName": "protected_columns"
                   },
                   {
-                    "fieldName": "evidence"
+                    "fieldName": "last_changed_sgt"
+                  },
+                  {
+                    "fieldName": "description"
                   }
                 ]
               },
@@ -288,7 +683,331 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Requirement, tasks, status and evidence"
+                "title": "Data assets: every table the pipeline and jobs maintain"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 20,
+            "width": 6,
+            "height": 8
+          }
+        },
+        {
+          "widget": {
+            "name": "b135508b",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "gold_lineage",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "gold_table",
+                      "expression": "`gold_table`"
+                    },
+                    {
+                      "name": "built_from",
+                      "expression": "`built_from`"
+                    },
+                    {
+                      "name": "built_by",
+                      "expression": "`built_by`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "gold_table"
+                  },
+                  {
+                    "fieldName": "built_from"
+                  },
+                  {
+                    "fieldName": "built_by"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Where each gold table comes from (lineage)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 28,
+            "width": 3,
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "a693ba1f",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "consumers",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "consumer",
+                      "expression": "`consumer`"
+                    },
+                    {
+                      "name": "consumers",
+                      "expression": "`consumers`"
+                    },
+                    {
+                      "name": "read_events",
+                      "expression": "`read_events`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "consumer"
+                  },
+                  {
+                    "fieldName": "consumers"
+                  },
+                  {
+                    "fieldName": "read_events"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Who reads Meridian data, last 14 days (lineage)"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 28,
+            "width": 3,
+            "height": 6
+          }
+        }
+      ]
+    },
+    {
+      "name": "21b5201f",
+      "displayName": "Jobs and pipeline",
+      "layout": [
+        {
+          "widget": {
+            "name": "2ff94060",
+            "multilineTextboxSpec": {
+              "lines": [
+                "## Jobs and pipeline\n",
+                "How the data is produced: what triggers each job, how reliably it runs, what the pipeline wrote and checked, and what it cost. Native Lakeflow Jobs and pipelines; from system tables, which lag by minutes, and billing by hours."
+              ]
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 0,
+            "width": 6,
+            "height": 2
+          }
+        },
+        {
+          "widget": {
+            "name": "bf088e92",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "job_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "jobs",
+                      "expression": "`jobs`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "jobs",
+                  "displayName": "Jobs in this environment"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Jobs in this environment"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "a5518b12",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "job_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "runs",
+                      "expression": "`runs`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "runs",
+                  "displayName": "Job runs, last 14 days"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Job runs, last 14 days"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "bbe358e9",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "job_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "succeeded_pct",
+                      "expression": "`succeeded_pct`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "succeeded_pct",
+                  "displayName": "Runs that succeeded, %"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Runs that succeeded, %"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 2,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "7d45022c",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "runs_per_day",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "daily(day)",
+                      "expression": "DATE_TRUNC(\"DAY\", `day`)"
+                    },
+                    {
+                      "name": "result",
+                      "expression": "`result`"
+                    },
+                    {
+                      "name": "sum(runs)",
+                      "expression": "SUM(`runs`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(day)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "day"
+                },
+                "y": {
+                  "fieldName": "sum(runs)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "runs"
+                },
+                "color": {
+                  "fieldName": "result",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "result"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Job runs per day, by result"
               }
             }
           },
@@ -296,7 +1015,408 @@
             "x": 0,
             "y": 5,
             "width": 6,
-            "height": 12
+            "height": 6
+          }
+        },
+        {
+          "widget": {
+            "name": "2fe33bac",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "jobs",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "job_name",
+                      "expression": "`job_name`"
+                    },
+                    {
+                      "name": "triggers",
+                      "expression": "`triggers`"
+                    },
+                    {
+                      "name": "runs",
+                      "expression": "`runs`"
+                    },
+                    {
+                      "name": "succeeded_pct",
+                      "expression": "`succeeded_pct`"
+                    },
+                    {
+                      "name": "median_seconds",
+                      "expression": "`median_seconds`"
+                    },
+                    {
+                      "name": "last_run_sgt",
+                      "expression": "`last_run_sgt`"
+                    },
+                    {
+                      "name": "last_result",
+                      "expression": "`last_result`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "job_name"
+                  },
+                  {
+                    "fieldName": "triggers"
+                  },
+                  {
+                    "fieldName": "runs"
+                  },
+                  {
+                    "fieldName": "succeeded_pct"
+                  },
+                  {
+                    "fieldName": "median_seconds"
+                  },
+                  {
+                    "fieldName": "last_run_sgt"
+                  },
+                  {
+                    "fieldName": "last_result"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Jobs: what triggers them and how they run, last 14 days"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 11,
+            "width": 6,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "9161b5c2",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "pipeline_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "updates",
+                      "expression": "`updates`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "updates",
+                  "displayName": "Pipeline updates, last 14 days"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Pipeline updates, last 14 days"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 18,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "31932ce1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "pipeline_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "rows_written",
+                      "expression": "`rows_written`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "rows_written",
+                  "displayName": "Rows written by the pipeline"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Rows written by the pipeline"
+              }
+            }
+          },
+          "position": {
+            "x": 2,
+            "y": 18,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "856d82a4",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "pipeline_counts",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "cost_usd",
+                      "expression": "`cost_usd`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "counter",
+              "encodings": {
+                "value": {
+                  "fieldName": "cost_usd",
+                  "displayName": "Serverless cost, last 14 days (USD, list price)"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Serverless cost, last 14 days (USD, list price)"
+              }
+            }
+          },
+          "position": {
+            "x": 4,
+            "y": 18,
+            "width": 2,
+            "height": 3
+          }
+        },
+        {
+          "widget": {
+            "name": "52dde9c1",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "rows_written",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "table_name",
+                      "expression": "`table_name`"
+                    },
+                    {
+                      "name": "rows_written",
+                      "expression": "`rows_written`"
+                    },
+                    {
+                      "name": "updates",
+                      "expression": "`updates`"
+                    },
+                    {
+                      "name": "last_written_sgt",
+                      "expression": "`last_written_sgt`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "table_name"
+                  },
+                  {
+                    "fieldName": "rows_written"
+                  },
+                  {
+                    "fieldName": "updates"
+                  },
+                  {
+                    "fieldName": "last_written_sgt"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Pipeline: rows written per table"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 21,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "5b111694",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "expectations",
+                  "disaggregated": true,
+                  "fields": [
+                    {
+                      "name": "expectation",
+                      "expression": "`expectation`"
+                    },
+                    {
+                      "name": "rows_checked",
+                      "expression": "`rows_checked`"
+                    },
+                    {
+                      "name": "rows_failed",
+                      "expression": "`rows_failed`"
+                    },
+                    {
+                      "name": "failed_pct",
+                      "expression": "`failed_pct`"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 2,
+              "widgetType": "table",
+              "encodings": {
+                "columns": [
+                  {
+                    "fieldName": "expectation"
+                  },
+                  {
+                    "fieldName": "rows_checked"
+                  },
+                  {
+                    "fieldName": "rows_failed"
+                  },
+                  {
+                    "fieldName": "failed_pct"
+                  }
+                ]
+              },
+              "data": {
+                "queryName": "main_query"
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Expectations: rows checked and failed per rule"
+              }
+            }
+          },
+          "position": {
+            "x": 3,
+            "y": 21,
+            "width": 3,
+            "height": 7
+          }
+        },
+        {
+          "widget": {
+            "name": "b18c1367",
+            "queries": [
+              {
+                "name": "main_query",
+                "query": {
+                  "datasetName": "cost_by_job",
+                  "disaggregated": false,
+                  "fields": [
+                    {
+                      "name": "daily(day)",
+                      "expression": "DATE_TRUNC(\"DAY\", `day`)"
+                    },
+                    {
+                      "name": "job",
+                      "expression": "`job`"
+                    },
+                    {
+                      "name": "sum(usd)",
+                      "expression": "SUM(`usd`)"
+                    }
+                  ]
+                }
+              }
+            ],
+            "spec": {
+              "version": 3,
+              "widgetType": "bar",
+              "encodings": {
+                "x": {
+                  "fieldName": "daily(day)",
+                  "scale": {
+                    "type": "temporal"
+                  },
+                  "displayName": "day"
+                },
+                "y": {
+                  "fieldName": "sum(usd)",
+                  "scale": {
+                    "type": "quantitative"
+                  },
+                  "displayName": "usd"
+                },
+                "color": {
+                  "fieldName": "job",
+                  "scale": {
+                    "type": "categorical"
+                  },
+                  "displayName": "job"
+                }
+              },
+              "frame": {
+                "showTitle": true,
+                "title": "Serverless cost per day by job (USD at list price; usage tagged project=meridian-poc)"
+              }
+            }
+          },
+          "position": {
+            "x": 0,
+            "y": 28,
+            "width": 6,
+            "height": 6
           }
         }
       ]
