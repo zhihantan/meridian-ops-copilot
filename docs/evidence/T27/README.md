@@ -44,10 +44,18 @@ That is 80.5% less on this prefix, at list price.
 **Dashboard as code.** "Meridian ops" (`resources/dashboards.yml`) has one definition. `scripts/gen_dashboard.py`
 (`make gen-dashboard`) generates it per target with that target's names, and the bundle promotes it dev to
 staging to prod. A page is included only where its tables exist:
-- **Pipeline health:** acquirer status, payments by market, and the last 24 hours of jobs, errors and breaches.
+- **Pipeline health:** acquirer status (degraded first), payments by market, and the issues of the last 14 days:
+  failed runs and tasks, pipeline errors, check breaches and quarantine. Successful runs are left out.
 - **Knowledge:** documents per tier, ingest failures, and who changed each document.
 - **Copilot (prod only, where the traces are):** cache tokens, runs by caller, the slowest tools, refusals and
-  denials.
+  denials. Callers are shown by persona, from the membership mirrors, so no principal ID or user name is in the
+  definition.
+
+Fixed on 2026-10-21:
+- The page headers ran the heading and its description into one line.
+- Callers showed principal IDs.
+- The health table covered only 24 hours, which the 10-minute knowledge sweep filled, so a replayed incident
+  dropped off it.
 
 Viewers query with their own permissions (`embed_credentials: false`), so the market row filter and the masks
 apply per viewer. Every dataset query of each target's definition was executed before deploying.

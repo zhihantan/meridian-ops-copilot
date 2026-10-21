@@ -61,15 +61,30 @@ def bar(ds: str, x_field: str, y_field: str, title: str, x: int, y: int, w: int 
 
 
 def text(lines: list[str], x: int, y: int, w: int = 6, h: int = 2) -> dict:
-    return {"widget": {"name": wid("text", *lines), "multilineTextboxSpec": {"lines": lines}},
+    # The dashboard concatenates lines, so each one but the last ends with a newline (else the heading swallows the text).
+    return {"widget": {"name": wid("text", *lines),
+                       "multilineTextboxSpec": {"lines": [f"{line}\n" for line in lines[:-1]] + lines[-1:]}},
             "position": {"x": x, "y": y, "width": w, "height": h}}
+
+
+def sgt(column: str, alias: str) -> str:
+    return f"date_format(from_utc_timestamp({column}, 'Asia/Singapore'), 'dd MMM HH:mm') AS {alias}"
+
+
+def callers(agent: str) -> str:
+    """Persona label per principal from the membership mirrors, so no principal ID or user name is in the repo."""
+    return f"""WITH roles AS (SELECT principal, 'Eli (admin)' AS caller, 0 AS rank FROM {agent}.approvers
+               UNION ALL SELECT principal, 'Ben (finance)', 1 FROM {agent}.tier_members WHERE tier = 'finance'
+               UNION ALL SELECT principal, 'Ava (support)', 2 FROM {agent}.tier_members WHERE tier = 'general'),
+          callers AS (SELECT principal, min_by(caller, rank) AS caller FROM roles GROUP BY principal)"""
 
 
 def build(t, w: WorkspaceClient) -> dict:
     c, s = t.catalog, t.schemas
     existing = {f"{r[0]}.{r[1]}" for r in sql(w, f"""SELECT table_schema, table_name FROM {c}.information_schema.tables
                                                     WHERE table_schema IN ('{s['obs']}', '{s['kb']}', '{s['agent']}',
-                                                                           '{s['gold']}', '{s['silver']}')""")}
+                                                                           '{s['gold']}', '{s['silver']}', '{s['gov']}',
+                                                                           '{s['quarantine']}')""")}
 
     def has(schema: str, name: str) -> bool:
         return f"{s[schema]}.{name}" in existing
@@ -81,14 +96,39 @@ def build(t, w: WorkspaceClient) -> dict:
         return name
 
     if has("obs", "v_pipeline_health") and has("gold", "acquirer_status"):
-        dataset("health", "Pipeline health, last 24h", f"SELECT at, source, name, status, detail FROM {c}.{s['obs']}.v_pipeline_health ORDER BY at DESC")
-        dataset("acquirers", "Acquirer status", f"SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM {c}.{s['gold']}.acquirer_status ORDER BY acquirer_id")
+        o, g, q = f"{c}.{s['obs']}", f"{c}.{s['gov']}", f"{c}.{s['quarantine']}"
+        issue_sources = [("obs", "v_job_runs"), ("obs", "v_task_runs"), ("obs", "v_pipeline_events"), ("obs", "drift_events"),
+                         ("obs", "freshness_events"), ("gov", "pii_coverage"), ("quarantine", "payments")]
+        if all(has(*src) for src in issue_sources):
+            # Problems only, over 14 days, so an incident stays on the page for a later walkthrough; successful runs
+            # (most of them the 10-minute knowledge sweep) are left out.
+            dataset("health", "Issues, last 14 days", f"""SELECT {sgt('at', 'at_sgt')}, source, name, status, detail FROM (
+                SELECT ended_at AS at, 'job run' AS source, job_name AS name, result_state AS status, termination_code AS detail
+                FROM {o}.v_job_runs WHERE ended_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state <> 'SUCCEEDED'
+                UNION ALL SELECT ended_at, 'task run', concat(job_name, '.', task_key), result_state, termination_code
+                FROM {o}.v_task_runs WHERE ended_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state NOT IN ('SUCCEEDED', 'EXCLUDED', 'SKIPPED')
+                UNION ALL SELECT timestamp, 'pipeline', coalesce(flow_name, 'update'), level, coalesce(error_message, message)
+                FROM {o}.v_pipeline_events WHERE timestamp >= current_timestamp() - INTERVAL 14 DAYS AND level IN ('ERROR', 'WARN')
+                UNION ALL SELECT checked_at, concat('check: ', check_name), concat_ws('.', table_name, column_name), 'BREACH', message
+                FROM (SELECT check_name, checked_at, table_name, column_name, message, breached FROM {o}.drift_events
+                      UNION ALL SELECT check_name, checked_at, table_name, column_name, message, breached FROM {o}.freshness_events
+                      UNION ALL SELECT check_name, checked_at, table_name, column_name, message, breached FROM {g}.pii_coverage)
+                WHERE breached AND checked_at >= current_timestamp() - INTERVAL 14 DAYS
+                UNION ALL SELECT max(_quarantined_at), 'quarantine', rule, 'QUARANTINED', concat(count(*), ' payment rows')
+                FROM {q}.payments LATERAL VIEW explode(_failed_rules) r AS rule
+                WHERE _quarantined_at >= current_timestamp() - INTERVAL 14 DAYS AND reprocessed_at IS NULL GROUP BY rule
+                ) ORDER BY at DESC""")
+            health = ("Issues in the last 14 days: failed runs and tasks, pipeline errors, check breaches, quarantine", "at_sgt")
+        else:
+            dataset("health", "Pipeline health, last 24h", f"SELECT at, source, name, status, detail FROM {o}.v_pipeline_health ORDER BY at DESC")
+            health = ("Last 24 hours: jobs, pipeline errors, check breaches, quarantine", "at")
+        dataset("acquirers", "Acquirer status", f"SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM {c}.{s['gold']}.acquirer_status ORDER BY status = 'degraded' DESC, recent_failure_rate DESC")
         dataset("markets", "Payments by market (your row filter applies)", f"SELECT country, count(*) AS payments FROM {c}.{s['silver']}.payments GROUP BY country ORDER BY payments DESC")
         pages.append({"name": wid("page", "pipeline"), "displayName": "Pipeline health", "layout": [
             text(["## Pipeline health", "Quality, freshness and failures from the observability views. BUILD views over native sources."], 0, 0),
-            table("acquirers", "Acquirer status (recent 6h vs 14-day baseline)", ["acquirer_id", "status", "recent_failure_pct", "baseline_failure_pct"], 0, 2, 3, 7),
+            table("acquirers", "Acquirer status, degraded first (recent 6h vs 14-day baseline, %)", ["acquirer_id", "status", "recent_failure_pct", "baseline_failure_pct"], 0, 2, 3, 7),
             bar("markets", "country", "payments", "Payments by market (the market row filter applies per viewer)", 3, 2, 3, 7),
-            table("health", "Last 24 hours: jobs, pipeline errors, check breaches, quarantine", ["at", "source", "name", "status", "detail"], 0, 9, 6, 8)]})
+            table("health", health[0], [health[1], "source", "name", "status", "detail"], 0, 9, 6, 8)]})
     if has("kb", "sync_status"):
         dataset("kb_status", "Knowledge sync", f"SELECT last_run_at, live_docs_general, live_docs_finance, chunks_general, chunks_finance, failures_24h FROM {c}.{s['kb']}.sync_status")
         layout = [text(["## Knowledge", "kb_sync runs, document and chunk counts per tier, failures. BUILD."], 0, 0),
@@ -96,23 +136,29 @@ def build(t, w: WorkspaceClient) -> dict:
                   counter("kb_status", "live_docs_finance", "Finance documents", 2, 2),
                   counter("kb_status", "failures_24h", "Ingest failures, 24h", 4, 2)]
         if has("obs", "v_kb_changes"):
-            dataset("kb_changes", "Knowledge changes", f"SELECT doc_id, source, tier, source_version, last_editor, edited_at, change FROM {c}.{s['obs']}.v_kb_changes WHERE deleted_at IS NULL ORDER BY edited_at DESC")
-            layout.append(table("kb_changes", "Who changed each document, when and why", ["doc_id", "source", "tier", "source_version", "last_editor", "edited_at", "change"], 0, 5, 6, 9))
+            dataset("kb_changes", "Knowledge changes", f"SELECT doc_id, source, tier, source_version, last_editor, {sgt('edited_at', 'edited_sgt')}, change FROM {c}.{s['obs']}.v_kb_changes WHERE deleted_at IS NULL ORDER BY edited_at DESC")
+            layout.append(table("kb_changes", "Who changed each document, and when", ["doc_id", "source", "tier", "source_version", "last_editor", "edited_sgt", "change"], 0, 5, 6, 9))
         pages.append({"name": wid("page", "knowledge"), "displayName": "Knowledge", "layout": layout})
     if has("agent", "v_copilot_runs"):
         a = f"{c}.{s['agent']}"
-        dataset("runs_by_user", "Copilot runs by caller", f"SELECT principal, count(*) AS runs, round(avg(duration_ms) / 1000, 1) AS avg_seconds, sum(input_tokens) AS input_tokens, sum(cache_read_tokens) AS cache_read_tokens FROM {a}.v_copilot_runs GROUP BY principal ORDER BY runs DESC")
+        if has("agent", "approvers") and has("agent", "tier_members"):
+            dataset("runs_by_user", "Copilot runs by caller", f"{callers(a)} SELECT coalesce(c.caller, 'other') AS caller, count(*) AS runs, round(avg(r.duration_ms) / 1000, 1) AS avg_seconds, sum(r.input_tokens) AS input_tokens, sum(r.cache_read_tokens) AS cache_read_tokens FROM {a}.v_copilot_runs r LEFT JOIN callers c ON c.principal = r.principal GROUP BY 1 ORDER BY runs DESC")
+            dataset("denials", "Refusals and denials", f"{callers(a)} SELECT {sgt('d.at', 'at_sgt')}, coalesce(c.caller, 'other') AS caller, d.kind, d.what, d.detail FROM {a}.v_copilot_denials d LEFT JOIN callers c ON c.principal = d.principal ORDER BY d.at DESC")
+            caller_field, denial_fields = "caller", ["at_sgt", "caller", "kind", "what", "detail"]
+        else:
+            dataset("runs_by_user", "Copilot runs by caller", f"SELECT principal, count(*) AS runs, round(avg(duration_ms) / 1000, 1) AS avg_seconds, sum(input_tokens) AS input_tokens, sum(cache_read_tokens) AS cache_read_tokens FROM {a}.v_copilot_runs GROUP BY principal ORDER BY runs DESC")
+            dataset("denials", "Refusals and denials", f"SELECT at, kind, what, detail FROM {a}.v_copilot_denials ORDER BY at DESC")
+            caller_field, denial_fields = "principal", ["at", "kind", "what", "detail"]
         dataset("latency", "Tool latency", f"SELECT tool, calls, errors, p50_ms, p95_ms, max_ms FROM {a}.v_copilot_tool_latency ORDER BY p95_ms DESC")
-        dataset("denials", "Refusals and denials", f"SELECT at, kind, what, detail FROM {a}.v_copilot_denials ORDER BY at DESC")
         dataset("cache", "Prompt cache", f"SELECT sum(input_tokens) AS uncached_input, sum(cache_read_tokens) AS cache_read, sum(cache_write_tokens) AS cache_write FROM {a}.v_copilot_runs")
         pages.append({"name": wid("page", "copilot"), "displayName": "Copilot", "layout": [
             text(["## Copilot", "From the copilot's traces in Unity Catalog. Every run is the caller's own. BUILD views."], 0, 0),
             counter("cache", "cache_read", "Tokens read from the prompt cache", 0, 2),
             counter("cache", "uncached_input", "Uncached input tokens", 2, 2),
             counter("cache", "cache_write", "Tokens written to the cache", 4, 2),
-            bar("runs_by_user", "principal", "runs", "Runs by caller", 0, 5, 3, 6),
+            bar("runs_by_user", caller_field, "runs", "Runs by caller", 0, 5, 3, 6),
             table("latency", "Slowest tools and steps (ms)", ["tool", "calls", "errors", "p50_ms", "p95_ms", "max_ms"], 3, 5, 3, 6),
-            table("denials", "Refused and denied: guard, procedures, indexes, model safeguard", ["at", "kind", "what", "detail"], 0, 11, 6, 8)]})
+            table("denials", "Refused and denied: guard, procedures, indexes, model safeguard", denial_fields, 0, 11, 6, 8)]})
     if has("obs", "evidence"):
         o = f"{c}.{s['obs']}"
         dataset("scorecard", "POC scorecard", f"SELECT req_id, requirement, tasks, status, headline, evidence FROM {o}.evidence ORDER BY req_id")

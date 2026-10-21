@@ -2,16 +2,16 @@
   "datasets": [
     {
       "name": "health",
-      "displayName": "Pipeline health, last 24h",
+      "displayName": "Issues, last 14 days",
       "queryLines": [
-        "SELECT at, source, name, status, detail FROM meridian_staging.obs.v_pipeline_health ORDER BY at DESC"
+        "SELECT date_format(from_utc_timestamp(at, 'Asia/Singapore'), 'dd MMM HH:mm') AS at_sgt, source, name, status, detail FROM ( SELECT ended_at AS at, 'job run' AS source, job_name AS name, result_state AS status, termination_code AS detail FROM meridian_staging.obs.v_job_runs WHERE ended_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state <> 'SUCCEEDED' UNION ALL SELECT ended_at, 'task run', concat(job_name, '.', task_key), result_state, termination_code FROM meridian_staging.obs.v_task_runs WHERE ended_at >= current_timestamp() - INTERVAL 14 DAYS AND result_state NOT IN ('SUCCEEDED', 'EXCLUDED', 'SKIPPED') UNION ALL SELECT timestamp, 'pipeline', coalesce(flow_name, 'update'), level, coalesce(error_message, message) FROM meridian_staging.obs.v_pipeline_events WHERE timestamp >= current_timestamp() - INTERVAL 14 DAYS AND level IN ('ERROR', 'WARN') UNION ALL SELECT checked_at, concat('check: ', check_name), concat_ws('.', table_name, column_name), 'BREACH', message FROM (SELECT check_name, checked_at, table_name, column_name, message, breached FROM meridian_staging.obs.drift_events UNION ALL SELECT check_name, checked_at, table_name, column_name, message, breached FROM meridian_staging.obs.freshness_events UNION ALL SELECT check_name, checked_at, table_name, column_name, message, breached FROM meridian_staging.gov.pii_coverage) WHERE breached AND checked_at >= current_timestamp() - INTERVAL 14 DAYS UNION ALL SELECT max(_quarantined_at), 'quarantine', rule, 'QUARANTINED', concat(count(*), ' payment rows') FROM meridian_staging.quarantine.payments LATERAL VIEW explode(_failed_rules) r AS rule WHERE _quarantined_at >= current_timestamp() - INTERVAL 14 DAYS AND reprocessed_at IS NULL GROUP BY rule ) ORDER BY at DESC"
       ]
     },
     {
       "name": "acquirers",
       "displayName": "Acquirer status",
       "queryLines": [
-        "SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM meridian_staging.gold.acquirer_status ORDER BY acquirer_id"
+        "SELECT acquirer_id, status, round(100 * recent_failure_rate, 1) AS recent_failure_pct, round(100 * baseline_failure_rate, 1) AS baseline_failure_pct FROM meridian_staging.gold.acquirer_status ORDER BY status = 'degraded' DESC, recent_failure_rate DESC"
       ]
     },
     {
@@ -32,7 +32,7 @@
             "name": "096017ca",
             "multilineTextboxSpec": {
               "lines": [
-                "## Pipeline health",
+                "## Pipeline health\n",
                 "Quality, freshness and failures from the observability views. BUILD views over native sources."
               ]
             }
@@ -46,7 +46,7 @@
         },
         {
           "widget": {
-            "name": "e7b82f83",
+            "name": "e6ed147a",
             "queries": [
               {
                 "name": "main_query",
@@ -99,7 +99,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Acquirer status (recent 6h vs 14-day baseline)"
+                "title": "Acquirer status, degraded first (recent 6h vs 14-day baseline, %)"
               }
             }
           },
@@ -166,7 +166,7 @@
         },
         {
           "widget": {
-            "name": "72bee952",
+            "name": "795e9ac9",
             "queries": [
               {
                 "name": "main_query",
@@ -175,8 +175,8 @@
                   "disaggregated": true,
                   "fields": [
                     {
-                      "name": "at",
-                      "expression": "`at`"
+                      "name": "at_sgt",
+                      "expression": "`at_sgt`"
                     },
                     {
                       "name": "source",
@@ -204,8 +204,8 @@
               "encodings": {
                 "columns": [
                   {
-                    "fieldName": "at",
-                    "displayName": "at"
+                    "fieldName": "at_sgt",
+                    "displayName": "at_sgt"
                   },
                   {
                     "fieldName": "source",
@@ -227,7 +227,7 @@
               },
               "frame": {
                 "showTitle": true,
-                "title": "Last 24 hours: jobs, pipeline errors, check breaches, quarantine"
+                "title": "Issues in the last 14 days: failed runs and tasks, pipeline errors, check breaches, quarantine"
               }
             }
           },
