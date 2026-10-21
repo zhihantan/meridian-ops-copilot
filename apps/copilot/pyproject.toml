@@ -24,6 +24,11 @@ build-backend = "hatchling.build"
 [tool.hatch.build.targets.wheel]
 packages = ["copilot", "runtime", "meridian"]
 
+[tool.uv]
+# The Apps container resolves from public PyPI with no lockfile. Resolve as at the deploy of 2026-10-16 19:42 UTC,
+# so a redeploy gets the packages that were tested: databricks-agentbricks 0.6.0 (PREVIEW) and newer SDKs came after.
+exclude-newer = "2026-10-16T19:42:00Z"
+
 [tool.ruff]
 extend = "../../pyproject.toml"
 

@@ -1,4 +1,5 @@
-"""Serve the copilot through Agent Bricks' DurableAgentServer (T17): sync, streaming and background calls.
+"""Serve the copilot through Agent Bricks' DurableAgentServer (T17): sync, streaming and background calls, and
+a chat page at / (chat.html, BUILD) that makes those calls from the browser.
 
 The caller is whoever the Databricks Apps ingress authenticated. agent.toml requires user auth, so each
 invocation carries the caller's own downscoped token and every tool runs as them. There is no fallback to
@@ -18,6 +19,7 @@ from databricks_agentkit import DurableAgentServer, InvocationContext
 from databricks_agentkit.runtime.auth import AuthError
 from databricks_agentkit.runtime.tracing import configure_tracing, start_trace
 from dotenv import load_dotenv
+from fastapi.responses import HTMLResponse
 
 from copilot.loop import run
 from copilot.tools import Caller, Tools
@@ -61,6 +63,15 @@ async def invoke(value, context: InvocationContext) -> dict:
 app = DurableAgentServer()
 app.invoke(invoke)
 app.recover(invoke)  # request-user work is never resumed by the runtime; app-auth work would replay
+
+CHAT_PAGE = (Path(__file__).parent / "chat.html").read_text()
+
+
+@app.get("/")
+async def chat_page() -> HTMLResponse:
+    """The chat page (BUILD) over this app's own invocation API. The Apps ingress signs the visitor in and
+    forwards their token with each call, so the copilot runs as them, as it does for scripts/ask.py."""
+    return HTMLResponse(CHAT_PAGE)
 
 
 def main() -> None:
