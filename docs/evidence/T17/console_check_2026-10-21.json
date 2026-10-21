@@ -1,0 +1,250 @@
+{
+  "checked_at": "2026-10-21T18:36:23+00:00",
+  "app": "agent-bricks-meridian-copilot",
+  "result": "PASS",
+  "checks": {
+    "page and bundle load (gzip), classic fallback": true,
+    "identity: Eli admin with general and finance": true,
+    "identity: Ben general and finance, not admin": true,
+    "identity: Ava general only, not admin": true,
+    "knowledge: general question cites DOC-RB-021 (Eli, Ava)": true,
+    "knowledge: finance clause cited for Eli and Ben": true,
+    "knowledge: Ava searches no finance tier and gets no finance passage": true,
+    "knowledge: out-of-scope question abstains": true,
+    "genie: answers as each persona, naming acq_7": true,
+    "genie: follow-up continues the same conversation": true,
+    "overview: acq_7 degraded, 7 acquirers": true,
+    "approvals: Eli sees the decided batch RB-832eed0860": true,
+    "approvals: an approval without the console's header is rejected": true,
+    "approvals: a made-up approval gets the procedure's refusal": true,
+    "copilot: answers as Eli and as Ava": true
+  },
+  "personas": {
+    "eli": {
+      "me": {
+        "status": 200,
+        "name_present": true,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "admin": true
+      },
+      "knowledge_finance": {
+        "status": 200,
+        "seconds": 8.1,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "passage_tiers": [
+          "finance",
+          "general"
+        ],
+        "abstained": false,
+        "citations": [
+          "DOC-FEE-001 p.2"
+        ],
+        "error": null,
+        "answer": "Meridian may claim a service credit of 10% of the month's processing fees paid to acq_7 for each breach, where a breach is a payment failure rate above 5% over a rolling 6-hour window [DOC-FEE-001 p.2]. Finance files the claim within 21 day"
+      },
+      "genie_degraded": {
+        "status": "COMPLETED",
+        "seconds": 15.1,
+        "conversation_id": "01f1cd7df8fe18b38a7f6a1d1e088492",
+        "queries": 1,
+        "rows": 1,
+        "mentions_acq_7": true,
+        "text": "**acq_7** is the only acquirer currently marked as degraded, with a recent failure rate of **16.2%** versus a baseline failure rate of **1.9%**. In this result, **acq_7** is performing well above its "
+      },
+      "knowledge_general": {
+        "status": 200,
+        "seconds": 6.6,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "passage_tiers": [
+          "general"
+        ],
+        "abstained": false,
+        "citations": [
+          "DOC-RB-021 p.1"
+        ],
+        "error": null,
+        "answer": "A refund approval expires after 48 hours, so you need to request a new one if the batch hasn't run by then [DOC-RB-021 p.1]."
+      },
+      "copilot": {
+        "status": "completed",
+        "seconds": 9.0,
+        "answer": "A refund approval stays valid for 48 hours. After that you need to request a new one if the batch hasn't run [DOC-RB-021 p.1].\n\nThis applies to batches over SGD 500, which need approval from a meridian-admin member. The requester can't appr"
+      },
+      "approvals": {
+        "status": 200,
+        "pending": 0,
+        "error": null,
+        "recent": [
+          [
+            "RB-832eed0860",
+            "approved",
+            "executed"
+          ],
+          [
+            "RB-b754f177a1",
+            "approved",
+            "executed"
+          ],
+          [
+            "RB-1d5510e902",
+            "approved",
+            "executed"
+          ]
+        ]
+      },
+      "page": {
+        "status": 200,
+        "react_build": true,
+        "bundle_status": 200,
+        "bundle_bytes_sent": 134735,
+        "bundle_bytes": 444328,
+        "classic": 200
+      },
+      "knowledge_out_of_scope": {
+        "status": 200,
+        "seconds": 5.4,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "passage_tiers": [
+          "finance",
+          "general"
+        ],
+        "abstained": true,
+        "citations": [],
+        "error": null,
+        "answer": "I don't have that in the knowledge base."
+      },
+      "genie_follow_up": {
+        "status": "COMPLETED",
+        "seconds": 25.8,
+        "conversation_id": "01f1cd7df8fe18b38a7f6a1d1e088492",
+        "queries": 1,
+        "rows": 3,
+        "mentions_acq_7": true,
+        "text": "The currently degraded acquirer in the results is **acq_7**, and its failure rate over the last 3 days was **14.6%** on **2026-10-15**, **7.7%** on **2026-10-14**, and **1.2%** on **2026-10-13**. Acro"
+      },
+      "overview": {
+        "status": 200,
+        "degraded": [
+          "acq_7"
+        ],
+        "acquirers": 7,
+        "data_until": "15 Oct 13:00"
+      },
+      "approve_without_header": 400,
+      "approve_made_up_id": {
+        "approved": false,
+        "reason": "no pending, unexpired approval with that id"
+      }
+    },
+    "ben": {
+      "me": {
+        "status": 200,
+        "name_present": true,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "admin": false
+      },
+      "knowledge_finance": {
+        "status": 200,
+        "seconds": 7.9,
+        "tiers": [
+          "general",
+          "finance"
+        ],
+        "passage_tiers": [
+          "finance",
+          "general"
+        ],
+        "abstained": false,
+        "citations": [
+          "DOC-FEE-001 p.2"
+        ],
+        "error": null,
+        "answer": "Meridian may claim a service credit of 10% of the month's processing fees paid to acq_7 for each breach [DOC-FEE-001 p.2]. A breach means acq_7's payment failure rate is above 5% over a rolling 6-hour window [DOC-FEE-001 p.2]. Finance files"
+      },
+      "genie_degraded": {
+        "status": "COMPLETED",
+        "seconds": 17.1,
+        "conversation_id": "01f1cd7e2f911f74b311f65fdb6dbead",
+        "queries": 1,
+        "rows": 1,
+        "mentions_acq_7": true,
+        "text": "The only acquirer shown as **degraded** is **acq_7**, with a recent failure rate of **16.2%** versus a baseline failure rate of **1.9%**, updated at **2026-10-16T02:04:56.573Z**. In this result, **acq"
+      }
+    },
+    "ava": {
+      "me": {
+        "status": 200,
+        "name_present": true,
+        "tiers": [
+          "general"
+        ],
+        "admin": false
+      },
+      "knowledge_finance": {
+        "status": 200,
+        "seconds": 5.3,
+        "tiers": [
+          "general"
+        ],
+        "passage_tiers": [
+          "general"
+        ],
+        "abstained": true,
+        "citations": [],
+        "error": null,
+        "answer": "I don't have that in the knowledge base."
+      },
+      "genie_degraded": {
+        "status": "COMPLETED",
+        "seconds": 15.9,
+        "conversation_id": "01f1cd7e3f8c1bb9b02b5f11aff8e7b8",
+        "queries": 1,
+        "rows": 1,
+        "mentions_acq_7": true,
+        "text": "**acq_7** is currently **degraded**, with a recent failure rate of **16.2%** versus a baseline failure rate of **1.9%**. In the current results, **acq_7** is the only degraded acquirer returned."
+      },
+      "knowledge_general": {
+        "status": 200,
+        "seconds": 4.2,
+        "tiers": [
+          "general"
+        ],
+        "passage_tiers": [
+          "general"
+        ],
+        "abstained": false,
+        "citations": [
+          "DOC-RB-021 p.1"
+        ],
+        "error": null,
+        "answer": "A refund approval expires after 48 hours, so you need to request a new one if the batch hasn't run by then [DOC-RB-021 p.1]."
+      },
+      "copilot": {
+        "status": "completed",
+        "seconds": 7.6,
+        "answer": "A refund approval stays valid for 48 hours. After that, you need to request a new one if the batch hasn't run [DOC-RB-021 p.1].\n\nThis applies to batches over SGD 500, which need approval from a meridian-admin member. The requester can't app"
+      },
+      "approvals": {
+        "status": 200,
+        "pending": 0,
+        "error": "Insufficient privileges:",
+        "recent": []
+      }
+    }
+  }
+}

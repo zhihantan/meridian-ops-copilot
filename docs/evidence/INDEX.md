@@ -27,7 +27,7 @@ under `docs/evidence/<task>/` has the run outputs; platform findings are in `spi
 | T14 | PASS | `T14/` | Prod freshness with the 10-minute sweep: create 8.7, edit 5.3, delete 11.9 minutes (95th percentile) | File-arrival triggers miss edits and deletes, hence the sweep |
 | T15 | PASS | `T15/` | Corrupt file skipped and logged, unreachable source fails clearly, reconcile names and repairs drift | |
 | T16 | PASS | `T16/` | Hybrid search with the reranker is best; correctness 8/8 dev and 7/8 test; abstention 4/4 out of scope, 0/16 in scope | Small golden set (20 questions) |
-| T17 | PASS | `T17/` | Copilot on Agent Bricks as a Databricks App; every tool runs as the caller; sync, stream and background | PREVIEW runtime |
+| T17 | PASS | `T17/` | Copilot on Agent Bricks as a Databricks App; every tool runs as the caller; sync, stream and background. Browser console (React and FastAPI) with the copilot, Genie, the knowledge chatbot and approvals: 15 of 15 checks as Eli, Ben and Ava (`console_check_2026-10-21.json`) | PREVIEW runtime |
 | T18 | PASS | `T18/` | Governed RB-014: database drill 13 attacks refused (dev and prod), agent drill guard 19/19 and agent 11/11 (prod); zero unapproved refunds | Service policy not attempted; the memory attack ran in T25 |
 | T19 | PASS | `T19/` | Leakage matrix on agent, index and MCP paths: 0 leaks; removal from finance enforced in 225 s; traces clean | |
 | T20 | PASS | `T20/` | Corrections: 2 of 2 improved, rejected and unreviewed not served, no test regression, revert unserves in 48 s | Run on dev; prod has the procedures |

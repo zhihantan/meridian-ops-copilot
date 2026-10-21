@@ -1,8 +1,9 @@
 <!doctype html>
-<!-- The copilot's chat page (BUILD), served at / by runtime/main.py. It calls this app's own invocation API
-     (background with an event stream, as scripts/ask.py does with polling), sending the conversation's
-     X-Routing-Key on every request so it stays on one replica. The Apps ingress signs the visitor in and
-     forwards their token, so every tool runs as them. Answers are escaped before any formatting. -->
+<!-- The copilot's chat page (BUILD), served at / by runtime/ui.py. It calls this app's own invocation API
+     (background, with the event stream for each step), sending the conversation's X-Routing-Key so it stays on
+     one replica, and the UI API in runtime/ui.py: who the visitor is, and for admins the refunds waiting for
+     approval. The Apps ingress signs the visitor in and forwards their token, so everything runs as them.
+     Model output is escaped before any formatting, and the conversation is kept only in this browser tab. -->
 <html lang="en">
 <head>
 <meta charset="utf-8">
@@ -10,142 +11,438 @@
 <title>Meridian Ops Copilot</title>
 <link rel="icon" href="data:,">
 <style>
-  :root { --navy: #1B3139; --paper: #F9F7F4; --accent: #FF3621; --ink: #1F2933; --muted: #5A6F77; --line: #E3DED6; }
+  :root {
+    --navy: #1B3139; --paper: #F9F7F4; --card: #FFFFFF; --line: #E6E0D7; --ink: #1F2933; --muted: #5A6F77;
+    --accent: #FF3621; --ok: #00A972; --warn: #FFAB00; --bad: #D92D20; --info: #2272B4;
+    --shadow: 0 1px 2px rgba(27, 49, 57, .06), 0 4px 12px rgba(27, 49, 57, .04);
+  }
   * { box-sizing: border-box; }
-  body { margin: 0; height: 100vh; display: flex; flex-direction: column; background: var(--paper); color: var(--ink);
-         font: 15px/1.5 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; }
-  header { background: var(--navy); color: #fff; padding: 14px 24px; display: flex; align-items: center; gap: 10px;
-           flex-wrap: wrap; }
-  header h1 { font-size: 18px; font-weight: 600; margin: 0 8px 0 0; }
-  .badge { font-size: 11px; font-weight: 600; letter-spacing: .03em; padding: 2px 8px; border-radius: 10px; }
-  .build { background: var(--muted); color: #fff; }
-  .preview { background: #FFAB00; color: var(--navy); }
-  header .note { margin-left: auto; font-size: 13px; opacity: .85; }
-  main { flex: 1; overflow-y: auto; padding: 24px; }
-  #thread { max-width: 880px; margin: 0 auto; display: flex; flex-direction: column; gap: 14px; }
-  .msg { padding: 12px 16px; border-radius: 12px; max-width: 85%; }
-  .msg p { margin: 0 0 8px; } .msg p:last-child { margin-bottom: 0; }
-  .msg ul { margin: 0 0 8px; padding-left: 20px; }
-  .user { align-self: flex-end; background: var(--navy); color: #fff; white-space: pre-wrap; }
-  .assistant { align-self: flex-start; background: #fff; border: 1px solid var(--line); }
-  .msg .steps { list-style: none; margin: 0; padding: 0; font-size: 13px; color: var(--muted); }
-  .steps li { margin: 2px 0; } .steps li.result { padding-left: 14px; }
-  .msg .steps:not(:empty) { margin-bottom: 10px; }
-  .cite { font-size: 12px; background: #EEF2F3; color: var(--navy); border-radius: 6px; padding: 0 5px; white-space: nowrap; }
-  .meta { font-size: 12px; color: var(--muted); }
-  .error { color: #B42318; }
-  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
-  .chip { font: inherit; font-size: 13px; text-align: left; background: var(--paper); border: 1px solid var(--line);
-          border-radius: 16px; padding: 6px 12px; cursor: pointer; }
-  .chip:hover { border-color: var(--navy); }
-  footer { background: #fff; border-top: 1px solid var(--line); padding: 12px 24px; }
-  form { max-width: 880px; margin: 0 auto; display: flex; gap: 10px; }
-  textarea { flex: 1; height: 48px; resize: none; font: inherit; padding: 10px 12px; border: 1px solid var(--line);
-             border-radius: 10px; }
-  button { font: inherit; border-radius: 10px; cursor: pointer; }
-  #send { background: var(--accent); color: #fff; border: 0; padding: 0 18px; font-weight: 600; }
+  [hidden] { display: none !important; }
+  html, body { height: 100%; }
+  body { margin: 0; display: flex; flex-direction: column; background: var(--paper); color: var(--ink);
+         font: 15px/1.55 Inter, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+  button { font: inherit; cursor: pointer; }
+  code { font: 12.5px/1.4 ui-monospace, SFMono-Regular, Menlo, monospace; background: #F1EEE9; border-radius: 4px;
+         padding: 1px 4px; }
+  .ico svg { width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round;
+             stroke-linejoin: round; display: block; }
+  .muted { color: var(--muted); }
+
+  header.top { background: var(--navy); color: #fff; padding: 12px 24px; display: flex; align-items: center; gap: 18px;
+               flex-wrap: wrap; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .mark { width: 34px; height: 34px; border-radius: 9px; background: var(--accent); display: grid; place-items: center; }
+  .mark svg { width: 20px; height: 20px; stroke: #fff; fill: none; stroke-width: 2; stroke-linejoin: round; }
+  .brand h1 { font-size: 17px; margin: 0; font-weight: 650; }
+  .brand p { margin: 0; font-size: 12.5px; opacity: .75; }
+  .badge, .tag { font-size: 10.5px; font-weight: 650; letter-spacing: .04em; padding: 2px 8px; border-radius: 999px;
+                 white-space: nowrap; }
+  .build { background: #5A6F77; color: #fff; }
+  .preview { background: var(--warn); color: var(--navy); }
+  .native { background: var(--ok); color: #fff; }
+  .me { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 13.5px; }
+  .avatar { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; font-size: 12px;
+            font-weight: 700; flex: none; }
+  .me .avatar { background: #fff; color: var(--navy); }
+
+  .layout { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(0, 1fr) 330px; }
+  .chat { display: flex; flex-direction: column; min-height: 0; }
+  .scroll { flex: 1; overflow-y: auto; padding: 28px 28px 12px; }
+  #thread { max-width: 860px; margin: 0 auto; display: flex; flex-direction: column; gap: 18px; }
+
+  .welcome h2 { font-size: 24px; margin: 8px 0 6px; letter-spacing: -.01em; }
+  .welcome > p { margin: 0 0 18px; color: var(--muted); max-width: 640px; }
+  .suggestions { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
+  .suggestion { text-align: left; background: var(--card); border: 1px solid var(--line); border-radius: 12px;
+                padding: 14px 16px; box-shadow: var(--shadow); color: var(--ink); transition: border-color .15s; }
+  .suggestion:hover { border-color: var(--navy); }
+  .suggestion .kind { display: block; font-size: 11.5px; font-weight: 650; color: var(--muted); text-transform: uppercase;
+                      letter-spacing: .05em; margin-bottom: 4px; }
+
+  .turn { display: flex; gap: 12px; align-items: flex-start; }
+  .turn.user { justify-content: flex-end; }
+  .turn.user .bubble { background: var(--navy); color: #fff; border-radius: 14px 14px 4px 14px; padding: 10px 16px;
+                       max-width: 75%; white-space: pre-wrap; }
+  .turn.bot .avatar { background: var(--accent); color: #fff; margin-top: 2px; }
+  .turn.bot .avatar svg { width: 15px; height: 15px; }
+  .turn.bot .bubble { flex: 1; min-width: 0; background: var(--card); border: 1px solid var(--line);
+                      border-radius: 4px 14px 14px 14px; padding: 14px 18px; box-shadow: var(--shadow); }
+
+  .steps:not(:empty) { border-left: 2px solid var(--line); margin: 0 0 12px 7px; padding-left: 14px; }
+  .step { display: flex; gap: 10px; padding: 4px 0; font-size: 13.5px; }
+  .step .state { margin-left: -24px; background: var(--card); padding: 1px 0; color: var(--muted); }
+  .step.done .state { color: var(--ok); } .step.bad .state { color: var(--bad); } .step.wait .state { color: #B7791F; }
+  .step-title { display: flex; align-items: center; gap: 6px; font-weight: 600; }
+  .step-title .kind { color: var(--muted); }
+  .step-time { font-weight: 400; color: var(--muted); font-size: 12px; margin-left: 4px; }
+  .step-detail { color: var(--muted); font-style: italic; }
+  .step-result { color: var(--muted); font-size: 12.5px; }
+  .spinner { width: 14px; height: 14px; border: 2px solid #D5DEE2; border-top-color: var(--info); border-radius: 50%;
+             animation: spin .8s linear infinite; display: inline-block; flex: none; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+  .status { display: flex; align-items: center; gap: 8px; color: var(--muted); font-size: 13.5px; }
+  .status .elapsed { margin-left: auto; font-variant-numeric: tabular-nums; }
+
+  .runbook { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin: 0 0 12px; background: #FCFBF9; }
+  .rb-head { display: flex; align-items: center; gap: 8px; font-size: 13.5px; margin-bottom: 6px; }
+  .rb-head .rb-id { margin-left: auto; color: var(--muted); font-size: 12px; }
+  .rb-steps { list-style: none; margin: 0; padding: 0; display: grid; gap: 3px; }
+  .rb-steps li { display: grid; grid-template-columns: 20px 34px 1fr; column-gap: 6px; align-items: start; font-size: 13px;
+                 color: var(--muted); }
+  .rb-steps .dot { width: 16px; height: 16px; margin-top: 2px; border-radius: 50%; border: 2px solid #CBD5D9; }
+  .rb-steps .dot svg { width: 12px; height: 12px; margin: 0; stroke-width: 3; }
+  .rb-steps li.done { color: var(--ink); } .rb-steps li.done .dot { background: var(--ok); border-color: var(--ok); color: #fff; }
+  .rb-steps li.wait { color: var(--ink); } .rb-steps li.wait .dot { background: var(--warn); border-color: var(--warn); color: var(--navy); }
+  .rb-steps li.bad { color: var(--ink); } .rb-steps li.bad .dot { background: var(--bad); border-color: var(--bad); color: #fff; }
+  .rb-steps li.stop .dot { background: #CBD5D9; }
+  .rb-steps li.next .dot { border-color: var(--info); }
+  .rb-step { font-weight: 650; }
+  .rb-note { grid-column: 3; font-size: 12px; color: var(--muted); }
+  .rb-stop { margin-top: 8px; font-size: 13px; color: var(--bad); }
+
+  .answer p { margin: 0 0 10px; } .answer > :last-child { margin-bottom: 0; }
+  .answer ul, .answer ol { margin: 0 0 10px; padding-left: 22px; } .answer li { margin: 2px 0; }
+  .answer h4 { margin: 12px 0 6px; font-size: 14.5px; }
+  .answer .table { overflow-x: auto; margin: 0 0 10px; }
+  .answer table { border-collapse: collapse; font-size: 13.5px; }
+  .answer th, .answer td { border: 1px solid var(--line); padding: 4px 10px; text-align: left; }
+  .answer th { background: #F4F1EC; }
+  .error { color: var(--bad); margin: 0; }
+  .cite { font-size: 11.5px; font-weight: 600; border-radius: 6px; padding: 1px 6px; white-space: nowrap;
+          vertical-align: 1px; }
+  .cite.doc { background: #E8EEF0; color: var(--navy); }
+  .cite.genie { background: #FFE9E4; color: #B42318; }
+  .cite.slack { background: #EEE9F7; color: #5B3FA0; }
+  .sources { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; margin-top: 12px; padding-top: 10px;
+             border-top: 1px solid var(--line); }
+  .sources .label, .side .label { font-size: 11.5px; font-weight: 650; color: var(--muted); text-transform: uppercase;
+                                  letter-spacing: .05em; margin-right: 4px; }
+  .meta { display: flex; align-items: center; gap: 10px; margin-top: 10px; font-size: 12.5px; color: var(--muted); }
+  .meta .copy { margin-left: auto; display: flex; align-items: center; gap: 5px; background: none; border: 1px solid var(--line);
+                border-radius: 8px; padding: 3px 9px; color: var(--muted); font-size: 12.5px; }
+  .meta .copy svg { width: 13px; height: 13px; }
+
+  .composer { border-top: 1px solid var(--line); background: var(--card); padding: 10px 28px 14px; }
+  .composer .inner { max-width: 860px; margin: 0 auto; }
+  .bar { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; font-size: 12.5px; color: var(--muted); }
+  #reset { background: none; border: 1px solid var(--line); border-radius: 8px; padding: 3px 10px; color: var(--muted);
+           font-size: 12.5px; }
+  .bar .hint { margin-left: auto; }
+  form { display: flex; gap: 10px; align-items: flex-end; }
+  textarea { flex: 1; min-height: 46px; max-height: 160px; resize: none; font: inherit; padding: 11px 14px;
+             border: 1px solid var(--line); border-radius: 12px; background: var(--paper); }
+  textarea:focus { outline: 2px solid #C9D7DC; border-color: var(--navy); background: #fff; }
+  #send { height: 46px; background: var(--accent); color: #fff; border: 0; border-radius: 12px; padding: 0 20px;
+          font-weight: 650; }
   #send:disabled { opacity: .5; cursor: default; }
-  #reset { background: none; border: 1px solid var(--line); padding: 0 12px; font-size: 13px; color: var(--muted); }
+
+  .side { border-left: 1px solid var(--line); background: #FBFAF8; overflow-y: auto; padding: 20px 18px;
+          display: flex; flex-direction: column; gap: 14px; }
+  .card { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px;
+          box-shadow: var(--shadow); }
+  .card h2 { margin: 0 0 10px; font-size: 14px; display: flex; align-items: center; gap: 8px; }
+  .card h2 .count { background: var(--warn); color: var(--navy); border-radius: 999px; font-size: 11.5px; padding: 0 8px; }
+  .card h2 .count:empty { display: none; }
+  .card h2 button { margin-left: auto; background: none; border: 0; color: var(--muted); padding: 2px; }
+  .who { display: flex; gap: 10px; align-items: center; margin-bottom: 12px; }
+  .who .avatar { background: var(--navy); color: #fff; width: 36px; height: 36px; }
+  .who .name { font-weight: 650; }
+  .who .muted { font-size: 12.5px; }
+  .tiers { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .tier { background: #E8EEF0; color: var(--navy); border-radius: 999px; padding: 2px 10px; font-size: 12.5px;
+          font-weight: 600; }
+  .side p { font-size: 12.5px; margin: 10px 0 0; color: var(--muted); }
+  .approval { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; margin-bottom: 10px; font-size: 13px; }
+  .ap-amount { font-size: 17px; font-weight: 700; } .ap-amount span { font-size: 12.5px; font-weight: 500; color: var(--muted); margin-left: 8px; }
+  .ap-line { margin-top: 2px; }
+  .ap-actions { display: flex; gap: 6px; margin-top: 8px; }
+  .ap-actions input { flex: 1; min-width: 0; font: inherit; font-size: 12.5px; padding: 5px 8px; border: 1px solid var(--line);
+                      border-radius: 8px; }
+  .ap-actions button { background: var(--ok); color: #fff; border: 0; border-radius: 8px; padding: 5px 12px; font-weight: 650; }
+  .ap-actions button:disabled { opacity: .6; }
+  #approvals-note p { font-size: 12.5px; margin: 0 0 8px; }
+  #approvals-note .note-ok { color: #067647; }
+  .how { list-style: none; margin: 0; padding: 0; display: grid; gap: 9px; font-size: 13px; }
+  .how .tag { margin-right: 6px; vertical-align: 1px; }
+  @media (max-width: 1050px) { .layout { grid-template-columns: 1fr; } .side { display: none; } .suggestions { grid-template-columns: 1fr; } }
 </style>
 </head>
 <body>
-<header>
-  <h1>Meridian Ops Copilot</h1>
-  <span class="badge build">BUILD · copilot and this page</span>
-  <span class="badge preview">PREVIEW · Agent Bricks runtime</span>
-  <span class="note">Every tool runs as you, with your own permissions. Synthetic data.</span>
-</header>
-<main id="scroll"><div id="thread">
-  <div class="msg assistant" id="welcome">
-    <p>Ask about payment incidents, runbooks, fees and SLAs. Answers cite the knowledge base and Genie.</p>
-    <div class="chips">
-      <button class="chip" type="button">Which acquirers are degraded right now, and which runbook should we follow?</button>
-      <button class="chip" type="button">How much in refundable failed payments has acq_7 caused in the last 24 hours, and does a refund batch that size need approval?</button>
-      <button class="chip" type="button">Which step of RB-014 computes the customer impact?</button>
-    </div>
+<header class="top">
+  <div class="brand">
+    <div class="mark"><svg viewBox="0 0 24 24"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg></div>
+    <div><h1>Meridian Ops Copilot</h1><p>Payment incidents, runbooks and approvals · synthetic data</p></div>
   </div>
-</div></main>
-<footer><form id="form">
-  <textarea id="question" placeholder="Ask the copilot (Enter to send, Shift+Enter for a new line)"></textarea>
-  <button id="send">Send</button>
-  <button id="reset" type="button">New conversation</button>
-</form></footer>
+  <span class="badge build">BUILD · this app and the copilot</span>
+  <span class="badge preview">PREVIEW · Agent Bricks runtime</span>
+  <div class="me"><span class="avatar" id="me-initials">·</span><span id="me-name">Signing you in…</span></div>
+</header>
+<div class="layout">
+  <section class="chat">
+    <div class="scroll" id="scroll"><div id="thread" aria-live="polite">
+      <div class="welcome" id="welcome">
+        <h2>Ask about a payment incident</h2>
+        <p>Answers come from Genie and the knowledge base, and every fact is cited. Runbooks run one approved step
+          at a time and stop for a human. Everything runs with your own permissions.</p>
+        <div class="suggestions">
+          <button class="suggestion" type="button"><span class="kind">Data and runbook</span><span class="q">Which acquirers are degraded right now, and which runbook should we follow?</span></button>
+          <button class="suggestion" type="button"><span class="kind">Data and policy</span><span class="q">How much in refundable failed payments has acq_7 caused in the last 24 hours, and does a refund batch that size need approval?</span></button>
+          <button class="suggestion" type="button"><span class="kind">Runbook</span><span class="q">Which step of RB-014 computes the customer impact?</span></button>
+          <button class="suggestion" type="button"><span class="kind">Policy</span><span class="q">How long does a refund approval stay valid?</span></button>
+        </div>
+      </div>
+    </div></div>
+    <div class="composer"><div class="inner">
+      <div class="bar"><button id="reset" type="button">New conversation</button><span class="hint">Enter to send · Shift+Enter for a new line</span></div>
+      <form id="form">
+        <textarea id="question" rows="1" placeholder="Ask the copilot" aria-label="Ask the copilot"></textarea>
+        <button id="send">Send</button>
+      </form>
+    </div></div>
+  </section>
+  <aside class="side">
+    <div class="card"><h2>Signed in</h2><div id="you"><p class="muted">Checking who you are…</p></div></div>
+    <div class="card" id="approvals-card" hidden>
+      <h2>Waiting for approval <span class="count" id="approvals-count"></span>
+        <button type="button" id="approvals-refresh" class="ico" title="Refresh" aria-label="Refresh"></button></h2>
+      <div id="approvals-note"></div>
+      <div id="approvals"><p class="muted">Loading…</p></div>
+      <p>Approving calls <code>agent.approve_refund</code> as you. The procedure decides: meridian-admin only, never
+        the requester, and only before the approval expires.</p>
+    </div>
+    <div class="card"><h2>How it works</h2>
+      <ul class="how">
+        <li><span class="tag native">NATIVE</span>Genie answers data questions with your grants, masks and row filters.</li>
+        <li><span class="tag build">BUILD</span>Knowledge search covers only your tiers, one AI Search index (NATIVE) per tier.</li>
+        <li><span class="tag build">BUILD</span>Runbooks run one approved step at a time; a refund above SGD 500 waits for an admin.</li>
+        <li><span class="tag preview">PREVIEW</span>Agent Bricks runs the copilot; every run is traced to Unity Catalog.</li>
+      </ul>
+    </div>
+  </aside>
+</div>
 <script>
-const API = "/api/invocations";
-const LABELS = {search_kb: "Searching the knowledge base", ask_genie: "Asking Genie", start_workflow: "Starting the runbook",
-                run_step: "Running the next runbook step", remember: "Saving a memory", recall: "Checking memory"};
-const thread = document.getElementById("thread"), scroll = document.getElementById("scroll");
-const form = document.getElementById("form"), box = document.getElementById("question");
-const send = document.getElementById("send");
-let history = [];  // earlier questions and answers, oldest first, sent with each question as scripts/ask.py does
-let session = crypto.randomUUID();
+const API = "/api/invocations", STORE = "meridian-copilot-chat";
+const ICONS = {
+  data: '<svg viewBox="0 0 24 24"><ellipse cx="12" cy="5" rx="8" ry="3"/><path d="M4 5v6c0 1.7 3.6 3 8 3s8-1.3 8-3V5M4 11v6c0 1.7 3.6 3 8 3s8-1.3 8-3v-6"/></svg>',
+  book: '<svg viewBox="0 0 24 24"><path d="M5 4h9a3 3 0 0 1 3 3v13H8a3 3 0 0 1-3-3z"/><path d="M5 17a3 3 0 0 1 3-3h9"/></svg>',
+  flow: '<svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/><path d="M10 6.5h4a3 3 0 0 1 3 3V14"/></svg>',
+  memory: '<svg viewBox="0 0 24 24"><path d="M6 3h12v18l-6-4-6 4z"/></svg>',
+  check: '<svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7"/></svg>',
+  cross: '<svg viewBox="0 0 24 24"><path d="M6 6l12 12M18 6L6 18"/></svg>',
+  clock: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>',
+  copy: '<svg viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg>',
+  refresh: '<svg viewBox="0 0 24 24"><path d="M20 11a8 8 0 1 0-2.3 5.7M20 4v7h-7"/></svg>',
+  spark: '<svg viewBox="0 0 24 24"><path d="M12 3l2.2 5.8L20 11l-5.8 2.2L12 19l-2.2-5.8L4 11l5.8-2.2z"/></svg>',
+};
+const TOOLS = {search_kb: ["Searching the knowledge base", "book"], ask_genie: ["Asking Genie", "data"],
+               start_workflow: ["Starting the runbook", "flow"], run_step: ["Running the next runbook step", "flow"],
+               remember: ["Saving a memory", "memory"], recall: ["Checking memory", "memory"]};
+const CITE = /\[(GENIE-[0-9a-f]{8}|[A-Z][A-Z0-9-]+ p\.\d+)\]/g;
+const $ = id => document.getElementById(id);
+const thread = $("thread"), scroll = $("scroll"), form = $("form"), box = $("question"), send = $("send");
+let state = load(), busy = false, me = null;
 
-const escape = text => String(text).replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+function fresh() { return {session: crypto.randomUUID(), history: [], turns: [], runs: {}}; }
+function load() { try { return JSON.parse(sessionStorage.getItem(STORE)) || fresh(); } catch (e) { return fresh(); } }
+function save() { try { sessionStorage.setItem(STORE, JSON.stringify(state)); } catch (e) { /* storage full: keep going */ } }
+const escape = text => String(text ?? "").replace(/[&<>"']/g, c => ({"&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"}[c]));
+const money = v => Number(v).toLocaleString("en-SG", {minimumFractionDigits: 2, maximumFractionDigits: 2});
+const sleep = ms => new Promise(r => setTimeout(r, ms));
+const down = () => { scroll.scrollTop = scroll.scrollHeight; };
+function el(tag, cls, html) { const n = document.createElement(tag); n.className = cls; n.innerHTML = html; return n; }
 
-function render(text) {  // escape first; then paragraphs, bullets, bold, code and citation labels. No links.
-  let html = "", list = false;
-  for (const line of escape(text).split("\n")) {
-    const item = line.match(/^\s*[-*] (.*)$/);
-    if (item && !list) { html += "<ul>"; list = true; }
-    if (!item && list) { html += "</ul>"; list = false; }
-    html += item ? `<li>${item[1]}</li>` : line.trim() ? `<p>${line}</p>` : "";
-  }
-  return (list ? html + "</ul>" : html)
-    .replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
+function inline(s) {  // s is already escaped
+  return s.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>")
     .replace(/`([^`]+)`/g, "<code>$1</code>")
-    .replace(/\[([A-Z][A-Z0-9-]+ p\.\d+|GENIE-[0-9a-f]{8})\]/g, '<span class="cite">$1</span>');
+    .replace(/\[(GENIE-[0-9a-f]{8})\]/g, '<span class="cite genie" title="Genie query">$1</span>')
+    .replace(/\[(SLACK-[A-Z0-9-]+ p\.\d+)\]/g, '<span class="cite slack" title="Slack message">$1</span>')
+    .replace(/\[([A-Z][A-Z0-9-]+ p\.\d+)\]/g, '<span class="cite doc" title="Knowledge base">$1</span>');
 }
 
-function bubble(kind, html) {
-  const div = document.createElement("div");
-  div.className = `msg ${kind}`;
-  div.innerHTML = html;
-  thread.appendChild(div);
-  scroll.scrollTop = scroll.scrollHeight;
-  return div;
+function render(text) {  // escape first; then paragraphs, nested lists, headings, tables, bold, code, citations. No links.
+  const lines = escape(text).split("\n"), lists = [];
+  let html = "", para = [];
+  const flush = () => { if (para.length) { html += `<p>${para.map(inline).join("<br>")}</p>`; para = []; } };
+  const close = (depth = 0) => { while (lists.length > depth) html += `</${lists.pop().tag}>`; };
+  const row = /^\s*\|.*\|\s*$/;
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    if (row.test(line)) {
+      flush(); close();
+      const rows = [];
+      while (i < lines.length && row.test(lines[i])) rows.push(lines[i++]);
+      i--;
+      const cells = r => r.trim().replace(/^\||\|$/g, "").split("|").map(c => inline(c.trim()));
+      const head = rows.length > 1 && /^[\s|:-]+$/.test(rows[1]);
+      html += `<div class="table"><table>${head ? `<thead><tr>${cells(rows[0]).map(c => `<th>${c}</th>`).join("")}</tr></thead>` : ""}`
+            + `<tbody>${(head ? rows.slice(2) : rows).map(r => `<tr>${cells(r).map(c => `<td>${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+      continue;
+    }
+    const heading = line.match(/^#{1,4}\s+(.*)$/), item = line.match(/^(\s*)([-*•]|\d+[.)])\s+(.*)$/);
+    if (heading) { flush(); close(); html += `<h4>${inline(heading[1])}</h4>`; }
+    else if (item) {
+      flush();
+      const indent = item[1].length, tag = /\d/.test(item[2]) ? "ol" : "ul";
+      while (lists.length && indent < lists[lists.length - 1].indent) html += `</${lists.pop().tag}>`;
+      const top = lists[lists.length - 1];
+      if (top && indent === top.indent && top.tag !== tag) html += `</${lists.pop().tag}>`;
+      if (!lists.length || indent > lists[lists.length - 1].indent || lists[lists.length - 1].tag !== tag) {
+        html += tag === "ol" ? `<ol start="${parseInt(item[2], 10)}">` : "<ul>";
+        lists.push({tag, indent});
+      }
+      html += `<li>${inline(item[3])}</li>`;
+    }
+    else if (!line.trim()) { flush(); close(); }
+    else { close(); para.push(line); }
+  }
+  flush(); close();
+  return html;
 }
 
-function step(list, text, kind) {
-  const li = document.createElement("li");
-  li.textContent = text;
-  if (kind) li.className = kind;
-  list.appendChild(li);
-  scroll.scrollTop = scroll.scrollHeight;
-}
-
-function callText(call) {
-  const detail = Object.values(call.args || {}).find(v => typeof v === "string") || "";
-  return `${LABELS[call.name] || call.name}${detail ? ": " + detail.slice(0, 120) : ""}`;
-}
-
-function resultText(content) {  // the loop emits labels and statuses for tool results, never the retrieved text
-  let s = {};
-  try { s = JSON.parse(content || "{}"); } catch (e) { return "↳ done"; }
+function resultText(s) {  // tool results arrive as labels and statuses, never the retrieved text
   const parts = [];
+  if (s.workflow && s.steps) parts.push(`${s.workflow}, ${s.steps.length} steps, starting at ${s.next_step}`);
   if (s.step) parts.push(`step ${s.step}${s.status ? " " + s.status : ""}`);
-  for (const k of ["refused", "waiting", "stopped"]) if (s[k]) parts.push(typeof s[k] === "string" ? `${k}: ${s[k]}` : k);
+  for (const k of ["refused", "stopped"]) if (s[k]) parts.push(typeof s[k] === "string" ? `${k}: ${s[k]}` : k);
   if (s.approval_id) parts.push(`approval ${s.approval_id}`);
-  if (s.total_sgd != null) parts.push(`SGD ${Number(s.total_sgd).toLocaleString("en-SG", {minimumFractionDigits: 2, maximumFractionDigits: 2})}`);
-  if (s.sources && s.sources.length) parts.push(`${s.sources.length} source${s.sources.length > 1 ? "s" : ""}: ` +
-                                               s.sources.slice(0, 4).join(", ") + (s.sources.length > 4 ? ", …" : ""));
+  if (s.payments != null) parts.push(`${Number(s.payments).toLocaleString("en-SG")} payments`);
+  if (s.total_sgd != null) parts.push(`SGD ${money(s.total_sgd)}`);
+  if (s.sources && s.sources.length) parts.push(`${s.sources.length} source${s.sources.length > 1 ? "s" : ""}: `
+    + s.sources.slice(0, 5).map(x => x.replace(/^\[|\]$/g, "")).join(", ") + (s.sources.length > 5 ? ", …" : ""));
   if (s.note) parts.push(String(s.note).slice(0, 160));
-  return `↳ ${parts.join(" · ") || "done"}`;
+  return parts.join(" · ") || "done";
 }
 
-async function call(url, init) {
+function stepState(s) {  // a runbook step's state and note, from a run_step result
+  const facts = [s.payments != null ? `${Number(s.payments).toLocaleString("en-SG")} payments` : "",
+                 s.total_sgd != null ? `SGD ${money(s.total_sgd)}` : ""].filter(Boolean).join(" · ");
+  if (s.refused) return ["bad", `refused: ${s.refused}`];
+  if (s.error) return ["bad", s.error];
+  if (s.status === "not_entitled") return ["bad", s.stopped || "not entitled"];
+  if (s.status === "failed") return ["bad", s.note || "failed"];
+  if (s.status === "no_incident") return ["stop", s.stopped || "no incident"];
+  if (s.status === "pending") return ["wait", ["waiting for approval", s.approval_id, facts].filter(Boolean).join(" · ")];
+  return ["done", [s.status !== "ok" ? s.status : "", facts].filter(Boolean).join(" · ")];
+}
+
+class Turn {
+  constructor(question) {
+    this.q = question; this.events = []; this.final = ""; this.pending = [];
+    thread.appendChild(el("div", "turn user", `<div class="bubble">${escape(question)}</div>`));
+    this.node = el("div", "turn bot", `<div class="avatar ico">${ICONS.spark}</div><div class="bubble">
+      <div class="steps"></div><div class="runbooks"></div>
+      <div class="status"><span class="spinner"></span><span class="status-text">Thinking…</span><span class="elapsed"></span></div>
+      <div class="answer"></div><div class="sources" hidden></div><div class="meta" hidden></div></div>`);
+    thread.appendChild(this.node);
+    for (const k of ["steps", "runbooks", "status", "answer", "sources", "meta"]) this[k] = this.node.querySelector("." + k);
+    down();
+  }
+  tick(seconds) { const e = this.status.querySelector(".elapsed"); if (e) e.textContent = `${Math.floor(seconds)} s`; }
+  say(text) { const t = this.status.querySelector(".status-text"); if (t) t.textContent = text; }
+  event(message, t) {  // t: seconds since the question, kept so a restored turn shows the same timings
+    this.events.push({t, message});
+    if (message.role === "tool") this.result(message, t);
+    else if (message.tool_calls) message.tool_calls.forEach(c => this.call(c, t));
+    else if (message.content) { this.final = message.content; this.say("Writing the answer…"); }
+    down();
+  }
+  call(c, t) {
+    const args = c.args || {};
+    let [label, kind] = TOOLS[c.name] || [c.name, "flow"];
+    if (c.name === "run_step" && args.step_id) label = `Running runbook step ${args.step_id}`;
+    const detail = Object.values(args).find(v => typeof v === "string") || "";
+    const row = el("div", "step", `<span class="state"><span class="spinner"></span></span><div>
+      <div class="step-title"><span class="ico kind">${ICONS[kind]}</span>${escape(label)}<span class="step-time"></span></div>
+      ${detail ? `<div class="step-detail">${escape(detail.slice(0, 160))}</div>` : ""}<div class="step-result"></div></div>`);
+    row.dataset.tool = c.name; row.dataset.t = t;
+    this.steps.appendChild(row); this.pending.push(row);
+    this.say(`${label}…`);
+  }
+  result(m, t) {
+    let s = {};
+    try { s = JSON.parse(m.content || "{}"); } catch (e) { /* not a summary */ }
+    const i = this.pending.findIndex(r => r.dataset.tool === m.name);
+    if (i >= 0) {
+      const row = this.pending.splice(i, 1)[0];
+      const bad = s.refused || s.error || ["not_entitled", "failed"].includes(s.status), wait = s.status === "pending";
+      row.classList.add(bad ? "bad" : wait ? "wait" : "done");
+      row.querySelector(".state").innerHTML = `<span class="ico">${bad ? ICONS.cross : wait ? ICONS.clock : ICONS.check}</span>`;
+      row.querySelector(".step-time").textContent = `${Math.max(0, t - Number(row.dataset.t)).toFixed(1)} s`;
+      row.querySelector(".step-result").textContent = resultText(s);
+    }
+    if (s.run_id) this.runbook(s);
+    this.say("Thinking…");
+  }
+  runbook(s) {
+    const run = state.runs[s.run_id] || (state.runs[s.run_id] = {steps: []});
+    if (s.steps) run.steps = s.steps.map(x => ({id: x.id, name: x.name, state: "todo", note: ""}));
+    if (s.workflow) run.workflow = s.workflow;
+    if (s.title) run.title = s.title;
+    if (s.step) {
+      let st = run.steps.find(x => x.id === s.step);
+      if (!st) run.steps.push(st = {id: s.step, name: "", state: "todo", note: ""});
+      if (s.name) st.name = s.name;
+      [st.state, st.note] = stepState(s);
+    }
+    if ("next_step" in s) run.next = s.next_step;
+    if (s.stopped) run.stopped = s.stopped;
+    let card = [...this.runbooks.children].find(c => c.dataset.run === s.run_id);
+    if (!card) { card = el("div", "runbook", ""); card.dataset.run = s.run_id; this.runbooks.appendChild(card); }
+    const dot = st => ({done: ICONS.check, bad: ICONS.cross, wait: ICONS.clock}[st.state] || "");
+    card.innerHTML = `<div class="rb-head"><span class="ico">${ICONS.flow}</span><strong>${escape([run.workflow, run.title].filter(Boolean).join(" · ") || "Runbook run")}</strong>`
+      + `<span class="rb-id">${escape(s.run_id)}</span></div><ol class="rb-steps">`
+      + run.steps.map(st => `<li class="${st.state}${st.state === "todo" && run.next === st.id ? " next" : ""}">`
+        + `<span class="dot ico">${dot(st)}</span><span class="rb-step">${escape(st.id)}</span><span>${escape(st.name)}</span>`
+        + (st.note ? `<span class="rb-note">${escape(st.note)}</span>` : "") + "</li>").join("")
+      + `</ol>${run.stopped ? `<div class="rb-stop">Run stopped: ${escape(run.stopped)}</div>` : ""}`;
+  }
+  finish(seconds, error) {
+    this.status.remove();
+    for (const row of this.pending) {  // tools that never reported back
+      row.classList.add("bad");
+      row.querySelector(".state").innerHTML = `<span class="ico">${ICONS.cross}</span>`;
+    }
+    if (error) { this.answer.innerHTML = `<p class="error">${escape(error)}</p>`; return; }
+    this.answer.innerHTML = render(this.final || "No answer was returned.");
+    const cites = [...new Set(this.final.match(CITE) || [])];
+    if (cites.length) {
+      this.sources.hidden = false;
+      this.sources.innerHTML = `<span class="label">Sources</span>${cites.map(c => inline(escape(c))).join("")}`;
+    }
+    const tools = this.steps.children.length;
+    this.meta.hidden = false;
+    this.meta.innerHTML = `<span>${seconds} s · ${tools} tool call${tools === 1 ? "" : "s"}</span>`
+      + `<button class="copy ico" type="button">${ICONS.copy}<span>Copy</span></button>`;
+    const copy = this.meta.querySelector(".copy");
+    copy.addEventListener("click", async () => {
+      try { await navigator.clipboard.writeText(this.final); copy.lastChild.textContent = "Copied"; }
+      catch (e) { copy.lastChild.textContent = "Copy failed"; }
+      setTimeout(() => { copy.lastChild.textContent = "Copy"; }, 1500);
+    });
+  }
+}
+
+function problem(e) {
+  if (e.status === 401 || e.status === 403) return "Your sign-in has expired or was refused. Reload the page to sign in again.";
+  return e.message || String(e);
+}
+
+async function call(url, init = {}) {
   const resp = await fetch(url, {credentials: "same-origin", ...init});
   const text = await resp.text();
   let body = {};
   try { body = text ? JSON.parse(text) : {}; } catch (e) { body = {detail: text}; }
   if (!resp.ok) {
     const err = body.error || body.detail || text;
-    throw new Error(`${resp.status}: ${typeof err === "string" ? err : err.message || JSON.stringify(err)}`);
+    const error = new Error(`${resp.status}: ${typeof err === "string" ? err : err.message || JSON.stringify(err)}`);
+    error.status = resp.status;
+    throw error;
   }
   return body;
 }
 
-async function readEvents(url, after, onEvent) {  // Server-sent events; returns the last event id read
-  const resp = await fetch(`${url}?after=${after}`, {credentials: "same-origin", headers: {"X-Routing-Key": session}});
+async function readEvents(url, after, onEvent) {  // server-sent events; returns the last event id read
+  const resp = await fetch(`${url}?after=${after}`, {credentials: "same-origin", headers: {"X-Routing-Key": state.session}});
   if (!resp.ok || !resp.body) return after;
   const reader = resp.body.getReader(), decoder = new TextDecoder();
   let buffer = "";
@@ -168,68 +465,140 @@ async function readEvents(url, after, onEvent) {  // Server-sent events; returns
 }
 
 async function ask(question) {
-  bubble("user", escape(question));
-  const reply = bubble("assistant", '<ul class="steps"></ul><div class="answer"><span class="meta">Working…</span></div>');
-  const steps = reply.querySelector(".steps"), answer = reply.querySelector(".answer");
-  const started = Date.now(), seconds = () => Math.round((Date.now() - started) / 1000);
-  const timer = setInterval(() => { const m = answer.querySelector(".meta"); if (m) m.textContent = `Working… ${seconds()} s`; }, 1000);
-  let final = "";
-  send.disabled = true;
+  if (busy) return;
+  busy = true; send.disabled = true; $("welcome").hidden = true;
+  const turn = new Turn(question), started = Date.now(), secs = () => (Date.now() - started) / 1000;
+  const timer = setInterval(() => turn.tick(secs()), 500);
+  let error = null;
   try {
-    const headers = {"Content-Type": "application/json", "X-Routing-Key": session};
-    const accepted = await call(API, {method: "POST", headers, body: JSON.stringify({
-      id: crypto.randomUUID(), session_id: session, background: true, stream: true,
-      input: {messages: [...history, {role: "user", content: question}]}})});
-    let after = 0, state = accepted;
-    while (!["completed", "failed"].includes(state.status)) {
-      after = await readEvents(accepted.events_url, after, event => {
-        const m = event.message;
-        if (event.type !== "message" || !m) return;
-        if (m.role === "tool") step(steps, resultText(m.content), "result");
-        else if (m.tool_calls) m.tool_calls.forEach(c => step(steps, callText(c)));
-        else if (m.content) final = m.content;
-      });
-      state = await call(accepted.status_url, {headers: {"X-Routing-Key": session}});
-      if (!["completed", "failed"].includes(state.status)) await new Promise(r => setTimeout(r, 1500));
+    const accepted = await call(API, {method: "POST", headers: {"Content-Type": "application/json", "X-Routing-Key": state.session},
+      body: JSON.stringify({id: crypto.randomUUID(), session_id: state.session, background: true, stream: true,
+                            input: {messages: [...state.history, {role: "user", content: question}]}})});
+    let after = 0, st = accepted;
+    while (!["completed", "failed"].includes(st.status)) {
+      after = await readEvents(accepted.events_url, after, ev => { if (ev.type === "message" && ev.message) turn.event(ev.message, secs()); });
+      st = await call(accepted.status_url, {headers: {"X-Routing-Key": state.session}});
+      if (!["completed", "failed"].includes(st.status)) await sleep(1500);
     }
-    if (state.status === "failed") {
-      const err = state.error || "the copilot could not answer";
+    if (st.status === "failed") {
+      const err = st.error || "the copilot could not answer";
       throw new Error(typeof err === "string" ? err : err.message || JSON.stringify(err));
     }
-    if (!final) {
-      const out = state.output || {}, messages = (Array.isArray(out) ? out : out.output) || [];
-      final = [...messages].reverse().find(m => m.role === "assistant" && m.content)?.content || "";
+    if (!turn.final) {
+      const out = st.output || {}, messages = (Array.isArray(out) ? out : out.output) || [];
+      turn.final = [...messages].reverse().find(m => m.role === "assistant" && m.content)?.content || "";
     }
-    answer.innerHTML = render(final || "No answer was returned.") + `<div class="meta">${seconds()} s</div>`;
-    if (final) history.push({role: "user", content: question}, {role: "assistant", content: final});
-  } catch (e) {
-    answer.innerHTML = `<p class="error">${escape(e.message)}</p>`;
-  } finally {
-    clearInterval(timer);
-    send.disabled = false;
-    scroll.scrollTop = scroll.scrollHeight;
-    box.focus();
+  } catch (e) { error = problem(e); }
+  clearInterval(timer);
+  const seconds = Math.round(secs());
+  turn.finish(seconds, error);
+  if (!error && turn.final) state.history.push({role: "user", content: question}, {role: "assistant", content: turn.final});
+  state.turns.push({q: question, events: turn.events, final: turn.final, seconds, error});
+  save();
+  busy = false; send.disabled = false; box.focus(); down();
+  if (me && me.admin) loadApprovals();
+}
+
+function restore() {
+  for (const saved of state.turns) {
+    const turn = new Turn(saved.q);
+    saved.events.forEach(e => turn.event(e.message, e.t));
+    turn.final = saved.final || turn.final;
+    turn.finish(saved.seconds, saved.error);
   }
+  $("welcome").hidden = state.turns.length > 0;
+  down();
+}
+
+async function loadMe() {
+  try { me = await call("/api/me"); }
+  catch (e) { $("me-name").textContent = "Signed in"; $("you").innerHTML = `<p class="error">${escape(problem(e))}</p>`; return; }
+  const parts = String(me.name).split(/[\s._@-]+/).filter(Boolean);
+  const initials = (parts.length > 1 ? parts[0][0] + parts[parts.length - 1][0] : (parts[0] || "?").slice(0, 2)).toUpperCase();
+  $("me-initials").textContent = initials;
+  $("me-name").textContent = me.name;
+  $("you").innerHTML = `<div class="who"><span class="avatar">${escape(initials)}</span><div><div class="name">${escape(me.name)}</div>`
+    + `<div class="muted">${me.admin ? "meridian-admin: can approve refunds" : "Not an approver"}</div></div></div>`
+    + `<span class="label">Knowledge you can search</span><div class="tiers">`
+    + ((me.tiers || []).length ? me.tiers.map(t => `<span class="tier">${escape(t)}</span>`).join("") : '<span class="muted">none</span>')
+    + "</div><p>Genie, the knowledge base and the runbook procedures all check your own permissions.</p>";
+  if (me.admin) loadApprovals();
+}
+
+async function loadApprovals() {
+  const card = $("approvals-card"), list = $("approvals");
+  card.hidden = false;
+  if (list.contains(document.activeElement) && document.activeElement.tagName === "INPUT") return;  // typing a reason
+  let data;
+  try { data = await call("/api/approvals"); }
+  catch (e) { list.innerHTML = `<p class="error">${escape(problem(e))}</p>`; return; }
+  const items = data.approvals || [], seen = JSON.stringify(data);
+  if (seen === list.dataset.seen) return;  // unchanged: keep the cards (and anything typed in them) as they are
+  list.dataset.seen = seen;
+  $("approvals-count").textContent = items.length ? String(items.length) : "";
+  if (data.error) { list.innerHTML = `<p class="muted">Approvals are not available to you: ${escape(data.error)}</p>`; return; }
+  if (!items.length) { list.innerHTML = '<p class="muted">No refund batch is waiting for approval.</p>'; return; }
+  list.innerHTML = "";
+  for (const a of items) list.appendChild(approvalCard(a));
+}
+
+function approvalCard(a) {
+  const mine = String(a.mine) === "true", mins = Math.max(0, Number(a.expires_in_minutes) || 0);
+  const expires = mins >= 60 ? `${Math.floor(mins / 60)} h ${mins % 60} min` : `${mins} min`;
+  const card = el("div", "approval", `<div class="ap-amount">SGD ${money(a.total_sgd)}`
+    + `<span>${a.payments ? Number(a.payments).toLocaleString("en-SG") + " payments" : ""}</span></div>`
+    + `<div class="ap-line">Refund batch <code>${escape(a.batch_id)}</code>${a.acquirer_id ? " for " + escape(a.acquirer_id) : ""}</div>`
+    + `<div class="ap-line muted">Requested by ${escape(a.requested_by)}, ${escape(a.requested_sgt)} SGT · expires in ${expires}</div>`
+    + (mine ? '<div class="ap-line muted">You requested this one, so only another admin can approve it.</div>'
+            : '<div class="ap-actions"><input type="text" name="reason" maxlength="300" aria-label="Reason for the audit log" '
+              + 'value="Approved after checking the impact"><button type="button">Approve</button></div>')
+  );
+  const button = card.querySelector("button");
+  if (button) button.addEventListener("click", async () => {
+    const reason = card.querySelector("input").value.trim();
+    if (!reason) { note("bad", "Give a reason: it goes to the audit log."); return; }
+    if (!confirm(`Approve refund batch ${a.batch_id} for SGD ${money(a.total_sgd)}?`)) return;
+    button.disabled = true; button.textContent = "Approving…";
+    try {
+      const r = await call(`/api/approvals/${encodeURIComponent(a.approval_id)}`, {method: "POST",
+        headers: {"Content-Type": "application/json", "X-Meridian-UI": "1"}, body: JSON.stringify({reason})});
+      if (r.approved) note("ok", `Approved ${a.batch_id}. The requester can now continue the run, and its last step executes the refund.`);
+      else note("bad", `${a.batch_id}: refused by the procedure: ${r.reason}`);
+    } catch (e) { note("bad", `${a.batch_id}: ${problem(e)}`); }
+    button.disabled = false; button.textContent = "Approve";
+    card.querySelector("input").blur();
+    loadApprovals();
+  });
+  return card;
+}
+
+function note(kind, text) {  // outside the cards, so the next refresh does not erase it
+  $("approvals-note").innerHTML = `<p class="${kind === "ok" ? "note-ok" : "error"}">${escape(text)}</p>`;
 }
 
 form.addEventListener("submit", e => {
   e.preventDefault();
   const question = box.value.trim();
-  if (!question || send.disabled) return;
-  box.value = "";
+  if (!question || busy) return;
+  box.value = ""; box.style.height = "";
   ask(question);
 });
 box.addEventListener("keydown", e => { if (e.key === "Enter" && !e.shiftKey) { e.preventDefault(); form.requestSubmit(); } });
-document.querySelectorAll(".chip").forEach(chip => chip.addEventListener("click", () => {
-  if (!send.disabled) ask(chip.textContent);
-}));
-document.getElementById("reset").addEventListener("click", () => {
-  if (send.disabled) return;
-  history = [];
-  session = crypto.randomUUID();
+box.addEventListener("input", () => { box.style.height = ""; box.style.height = Math.min(box.scrollHeight, 160) + "px"; });
+document.querySelectorAll(".suggestion").forEach(b => b.addEventListener("click", () => ask(b.querySelector(".q").textContent)));
+$("reset").addEventListener("click", () => {
+  if (busy) return;
+  state = fresh(); save();
   [...thread.children].forEach(c => { if (c.id !== "welcome") c.remove(); });
+  $("welcome").hidden = false;
   box.focus();
 });
+$("approvals-refresh").innerHTML = ICONS.refresh;
+$("approvals-refresh").addEventListener("click", () => loadApprovals());
+setInterval(() => { if (me && me.admin && document.visibilityState === "visible") loadApprovals(); }, 20000);
+restore();
+loadMe();
+box.focus();
 </script>
 </body>
 </html>

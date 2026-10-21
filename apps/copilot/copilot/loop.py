@@ -83,9 +83,11 @@ async def run(tools: Tools, messages: list[dict], emit: Callable[[dict], Awaitab
                 output = {"error": f"{call.name} failed: {type(exc).__name__}: {str(exc).splitlines()[0][:200]}"}
             summary = {"sources": [r["source"] for r in output.get("results", []) + output.get("queries", [])],
                        "note": output.get("note") or output.get("error"),
-                       **{k: output[k] for k in ("run_id", "step", "status", "refused", "waiting", "stopped",
-                                                 "next_step", "batch_id", "approval_id", "total_sgd", "saved",
-                                                 "kept_as", "tier") if k in output}}
+                       **{k: output[k] for k in ("run_id", "workflow", "title", "step", "name", "status", "refused",
+                                                 "waiting", "stopped", "next_step", "batch_id", "approval_id",
+                                                 "payments", "total_sgd", "saved", "kept_as", "tier") if k in output}}
+            if "steps" in output:  # the runbook's step ids and names, for the chat page's progress view
+                summary["steps"] = [{"id": s["id"], "name": s["name"]} for s in output["steps"]]
             if "memories" in output:  # kinds and source labels, never the remembered text
                 summary["memories"] = [{"kind": m.get("kind"), "sources": m.get("sources"),
                                         "fetched": m.get("text") is not None} for m in output["memories"]]
