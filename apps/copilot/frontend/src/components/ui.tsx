@@ -98,6 +98,9 @@ export function PageHeader({ icon: Icon, title, subtitle, badges, actions }: { i
 export interface Suggestion {
   kind: string;
   question: string;
+  label?: string; // a short name for the chips above the question box
+  tier?: string; // the knowledge tier it needs, shown on its chip
+  followUp?: boolean; // only once a conversation has started
 }
 
 /** The empty state of a chat page: what it does, and questions that are known to work. */
@@ -110,7 +113,7 @@ export function Welcome({ icon: Icon, title, text, suggestions, onAsk }: { icon:
       <h2 className="mt-5 text-2xl font-semibold tracking-tight">{title}</h2>
       <p className="mt-2 max-w-2xl text-[14.5px] text-muted">{text}</p>
       <div className="mt-6 grid gap-3 sm:grid-cols-2">
-        {suggestions.map((s) => (
+        {suggestions.filter((s) => !s.followUp).map((s) => (
           <button
             key={s.question}
             type="button"

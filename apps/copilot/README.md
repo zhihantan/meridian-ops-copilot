@@ -19,5 +19,7 @@ that the server (FastAPI) serves at `/`. Everything in it runs as the signed-in 
   its asset in the workspace, with the demo's scenes as walkthroughs (`runtime/about.py`). The links to bundle
   resources come from `databricks bundle summary` at build time (`scripts/console_links.py`), without the host.
 
+Each chat page has New chat and History, kept in the browser for the signed-in person (`frontend/src/history.ts`).
+
 The first chat page stays at `/classic`. To work on the UI, run the server locally on port 8000 and
 `npm run dev` in `frontend/`, which proxies `/api` to it.

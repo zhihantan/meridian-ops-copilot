@@ -1,11 +1,13 @@
 import clsx from "clsx";
-import { Bookmark, BookOpen, Check, Clock, Copy, Database, Plus, Sparkles, Workflow, X, type LucideIcon } from "lucide-react";
+import { Bookmark, BookOpen, Check, Clock, Copy, Database, Sparkles, Workflow, X, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, post, problem, readSSE, sleep } from "../api";
+import { ChatActions, ChatHistoryPanel } from "../components/ChatHistory";
 import { Composer } from "../components/Composer";
 import { Citation, Markdown } from "../components/Markdown";
 import { Badge, BotCard, Button, ErrorNote, PageHeader, Spinner, type Suggestion, UserBubble, Welcome } from "../components/ui";
+import { useChatHistory } from "../history";
 import type { Incoming } from "../types";
 import { citations, count, money, uid, useNow, useSessionState } from "../util";
 
@@ -49,6 +51,9 @@ const SUGGESTIONS: Suggestion[] = [
 ];
 
 const fresh = (): State => ({ session: uid(), history: [], turns: [], runs: {} });
+
+// A saved chat whose answer was still running when it was left: the page that followed that run is gone.
+const settle = (s: State): State => ({ ...s, turns: s.turns.map((t) => (t.status === "running" ? { ...t, status: "error", error: "This answer was still running when the chat was left. Ask again." } : t)) });
 
 type Summary = Record<string, any>;
 
@@ -264,8 +269,10 @@ function TurnView({ turn, runs }: { turn: Turn; runs: Record<string, Run> }) {
   );
 }
 
-export default function CopilotPage({ incoming }: { incoming: Incoming | null }) {
+export default function CopilotPage({ incoming, owner }: { incoming: Incoming | null; owner: string | null }) {
   const [state, setState] = useSessionState<State>("meridian.copilot", fresh);
+  const history = useChatHistory("copilot", owner, state, setState, fresh, settle);
+  const [showHistory, setShowHistory] = useState(false);
   const live = useRef(state);
   live.current = state;
   const scroller = useRef<HTMLDivElement>(null);
@@ -367,11 +374,7 @@ export default function CopilotPage({ incoming }: { incoming: Incoming | null })
             <Badge kind="preview">Agent Bricks runtime</Badge>
           </>
         }
-        actions={
-          <Button icon={Plus} disabled={busy} onClick={() => setState(fresh())}>
-            New conversation
-          </Button>
-        }
+        actions={<ChatActions history={history} busy={busy} empty={!state.turns.length} onShow={() => setShowHistory(true)} />}
       />
       <div ref={scroller} className="scrollbar-thin flex-1 overflow-y-auto px-8 py-6">
         <div className="mx-auto flex max-w-4xl flex-col gap-5">
@@ -389,6 +392,7 @@ export default function CopilotPage({ incoming }: { incoming: Incoming | null })
         </div>
       </div>
       <Composer placeholder="Ask the copilot about an incident, a runbook or a refund" busy={busy} onSend={ask} />
+      <ChatHistoryPanel history={history} open={showHistory} onClose={() => setShowHistory(false)} busy={busy} label="Ops Copilot" />
     </div>
   );
 }

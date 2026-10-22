@@ -1,12 +1,14 @@
 import clsx from "clsx";
-import { Check, Database, ExternalLink, Plus } from "lucide-react";
+import { Check, Database, ExternalLink } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { api, post, problem, sleep } from "../api";
+import { ChatActions, ChatHistoryPanel } from "../components/ChatHistory";
 import { Composer } from "../components/Composer";
 import { type GenieQuery, QueryResult } from "../components/GenieResult";
 import { Markdown } from "../components/Markdown";
 import { Badge, BotCard, Button, ErrorNote, PageHeader, Spinner, type Suggestion, UserBubble, Welcome } from "../components/ui";
+import { useChatHistory } from "../history";
 import type { Incoming } from "../types";
 import { uid, useNow, useSessionState } from "../util";
 
@@ -30,11 +32,16 @@ interface Turn {
 }
 interface State { conversationId?: string; turns: Turn[] }
 
+// Questions known to work on this space: its curated examples and benchmarks (config/genie_space.yaml), each asked
+// through this page on 22 Oct. They show as cards on an empty page, then as chips above the question box.
 const SUGGESTIONS: Suggestion[] = [
-  { kind: "Status", question: "Which acquirers are degraded right now?" },
-  { kind: "Trend", question: "Daily failure rate for acq_7 over the last 14 days" },
-  { kind: "Refunds", question: "What is the refundable failed amount for acq_7 in the last 24 hours?" },
-  { kind: "Hourly detail", question: "Hourly payments and failures for acq_7 in the last 24 hours" },
+  { kind: "Status", label: "Degraded acquirers", question: "Which acquirers are degraded right now?" },
+  { kind: "Trend", label: "acq_7 daily trend", question: "Daily failure rate for acq_7 over the last 14 days" },
+  { kind: "Hourly detail", label: "acq_7 hour by hour", question: "Hourly payments and failures for acq_7 in the last 24 hours" },
+  { kind: "Against its baseline", label: "acq_7 vs its baseline", question: "What is acq_7's failure rate in the last 24 hours compared with its baseline?" },
+  { kind: "Every acquirer", label: "Failures by acquirer", question: "How many failed payments did each acquirer have on the latest day?" },
+  { kind: "Refunds", label: "Refundable amount", question: "What is the refundable failed amount for acq_7 in the last 24 hours?" },
+  { kind: "Follow-up", label: "Follow-up: its last 3 days", question: "And what was its failure rate on each of the last 3 days?", followUp: true },
 ];
 
 const PHASES: { label: string; statuses: string[] }[] = [
@@ -43,6 +50,11 @@ const PHASES: { label: string; statuses: string[] }[] = [
   { label: "Running the query", statuses: ["PENDING_WAREHOUSE", "EXECUTING_QUERY"] },
   { label: "Answer", statuses: ["COMPLETED"] },
 ];
+
+const fresh = (): State => ({ turns: [] });
+
+// A saved chat whose answer was still coming when it was left: the page that was polling for it is gone.
+const settle = (s: State): State => ({ ...s, turns: s.turns.map((t) => (!t.done && !t.error ? { ...t, error: "This answer was still coming when the chat was left. Ask again." } : t)) });
 
 const editTurn = (s: State, id: string, fn: (t: Turn) => Turn): State => ({ ...s, turns: s.turns.map((t) => (t.id === id ? fn(t) : t)) });
 
@@ -96,8 +108,10 @@ function TurnView({ turn, onAsk, busy }: { turn: Turn; onAsk: (q: string) => voi
   );
 }
 
-export default function GeniePage({ incoming }: { incoming: Incoming | null }) {
-  const [state, setState] = useSessionState<State>("meridian.genie", () => ({ turns: [] }));
+export default function GeniePage({ incoming, owner }: { incoming: Incoming | null; owner: string | null }) {
+  const [state, setState] = useSessionState<State>("meridian.genie", fresh);
+  const history = useChatHistory("genie", owner, state, setState, fresh, settle);
+  const [showHistory, setShowHistory] = useState(false);
   const live = useRef(state);
   live.current = state;
   const [space, setSpace] = useState<{ title: string; url: string; description?: string } | null>(null);
@@ -109,7 +123,7 @@ export default function GeniePage({ incoming }: { incoming: Incoming | null }) {
   }, []);
 
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
+    if (state.turns.length) scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); // an empty page stays at its top
   }, [state.turns]);
 
   const poll = useCallback(
@@ -187,9 +201,7 @@ export default function GeniePage({ incoming }: { incoming: Incoming | null }) {
                 Open in Genie
               </Button>
             ) : null}
-            <Button icon={Plus} disabled={busy} onClick={() => setState({ turns: [] })}>
-              New conversation
-            </Button>
+            <ChatActions history={history} busy={busy} empty={!state.turns.length} onShow={() => setShowHistory(true)} />
           </>
         }
       />
@@ -208,7 +220,8 @@ export default function GeniePage({ incoming }: { incoming: Incoming | null }) {
           )}
         </div>
       </div>
-      <Composer placeholder="Ask Genie about payments, failures or refundable amounts" busy={busy} onSend={ask} hint="Genie remembers this conversation: follow-ups can build on earlier answers" />
+      <Composer placeholder="Ask Genie about payments, failures or refundable amounts" busy={busy} onSend={ask} examples={state.turns.length ? SUGGESTIONS : undefined} hint="Genie remembers this conversation: follow-ups can build on earlier answers" />
+      <ChatHistoryPanel history={history} open={showHistory} onClose={() => setShowHistory(false)} busy={busy} label="Genie" />
     </div>
   );
 }

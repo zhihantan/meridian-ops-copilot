@@ -3,7 +3,7 @@
 The page is the Vite build of apps/copilot/frontend, which scripts/build_copilot.sh writes to runtime/static. The
 first chat page stays at /classic, and serves / too when no build is present. Every API request runs as the
 visitor (runtime/visitor.py), so Unity Catalog decides what each call may read or do:
-- GET /api/me: who the visitor is, the knowledge tiers their groups entitle them to (as search_kb resolves them)
+- GET /api/me: who the visitor is (their id keys their chat history in the browser), the knowledge tiers their groups entitle them to (as search_kb resolves them)
   and whether they are in meridian-admin.
 - GET /api/overview: acquirer status from the gold tables, under the visitor's grants.
 - GET /api/approvals, /api/approvals/recent: pending, unexpired refund approvals, and the latest decided ones.
@@ -127,7 +127,7 @@ def add_ui(app: FastAPI) -> None:
         def work(w: WorkspaceClient) -> dict:
             user = w.current_user.me()
             groups = {g.display for g in user.groups or [] if g.display}
-            return {"name": user.display_name or user.user_name, "tiers": entitled_tiers(groups),
+            return {"id": user.id, "name": user.display_name or user.user_name, "tiers": entitled_tiers(groups),
                     "admin": ADMIN_GROUP in groups}
 
         return await as_visitor(request, work)

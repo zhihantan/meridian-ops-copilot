@@ -1,11 +1,13 @@
 import clsx from "clsx";
-import { BookOpen, ChevronDown, Lock, Plus, SearchX } from "lucide-react";
+import { BookOpen, ChevronDown, Lock, SearchX } from "lucide-react";
 import { useCallback, useEffect, useRef, useState } from "react";
 
 import { ApiError, problem, readSSE } from "../api";
+import { ChatActions, ChatHistoryPanel } from "../components/ChatHistory";
 import { Composer } from "../components/Composer";
 import { Citation, Markdown } from "../components/Markdown";
-import { Badge, BotCard, Button, ErrorNote, PageHeader, Pill, Spinner, type Suggestion, Tier, UserBubble, Welcome } from "../components/ui";
+import { Badge, BotCard, ErrorNote, PageHeader, Pill, Spinner, type Suggestion, Tier, UserBubble, Welcome } from "../components/ui";
+import { useChatHistory } from "../history";
 import type { Incoming } from "../types";
 import { count, uid, useSessionState } from "../util";
 
@@ -34,12 +36,24 @@ interface Turn {
 }
 interface State { turns: Turn[] }
 
+// Questions known to work: from the golden set (config/golden_qa.yaml), each asked through this page on 22 Oct. Finance
+// questions need the finance tier; the last two must abstain, the second because the model knows an answer the
+// documents don't give. They show as cards on an empty page, then as chips above the question box.
 const SUGGESTIONS: Suggestion[] = [
-  { kind: "Incident policy", question: "How quickly must a SEV2 payment incident be acknowledged?" },
-  { kind: "Refunds", question: "Which failure codes make a failed payment eligible for a refund?" },
-  { kind: "Finance tier", question: "What service credit can Meridian claim when acq_7 breaches its SLA?" },
-  { kind: "Out of scope: it abstains", question: "What will the SGD to USD exchange rate be next month?" },
+  { kind: "Incident policy", label: "SEV2 acknowledgement", question: "How quickly must a SEV2 payment incident be acknowledged?" },
+  { kind: "Policy beats an old note", label: "Refund approval limit", question: "What refund batch total requires approval before it is executed?" },
+  { kind: "Refunds", label: "Refundable failure codes", question: "Which failure codes make a failed payment eligible for a refund?" },
+  { kind: "Runbook and Slack", label: "Who to page for RB-014", question: "Before starting RB-014, which PagerDuty schedule do you page?" },
+  { kind: "Finance tier", label: "acq_7 SLA credit", tier: "finance", question: "What service credit can Meridian claim when acq_7 breaches its SLA?" },
+  { kind: "Finance tier", label: "acq_3 card fee", tier: "finance", question: "What is the merchant discount rate for card payments through acq_3?" },
+  { kind: "Out of scope: it abstains", label: "Out of scope", question: "What will the SGD to USD exchange rate be next month?" },
+  { kind: "Not in the documents: it abstains", label: "Not in the documents", question: "What is Singapore's current GST rate?" },
 ];
+
+const fresh = (): State => ({ turns: [] });
+
+// A saved chat whose answer was still streaming when it was left: the page that read the stream is gone.
+const settle = (s: State): State => ({ turns: s.turns.map((t) => (t.status === "searching" || t.status === "answering" ? { ...t, status: "error", error: "This answer was still coming when the chat was left. Ask again." } : t)) });
 
 const editTurn = (s: State, id: string, fn: (t: Turn) => Turn): State => ({ turns: s.turns.map((t) => (t.id === id ? fn(t) : t)) });
 
@@ -157,8 +171,10 @@ function TurnView({ turn }: { turn: Turn }) {
   );
 }
 
-export default function KnowledgePage({ incoming }: { incoming: Incoming | null }) {
-  const [state, setState] = useSessionState<State>("meridian.knowledge", () => ({ turns: [] }));
+export default function KnowledgePage({ incoming, owner }: { incoming: Incoming | null; owner: string | null }) {
+  const [state, setState] = useSessionState<State>("meridian.knowledge", fresh);
+  const history = useChatHistory("knowledge", owner, state, setState, fresh, settle);
+  const [showHistory, setShowHistory] = useState(false);
   const live = useRef(state);
   live.current = state;
   const scroller = useRef<HTMLDivElement>(null);
@@ -170,7 +186,7 @@ export default function KnowledgePage({ incoming }: { incoming: Incoming | null 
   }, [setState]);
 
   useEffect(() => {
-    scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" });
+    if (state.turns.length) scroller.current?.scrollTo({ top: scroller.current.scrollHeight, behavior: "smooth" }); // an empty page stays at its top
   }, [state.turns.length]);
 
   const ask = useCallback(
@@ -221,11 +237,7 @@ export default function KnowledgePage({ incoming }: { incoming: Incoming | null 
             <Badge kind="build">tier routing and cited answers</Badge>
           </>
         }
-        actions={
-          <Button icon={Plus} disabled={busy} onClick={() => setState({ turns: [] })}>
-            Clear
-          </Button>
-        }
+        actions={<ChatActions history={history} busy={busy} empty={!state.turns.length} onShow={() => setShowHistory(true)} />}
       />
       <div ref={scroller} className="scrollbar-thin flex-1 overflow-y-auto px-8 py-6">
         <div className="mx-auto flex max-w-4xl flex-col gap-5">
@@ -242,7 +254,8 @@ export default function KnowledgePage({ incoming }: { incoming: Incoming | null 
           )}
         </div>
       </div>
-      <Composer placeholder="Ask about a policy, a runbook, a fee or an SLA" busy={busy} onSend={ask} hint="Each question is answered on its own, from the passages shown under the answer" />
+      <Composer placeholder="Ask about a policy, a runbook, a fee or an SLA" busy={busy} onSend={ask} examples={state.turns.length ? SUGGESTIONS : undefined} hint="Each question is answered on its own, from the passages shown under the answer" />
+      <ChatHistoryPanel history={history} open={showHistory} onClose={() => setShowHistory(false)} busy={busy} label="Knowledge" />
     </div>
   );
 }

@@ -1,6 +1,7 @@
 export type Page = "overview" | "copilot" | "genie" | "knowledge" | "approvals" | "about";
 
 export interface Me {
+  id: string; // keys this person's chat history in the browser
   name: string;
   tiers: string[];
   admin: boolean;

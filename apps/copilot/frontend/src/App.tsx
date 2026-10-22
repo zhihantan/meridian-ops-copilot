@@ -73,11 +73,11 @@ export default function App() {
       case "overview":
         return <OverviewPage me={me} pending={pending} onAsk={ask} navigate={navigate} />;
       case "copilot":
-        return <CopilotPage incoming={incoming} />;
+        return <CopilotPage incoming={incoming} owner={me?.id ?? null} />;
       case "genie":
-        return <GeniePage incoming={incoming} />;
+        return <GeniePage incoming={incoming} owner={me?.id ?? null} />;
       case "knowledge":
-        return <KnowledgePage incoming={incoming} />;
+        return <KnowledgePage incoming={incoming} owner={me?.id ?? null} />;
       case "approvals":
         return <ApprovalsPage me={me} pending={pending} refreshPending={refreshPending} active={page === "approvals"} />;
       case "about":

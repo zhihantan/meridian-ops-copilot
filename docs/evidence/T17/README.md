@@ -64,6 +64,21 @@ It has five pages, and every call runs as the signed-in visitor:
   answer; code abstains below the reranker threshold.
 - **Approvals:** pending batches with Approve (the procedure decides), and the latest decided ones.
 
+Genie and Knowledge offer example questions that ask at once when clicked. They show as cards on an empty page, then
+as chips above the question box, with the whole question on hover; Genie's follow-up appears once a conversation has
+started. They come from the Genie space's curated examples and benchmarks and from the golden set, and each was asked
+through the deployed console on 22 Oct. All the knowledge questions cited the expected document, and the two traps
+(out of scope, and a fact the documents don't give) abstained; Genie answered each with rows.
+
+Each chat page also has **New chat**, which keeps the open chat, and **History**, a panel of the person's past chats
+on that page, newest first and grouped by day (`frontend/src/history.ts`). Opening a chat continues it: the copilot
+with its session and earlier messages, Genie with its conversation. Chats are kept in the browser's local storage
+under the signed-in person's id (`/api/me` now returns it), up to 30 per page. Nothing is stored on the server, and a
+saved chat is not checked again against the person's current access. Delete removes one chat; Clear history removes
+them all, after a confirmation. Checked locally: a new chat keeps the previous one; reopening it restored it, and a
+follow-up reached the copilot with both earlier messages; the open chat and the history survive a reload; delete and
+clear work; New chat waits while an answer is coming.
+
 Checked on the deployed app, as the presenter, through the Apps ingress: the page and its assets load (gzip on assets
 only, so the event streams are not buffered); `/api/me` gives general and finance; the overview shows acq_7
 degraded; the decided list shows RB-832eed0860, approved and executed on 17 Oct. "How long does a refund approval
