@@ -1,8 +1,8 @@
-import { BadgeCheck, Hourglass, RefreshCw, ShieldCheck, ShieldX } from "lucide-react";
+import { BadgeCheck, Hourglass, ShieldCheck, ShieldX } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { api, post, problem } from "../api";
-import { Badge, Button, Card, ErrorNote, PageHeader, Pill } from "../components/ui";
+import { Badge, Button, Card, ErrorNote, PageHeader, Pill, RefreshButton } from "../components/ui";
 import type { DecidedApproval, Me, PendingApproval } from "../types";
 import { count, money } from "../util";
 
@@ -68,12 +68,14 @@ export default function ApprovalsPage({ me, pending, refreshPending, active }: {
   const [error, setError] = useState<string | null>(null);
   const [dialog, setDialog] = useState<PendingApproval | null>(null);
   const [note, setNote] = useState<{ ok: boolean; text: string } | null>(null);
+  const [updated, setUpdated] = useState<number | null>(null);
 
   const refresh = useCallback(async () => {
     try {
       const r = await api<{ approvals: DecidedApproval[]; error?: string }>("/api/approvals/recent");
       setDecided(r.approvals);
       setError(r.error ?? null);
+      if (!r.error) setUpdated(Date.now());
     } catch (e) {
       setError(problem(e));
     }
@@ -91,7 +93,7 @@ export default function ApprovalsPage({ me, pending, refreshPending, active }: {
         title="Approvals"
         subtitle="Refund batches above SGD 500 wait here for an admin who is not the requester"
         badges={<Badge kind="build">procedures in Unity Catalog</Badge>}
-        actions={me?.admin ? <Button icon={RefreshCw} onClick={refresh}>Refresh</Button> : null}
+        actions={me?.admin ? <RefreshButton onRefresh={refresh} updated={updated} /> : null}
       />
       <div className="scrollbar-thin flex-1 overflow-y-auto px-8 py-6">
         <div className="mx-auto max-w-5xl space-y-6">

@@ -1,6 +1,6 @@
 import clsx from "clsx";
-import { LoaderCircle, type LucideIcon } from "lucide-react";
-import type { ButtonHTMLAttributes, ReactNode } from "react";
+import { LoaderCircle, RefreshCw, type LucideIcon } from "lucide-react";
+import { useState, type ButtonHTMLAttributes, type ReactNode } from "react";
 
 type Label = "native" | "preview" | "build";
 
@@ -47,6 +47,37 @@ export function Button({ variant = "outline", icon: Icon, className, children, .
       {Icon ? <Icon className="size-4" aria-hidden /> : null}
       {children}
     </button>
+  );
+}
+
+const clock = (ms: number) => new Date(ms).toLocaleTimeString("en-SG", { hour: "2-digit", minute: "2-digit", second: "2-digit", hour12: false });
+
+/**
+ * Refresh, with the time the page last read its data. The data here is synthetic and stops on 15 Oct, so a refresh
+ * usually returns the same rows: the spinning icon and the new time show that it ran.
+ */
+export function RefreshButton({ onRefresh, updated }: { onRefresh: () => Promise<unknown>; updated: number | null }) {
+  const [busy, setBusy] = useState(false);
+  const click = async () => {
+    setBusy(true);
+    try {
+      await Promise.all([onRefresh(), new Promise((r) => setTimeout(r, 400))]); // long enough to see
+    } finally {
+      setBusy(false);
+    }
+  };
+  return (
+    <div className="flex items-center gap-2.5">
+      {updated ? (
+        <span className="text-[12px] tabular-nums text-muted" aria-live="polite">
+          Updated {clock(updated)}
+        </span>
+      ) : null}
+      <Button onClick={click} disabled={busy}>
+        <RefreshCw className={clsx("size-4", busy && "animate-spin")} aria-hidden />
+        {busy ? "Refreshing…" : "Refresh"}
+      </Button>
+    </div>
   );
 }
 

@@ -1,9 +1,9 @@
 import clsx from "clsx";
-import { ArrowRight, BookOpen, Database, Hourglass, LayoutDashboard, RefreshCw, Sparkles, TriangleAlert, type LucideIcon } from "lucide-react";
+import { ArrowRight, BookOpen, Database, Hourglass, LayoutDashboard, Sparkles, TriangleAlert, type LucideIcon } from "lucide-react";
 import { useCallback, useEffect, useState } from "react";
 
 import { api, problem } from "../api";
-import { Badge, Button, Card, ErrorNote, PageHeader, Pill } from "../components/ui";
+import { Badge, Button, Card, ErrorNote, PageHeader, Pill, RefreshButton } from "../components/ui";
 import type { Acquirer, Me, Page, PendingApproval } from "../types";
 import { money, pct } from "../util";
 
@@ -60,11 +60,13 @@ function Start({ icon: Icon, tone, title, text, question, onClick }: { icon: Luc
 export default function OverviewPage({ me, pending, onAsk, navigate }: { me: Me | null; pending: PendingApproval[] | null; onAsk: (page: Page, question: string) => void; navigate: (page: Page) => void }) {
   const [rows, setRows] = useState<Acquirer[] | null>(null);
   const [error, setError] = useState<string | null>(null);
+  const [updated, setUpdated] = useState<number | null>(null);
   const refresh = useCallback(async () => {
     try {
       const r = await api<{ acquirers: Acquirer[]; error?: string | null }>("/api/overview");
       setRows(r.acquirers);
       setError(r.error ?? null);
+      if (!r.error) setUpdated(Date.now());
     } catch (e) {
       setError(problem(e));
     }
@@ -84,7 +86,7 @@ export default function OverviewPage({ me, pending, onAsk, navigate }: { me: Me 
         title="Overview"
         subtitle="Acquirer health from the governed gold tables, as you can see them"
         badges={<Badge kind="native">Unity Catalog gold tables</Badge>}
-        actions={<Button icon={RefreshCw} onClick={refresh}>Refresh</Button>}
+        actions={<RefreshButton onRefresh={refresh} updated={updated} />}
       />
       <div className="scrollbar-thin flex-1 overflow-y-auto px-8 py-6">
         <div className="mx-auto max-w-6xl space-y-6">
