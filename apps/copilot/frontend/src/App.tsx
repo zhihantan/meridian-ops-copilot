@@ -3,6 +3,7 @@ import { useCallback, useEffect, useState } from "react";
 
 import { api, problem } from "./api";
 import { Sidebar } from "./components/Sidebar";
+import AboutPage from "./pages/About";
 import ApprovalsPage from "./pages/Approvals";
 import CopilotPage from "./pages/Copilot";
 import GeniePage from "./pages/Genie";
@@ -10,7 +11,7 @@ import KnowledgePage from "./pages/Knowledge";
 import OverviewPage from "./pages/Overview";
 import type { Incoming, Me, Page, PendingApproval } from "./types";
 
-const PAGES: Page[] = ["overview", "copilot", "genie", "knowledge", "approvals"];
+const PAGES: Page[] = ["overview", "copilot", "genie", "knowledge", "approvals", "about"];
 
 const fromHash = (): Page => {
   const p = window.location.hash.replace(/^#\/?/, "") as Page;
@@ -79,6 +80,8 @@ export default function App() {
         return <KnowledgePage incoming={incoming} />;
       case "approvals":
         return <ApprovalsPage me={me} pending={pending} refreshPending={refreshPending} active={page === "approvals"} />;
+      case "about":
+        return <AboutPage active={page === "about"} navigate={navigate} />;
     }
   };
 

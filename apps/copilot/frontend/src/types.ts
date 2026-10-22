@@ -1,4 +1,4 @@
-export type Page = "overview" | "copilot" | "genie" | "knowledge" | "approvals";
+export type Page = "overview" | "copilot" | "genie" | "knowledge" | "approvals" | "about";
 
 export interface Me {
   name: string;
@@ -49,4 +49,14 @@ export interface Incoming {
   page: Page;
   question: string;
   nonce: number;
+}
+
+/** GET /api/about: the workspace host, and the paths of what the About page links to (runtime/about.py). */
+export interface AboutInfo {
+  host: string;
+  catalog: string;
+  paths: Record<string, string>;
+  names: Record<string, string>;
+  github: string | null;
+  links_generated_at: string | null;
 }

@@ -1,5 +1,5 @@
 import clsx from "clsx";
-import { BookOpen, Database, LayoutDashboard, ShieldCheck, Sparkles, type LucideIcon } from "lucide-react";
+import { BookOpen, Database, LayoutDashboard, Network, ShieldCheck, Sparkles, type LucideIcon } from "lucide-react";
 
 import type { Me, Page } from "../types";
 import { initials } from "../util";
@@ -11,6 +11,7 @@ const NAV: { page: Page; label: string; icon: LucideIcon; hint: string }[] = [
   { page: "genie", label: "Genie", icon: Database, hint: "Ask the data" },
   { page: "knowledge", label: "Knowledge", icon: BookOpen, hint: "Ask the policies" },
   { page: "approvals", label: "Approvals", icon: ShieldCheck, hint: "Refund batches" },
+  { page: "about", label: "About", icon: Network, hint: "How it is built" },
 ];
 
 export function Sidebar({ page, navigate, me, meError, pendingCount }: { page: Page; navigate: (p: Page) => void; me: Me | null; meError: string | null; pendingCount: number }) {

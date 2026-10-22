@@ -89,3 +89,24 @@ was also driven against the deployed backend through a local proxy holding the p
 resumed after a reload mid-run and finished in 30 s, Genie's hourly chart drew both series, the knowledge chatbot
 abstained with its closest passages below the threshold, and Approvals listed the decided batches. The browser console
 showed no errors.
+
+**About page (2026-10-22), BUILD.** A sixth page draws the architecture of the whole POC
+(`frontend/src/architecture.ts`). It has 36 boxes in five lanes (sources, ingest, lakehouse, AI and agents,
+experiences) and two bands (govern and observe; deliver and operate), each labelled NATIVE, PREVIEW, BUILD or EXTERNAL.
+- **Click:** a box, or one of its table and job chips, opens that asset in the workspace in a new tab, where the
+  workspace checks the visitor's own permissions.
+- **Hover:** shows what the box does, what the click opens and its evidence, and draws its connections.
+- **Scenes:** each scene of the run of show is a walkthrough through the boxes, with Play, numbered steps and the
+  arrow keys.
+
+No URL is stored in the repo. At build time, `scripts/console_links.py` keeps the paths, without the host, of the
+bundle's jobs, pipelines and dashboard from `databricks bundle summary` (prod and staging). `GET /api/about`
+(`runtime/about.py`) adds the workspace host, the Genie space (looked up as the visitor), the app, its trace
+experiment and the model endpoints. Unity Catalog objects are linked by name.
+
+Checked on 22 Oct, 10:08 SGT: `console_check.py` passed 16 of 16 against the deployed app
+(`console_check_2026-10-22.json`). The new check finds links for the bundle's jobs, pipeline and dashboard, the
+staging test, the prod deployment folder, the Genie space, the app and its traces, and no host in any stored path.
+Locally, every box's link was compared with the workspace paths (74 links, all opening a new tab), with hover, the
+walkthroughs, the label highlight and a 1280-pixel screen; the browser console showed no errors. Not checked: opening
+each link in a signed-in browser.

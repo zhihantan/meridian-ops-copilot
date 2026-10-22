@@ -5,7 +5,8 @@ records what each one gets:
 - who they are and their knowledge tiers;
 - the knowledge chatbot on a general question, a finance-tier question, and one it must not answer;
 - Genie on a question, and a follow-up in the same conversation;
-- approvals, and one copilot question.
+- approvals, and one copilot question;
+- the About page's links: the bundle's jobs, pipeline and dashboard, the Genie space, the app and its traces.
 
 Nothing is approved and no runbook runs. The approval checks use a made-up id, which the procedure refuses before
 writing anything. Names never reach the evidence.
@@ -37,6 +38,8 @@ FINANCE = "What service credit can Meridian claim when acq_7 breaches its SLA?"
 OUT_OF_SCOPE = "What will the SGD to USD exchange rate be next month?"
 DEGRADED = "Which acquirers are degraded right now?"
 FOLLOW_UP = "And what was its failure rate on each of the last 3 days?"
+ABOUT_LINKS = ("job:ingest_job", "pipeline:dlc", "dashboard:ops_dashboard", "job:staging/integration_test_job",
+               "folder:prod", "genie", "app", "experiment")  # the host is added by the page, never stored
 
 
 class App:
@@ -145,6 +148,10 @@ def main() -> None:
             r["overview"] = {"status": status, "degraded": [a["acquirer_id"] for a in overview.get("acquirers", []) if a["status"] == "degraded"],
                              "acquirers": len(overview.get("acquirers", [])), "data_until": (overview.get("acquirers") or [{}])[0].get("data_until_sgt")}
             r["approve_without_header"] = app.call("/api/approvals/not-a-real-approval", {"reason": "console check"})[0]
+            status, about = app.call("/api/about")
+            paths = about.get("paths", {}) if isinstance(about, dict) else {}
+            r["about"] = {"status": status, "paths": len(paths), "has": {k: k in paths for k in ABOUT_LINKS},
+                          "paths_name_no_host": not any("://" in p for p in paths.values())}
             r["approve_made_up_id"] = app.call("/api/approvals/not-a-real-approval", {"reason": "console check"}, {"X-Meridian-UI": "1"})[1]
         results[persona] = r
         print(f"{persona}: done")
@@ -167,6 +174,7 @@ def main() -> None:
         "approvals: an approval without the console's header is rejected": eli["approve_without_header"] == 400,
         "approvals: a made-up approval gets the procedure's refusal": isinstance(eli["approve_made_up_id"], dict) and eli["approve_made_up_id"].get("approved") is False and "no pending" in eli["approve_made_up_id"].get("reason", ""),
         "copilot: answers as Eli and as Ava": eli["copilot"]["status"] == "completed" and ava["copilot"]["status"] == "completed" and bool(eli["copilot"]["answer"]) and bool(ava["copilot"]["answer"]),
+        "about: links to the bundle's jobs, pipeline and dashboard, the Genie space, the app and its traces": eli["about"]["status"] == 200 and all(eli["about"]["has"].values()) and eli["about"]["paths_name_no_host"],
     }
     for name, ok in checks.items():
         print(f"{'PASS' if ok else 'FAIL'}  {name}")

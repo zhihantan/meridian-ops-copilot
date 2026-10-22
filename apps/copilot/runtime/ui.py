@@ -12,6 +12,7 @@ visitor (runtime/visitor.py), so Unity Catalog decides what each call may read o
   would call in SQL. It alone decides (meridian-admin only, never the requester, before the approval expires),
   and its refusal is passed back as it gave it.
 - /api/genie (runtime/genie.py) and /api/knowledge (runtime/knowledge.py): Genie and the knowledge chatbot.
+- /api/about (runtime/about.py): the workspace links of the About page's architecture.
 """
 
 from __future__ import annotations
@@ -29,7 +30,7 @@ from pydantic import BaseModel, Field
 from copilot.workflow import refusal
 from meridian.common.workspace import sql, warehouse_id
 from meridian.kb.retrieve import entitled_tiers
-from runtime import genie, knowledge
+from runtime import about, genie, knowledge
 from runtime.visitor import as_visitor
 
 HERE = Path(__file__).parent
@@ -163,3 +164,4 @@ def add_ui(app: FastAPI) -> None:
 
     app.include_router(genie.router)
     app.include_router(knowledge.router)
+    app.include_router(about.router)

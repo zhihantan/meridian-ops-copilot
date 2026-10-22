@@ -126,3 +126,18 @@ body {
   scrollbar-width: thin;
   scrollbar-color: #d6cfc4 transparent;
 }
+
+/* The About page's walkthrough: the step being shown moves along its line. */
+@keyframes dash {
+  to {
+    stroke-dashoffset: -24;
+  }
+}
+.flow-dash {
+  animation: dash 0.9s linear infinite;
+}
+@media (prefers-reduced-motion: reduce) {
+  .flow-dash {
+    animation: none;
+  }
+}

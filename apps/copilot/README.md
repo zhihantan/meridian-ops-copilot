@@ -15,6 +15,9 @@ that the server (FastAPI) serves at `/`. Everything in it runs as the signed-in 
   (`runtime/knowledge.py`).
 - **Approvals:** for meridian-admin, the refund batches waiting for approval, approved through
   `agent.approve_refund`, which alone decides (`runtime/ui.py`).
+- **About:** the architecture of the whole POC, each box labelled NATIVE, PREVIEW, BUILD or EXTERNAL and linked to
+  its asset in the workspace, with the demo's scenes as walkthroughs (`runtime/about.py`). The links to bundle
+  resources come from `databricks bundle summary` at build time (`scripts/console_links.py`), without the host.
 
 The first chat page stays at `/classic`. To work on the UI, run the server locally on port 8000 and
 `npm run dev` in `frontend/`, which proxies `/api` to it.

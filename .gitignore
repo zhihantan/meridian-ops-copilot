@@ -30,3 +30,4 @@ dist/
 # Copilot UI: dependencies and the Vite build (scripts/build_copilot.sh builds it into the deployed app)
 node_modules/
 apps/copilot/runtime/static/
+apps/copilot/runtime/links.json
