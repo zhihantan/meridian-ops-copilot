@@ -1,12 +1,13 @@
 import clsx from "clsx";
-import { ChevronLeft, ChevronRight, Network, Pause, Play, RotateCcw, X } from "lucide-react";
+import { ChevronDown, ChevronLeft, ChevronRight, ChevronUp, Info, Network, Pause, Play, RotateCcw, X } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
 import { api, problem } from "../api";
-import { EDGE_KINDS, FLOWS, KINDS, NODES, type Kind } from "../architecture";
+import { EDGE_KINDS, FLOWS, INTRO, KINDS, NODES, type Kind } from "../architecture";
 import { Architecture, EDGE_COLOR, EDGE_DASH, KindTag } from "../components/Architecture";
 import { Button, ErrorNote, PageHeader } from "../components/ui";
 import type { AboutInfo, Page } from "../types";
+import { useSessionState } from "../util";
 
 const STEP_MS = 4500; // time on each step of a walkthrough
 
@@ -21,6 +22,7 @@ export default function AboutPage({ active, navigate }: { active: boolean; navig
   const [flowId, setFlowId] = useState<string | null>(null);
   const [step, setStep] = useState(0);
   const [playing, setPlaying] = useState(false);
+  const [introOpen, setIntroOpen] = useSessionState("meridian.about.intro", () => true);
 
   useEffect(() => {
     api<AboutInfo>("/api/about")
@@ -92,6 +94,42 @@ export default function AboutPage({ active, navigate }: { active: boolean; navig
         </button>
       ))}
     </div>
+  );
+
+  // What the POC is for, above the diagram. Hiding it, for this tab, brings the whole diagram onto one screen.
+  const intro = introOpen ? (
+    <section className="rise mb-3 rounded-2xl border border-line bg-white px-6 pb-4 pt-3.5 shadow-[0_1px_2px_rgba(27,49,57,0.05),0_6px_16px_rgba(27,49,57,0.04)]">
+      <div className="flex items-start gap-3">
+        <div className="min-w-0 flex-1">
+          <p className="text-[11px] font-semibold uppercase tracking-wider text-muted">About this proof of concept · synthetic data</p>
+          <h2 className="mt-0.5 text-[17px] font-semibold leading-snug tracking-tight text-ink">{INTRO.title}</h2>
+        </div>
+        <Button variant="ghost" icon={ChevronUp} onClick={() => setIntroOpen(false)}>
+          Hide
+        </Button>
+      </div>
+      <div className="mt-2.5 grid grid-cols-[5fr_6fr] gap-8">
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-brand-dark">The problem</p>
+          <p className="mt-1 text-[13.5px] leading-[1.55] text-ink">{INTRO.problem}</p>
+        </div>
+        <div>
+          <p className="text-[11px] font-bold uppercase tracking-wider text-[#067647]">What it does</p>
+          <p className="mt-1 text-[13.5px] leading-[1.55] text-ink">{INTRO.solution}</p>
+        </div>
+      </div>
+    </section>
+  ) : (
+    <button
+      type="button"
+      onClick={() => setIntroOpen(true)}
+      className="mb-3 flex w-full items-center gap-2 rounded-xl border border-dashed border-line bg-white/60 px-4 py-2 text-left text-[13px] text-muted transition hover:border-navy-700/40 hover:text-ink"
+    >
+      <Info className="size-4 shrink-0" aria-hidden />
+      <span className="font-medium text-ink">{INTRO.title}.</span>
+      <span>The problem it solves, and what it does.</span>
+      <ChevronDown className="ml-auto size-4 shrink-0" aria-hidden />
+    </button>
   );
 
   return (
@@ -175,7 +213,7 @@ export default function AboutPage({ active, navigate }: { active: boolean; navig
             <ErrorNote>The workspace links could not be loaded ({error}). The diagram still shows how the parts connect.</ErrorNote>
           </div>
         ) : null}
-        <Architecture info={info} active={active} kind={kind} flow={flow} step={step} onStep={go} navigate={navigate}>
+        <Architecture info={info} active={active} kind={kind} flow={flow} step={step} onStep={go} navigate={navigate} intro={intro}>
           <div className="mt-4 flex flex-wrap items-center gap-x-5 gap-y-2 px-1 text-[11.5px] text-muted">
             {EDGE_KINDS.map((k) => (
               <span key={k.kind} className="inline-flex items-center gap-1.5">

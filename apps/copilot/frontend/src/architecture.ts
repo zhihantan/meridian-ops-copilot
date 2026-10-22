@@ -92,6 +92,15 @@ export interface Flow {
   steps: FlowStep[];
 }
 
+/** The page's introduction: the problem the POC addresses, and what it does about it. */
+export const INTRO = {
+  title: "An operations copilot for payment incidents, built on Databricks",
+  problem:
+    "When a payment acquirer starts failing, the operations team at Meridian Commerce, a fictional marketplace, has to find out what broke, who is affected and what to refund. The answers sit in pipelines they can't always trust, in runbooks and policies not everyone may read, and in refunds that need a person's approval.",
+  solution:
+    "The Meridian Ops Copilot brings this into one governed place. Pipelines check every file against data contracts, quarantine what fails and mask personal data. The knowledge base answers only from documents the asker may read. The copilot follows the approved runbook as the person asking: it queries the data through Genie, cites every fact, and waits for an admin before refunds above the policy threshold are paid. Claude Code reaches the same data and documents over MCP, under the same rules.",
+};
+
 export const KINDS: { kind: Kind; label: string; text: string }[] = [
   { kind: "native", label: "Native", text: "A Databricks feature" },
   { kind: "preview", label: "Preview", text: "A Databricks feature not yet generally available" },

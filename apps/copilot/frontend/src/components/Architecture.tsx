@@ -177,10 +177,11 @@ interface Props {
   step: number;
   onStep: (i: number) => void;
   navigate: (p: Page) => void;
-  children?: ReactNode; // shown under the diagram, at its width
+  intro?: ReactNode; // shown above the diagram, at its width
+  children?: ReactNode; // shown under it
 }
 
-export function Architecture({ info, active, kind, flow, step, onStep, navigate, children }: Props) {
+export function Architecture({ info, active, kind, flow, step, onStep, navigate, intro, children }: Props) {
   const outer = useRef<HTMLDivElement>(null);
   const canvas = useRef<HTMLDivElement>(null);
   const tipRef = useRef<HTMLDivElement>(null);
@@ -399,6 +400,7 @@ export function Architecture({ info, active, kind, flow, step, onStep, navigate,
   return (
     <div ref={outer} className="w-full overflow-x-auto scrollbar-thin">
       <div className="mx-auto" style={{ width: CANVAS_W * scale }}>
+      {intro}
       <div style={{ height: height ? height * scale : undefined }}>
         <div ref={canvas} className="relative" style={{ width: CANVAS_W, transform: `scale(${scale})`, transformOrigin: "0 0" }}>
           <div className="grid gap-2.5" style={{ gridTemplateColumns: COLUMNS }}>

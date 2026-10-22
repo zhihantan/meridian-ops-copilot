@@ -91,7 +91,8 @@ abstained with its closest passages below the threshold, and Approvals listed th
 showed no errors.
 
 **About page (2026-10-22), BUILD.** A sixth page draws the architecture of the whole POC
-(`frontend/src/architecture.ts`). It has 36 boxes in five lanes (sources, ingest, lakehouse, AI and agents,
+(`frontend/src/architecture.ts`). It opens with the problem the POC addresses and what it does, which the
+presenter can hide for the tab. The diagram has 36 boxes in five lanes (sources, ingest, lakehouse, AI and agents,
 experiences) and two bands (govern and observe; deliver and operate), each labelled NATIVE, PREVIEW, BUILD or EXTERNAL.
 - **Click:** a box, or one of its table and job chips, opens that asset in the workspace in a new tab, where the
   workspace checks the visitor's own permissions.
